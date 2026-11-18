@@ -2447,7 +2447,7 @@ func init() {
 		"Print now":                          "今すぐ印刷",
 		"Getting the covers ready: %v of %v": "カバー画像を準備中: %v / %v",
 
-		// which installers and emulators a file works with
+		// which installers and emulators a file works with, and the games of the Library by it
 		"Installers: all":                            "インストーラー: すべて",
 		"Installers: all but Awoo":                   "インストーラー: Awoo 以外すべて",
 		"Installers: only NXDock":                    "インストーラー: NXDock のみ",
@@ -2463,5 +2463,9 @@ func init() {
 		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "NXPress の追加圧縮で作られています。NXDock ならそのままインストールできます。DBI、Tinfoil、エミュレーターでは、先に NXPress で展開してください。",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "アップデートを統合したゲームです(インストール用の最適化、または別のツールによるもの)。NXDock または DBI で、sigpatches を入れてインストールしてください。エミュレーターではそのまま開けます。",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "アップデートを統合したゲームです(インストール用の最適化、または別のツールによるもの)。NXDock または DBI で、sigpatches を入れてインストールしてください。エミュレーターでは先に展開が必要です。",
+		"Open it as it is":        "そのまま開ける",
+		"Do not open it as it is": "そのままでは開けない",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "ゲーム本体、最新のアップデート、DLC が、先に展開しなくてもエミュレーターで開けます。",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "ゲーム本体、最新のアップデート、DLC のどれかを先に展開する必要があります。どのファイルをどうするかはゲームのページに表示されます。",
 	}
 }

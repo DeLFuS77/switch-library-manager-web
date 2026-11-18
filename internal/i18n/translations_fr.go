@@ -2447,7 +2447,7 @@ func init() {
 		"Print now":                          "Imprimer maintenant",
 		"Getting the covers ready: %v of %v": "Préparation des jaquettes : %v sur %v",
 
-		// which installers and emulators a file works with
+		// which installers and emulators a file works with, and the games of the Library by it
 		"Installers: all":                            "Installateurs : tous",
 		"Installers: all but Awoo":                   "Installateurs : tous sauf Awoo",
 		"Installers: only NXDock":                    "Installateurs : NXDock seulement",
@@ -2463,5 +2463,9 @@ func init() {
 		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Fait avec la compression extra de NXPress. NXDock l’installe tel quel ; pour DBI, Tinfoil et les émulateurs, décompressez-le d’abord avec NXPress.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "Le jeu fusionné avec sa mise à jour (optimisé pour l’installation, ou par un autre outil) : installez-le avec NXDock ou DBI, avec les sigpatches. Les émulateurs l’ouvrent tel quel.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "Le jeu fusionné avec sa mise à jour (optimisé pour l’installation, ou par un autre outil) : installez-le avec NXDock ou DBI, avec les sigpatches. Les émulateurs ont besoin qu’il soit d’abord décompressé.",
+		"Open it as it is":        "Ils l’ouvrent tel quel",
+		"Do not open it as it is": "Ils ne l’ouvrent pas tel quel",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "Le jeu, sa dernière mise à jour et ses DLC s’ouvrent dans les émulateurs sans les décompresser d’abord.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "Le jeu, sa dernière mise à jour ou l’un de ses DLC doit d’abord être décompressé : la page du jeu indique quel fichier et comment.",
 	}
 }

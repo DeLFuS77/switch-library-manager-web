@@ -2447,7 +2447,7 @@ func init() {
 		"Print now":                          "Nu afdrukken",
 		"Getting the covers ready: %v of %v": "Covers worden klaargezet: %v van %v",
 
-		// which installers and emulators a file works with
+		// which installers and emulators a file works with, and the games of the Library by it
 		"Installers: all":                            "Installatieprogramma's: alle",
 		"Installers: all but Awoo":                   "Installatieprogramma's: alle behalve Awoo",
 		"Installers: only NXDock":                    "Installatieprogramma's: alleen NXDock",
@@ -2463,5 +2463,9 @@ func init() {
 		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Gemaakt met de extra compressie van NXPress. NXDock installeert het direct; decomprimeer het voor DBI, Tinfoil en de emulators eerst met NXPress.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "Het spel samengevoegd met zijn update (geoptimaliseerd voor installatie, of met een ander programma): installeer het met NXDock of DBI, met sigpatches. Emulators openen het direct.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "Het spel samengevoegd met zijn update (geoptimaliseerd voor installatie, of met een ander programma): installeer het met NXDock of DBI, met sigpatches. Emulators hebben het eerst gedecomprimeerd nodig.",
+		"Open it as it is":        "Openen het direct",
+		"Do not open it as it is": "Openen het niet direct",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "Het spel, zijn nieuwste update en zijn DLC openen in emulators zonder ze eerst te decomprimeren.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "Het spel, zijn nieuwste update of een van zijn DLC moet eerst gedecomprimeerd worden: de pagina van het spel vertelt welk bestand en hoe.",
 	}
 }

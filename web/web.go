@@ -328,6 +328,9 @@ type TitleItem struct {
 	// library: the game is merged with its update (optimized for install, or by another tool):
 	// the version of that update, 0 else
 	Optimized int
+	// library: whether emulators open as they are the files of the game the library keeps
+	// (EMULATORS_AS_IS or EMULATORS_NOT_AS_IS, see gameEmulators); "" when it is not known
+	Emulators string
 	// library: how long the game takes to beat, in seconds (IGDB); 0 when not known
 	TimeToBeat int
 	// library: the score of the game on IGDB, of the critics or else of the users; 0 when none
@@ -504,6 +507,9 @@ type LibraryFacets struct {
 	CheatsOther int
 	// games that need a newer firmware than the console has
 	FirmwareTooNew int
+	// the games whose files emulators open as they are, and those with one to decompress first
+	EmulatorsAsIs    int
+	EmulatorsNotAsIs int
 	// the games of the user by how they go, and those without a state ("none")
 	Play map[string]int
 	// games not in the library, shown in the All view

@@ -2474,7 +2474,7 @@ var Translations = map[string]map[string]string{
 		"Print now":                          "Imprimir ya",
 		"Getting the covers ready: %v of %v": "Preparando las portadas: %v de %v",
 
-		// which installers and emulators a file works with
+		// which installers and emulators a file works with, and the games of the Library by it
 		"Installers: all":                            "Instaladores: todos",
 		"Installers: all but Awoo":                   "Instaladores: todos menos Awoo",
 		"Installers: only NXDock":                    "Instaladores: solo NXDock",
@@ -2490,6 +2490,10 @@ var Translations = map[string]map[string]string{
 		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Hecho con la compresión extra de NXPress. NXDock lo instala tal cual; para DBI, Tinfoil y los emuladores, descomprímelo antes con NXPress.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "El juego juntado con su actualización (optimizado para instalar, o con otra herramienta): instálalo con NXDock o DBI, con sigpatches. Los emuladores lo abren tal cual.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "El juego juntado con su actualización (optimizado para instalar, o con otra herramienta): instálalo con NXDock o DBI, con sigpatches. Los emuladores lo necesitan descomprimido antes.",
+		"Open it as it is":        "Los abren tal cual",
+		"Do not open it as it is": "No los abren tal cual",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "El juego, su actualización más reciente y sus DLC se abren en los emuladores sin descomprimirlos antes.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "Hay que descomprimir antes el juego, su actualización más reciente o alguno de sus DLC: la página del juego dice qué archivo y cómo.",
 	},
 }
 

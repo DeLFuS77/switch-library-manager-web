@@ -5,6 +5,7 @@
 ### Improvements
 
 - The page of a game tells under each file which installers take it and whether emulators open it as it is (NSP and XCI, NSZ solid or in blocks, XCZ, the extra compression of NXPress, a game merged with its update)
+- Library: filter by emulators, in Filters › The file: the games whose files all open as they are, or those with one to decompress first
 
 ### Fixes
 

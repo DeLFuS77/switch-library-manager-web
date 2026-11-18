@@ -2447,7 +2447,7 @@ func init() {
 		"Print now":                          "지금 인쇄",
 		"Getting the covers ready: %v of %v": "커버 준비 중: %v / %v",
 
-		// which installers and emulators a file works with
+		// which installers and emulators a file works with, and the games of the Library by it
 		"Installers: all":                            "설치 프로그램: 모두",
 		"Installers: all but Awoo":                   "설치 프로그램: Awoo 빼고 모두",
 		"Installers: only NXDock":                    "설치 프로그램: NXDock만",
@@ -2463,5 +2463,9 @@ func init() {
 		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "NXPress의 추가 압축으로 만들어졌어요. NXDock은 그대로 설치해요. DBI, Tinfoil, 에뮬레이터에서는 먼저 NXPress로 압축을 푸세요.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "업데이트를 합친 게임이에요(설치용 최적화 또는 다른 도구). NXDock 또는 DBI로, sigpatches를 갖추고 설치하세요. 에뮬레이터는 그대로 열어요.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "업데이트를 합친 게임이에요(설치용 최적화 또는 다른 도구). NXDock 또는 DBI로, sigpatches를 갖추고 설치하세요. 에뮬레이터는 먼저 압축을 풀어야 해요.",
+		"Open it as it is":        "그대로 열려요",
+		"Do not open it as it is": "그대로는 안 열려요",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "게임, 최신 업데이트, DLC를 먼저 압축 해제하지 않아도 에뮬레이터에서 열려요.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "게임, 최신 업데이트, DLC 중 하나를 먼저 압축 해제해야 해요. 어떤 파일을 어떻게 할지는 게임 페이지에 나와요.",
 	}
 }

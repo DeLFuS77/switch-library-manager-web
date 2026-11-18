@@ -2447,7 +2447,7 @@ func init() {
 		"Print now":                          "立即打印",
 		"Getting the covers ready: %v of %v": "正在准备封面：%v / %v",
 
-		// which installers and emulators a file works with
+		// which installers and emulators a file works with, and the games of the Library by it
 		"Installers: all":                            "安装程序：全部",
 		"Installers: all but Awoo":                   "安装程序：除 Awoo 外全部",
 		"Installers: only NXDock":                    "安装程序：仅 NXDock",
@@ -2463,5 +2463,9 @@ func init() {
 		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "用 NXPress 的额外压缩制作。NXDock 可直接安装；用于 DBI、Tinfoil 和模拟器时，请先用 NXPress 解压。",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "已并入更新的游戏（为安装优化，或由其他工具合并）：请用 NXDock 或 DBI 安装，需要 sigpatches。模拟器可直接打开。",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "已并入更新的游戏（为安装优化，或由其他工具合并）：请用 NXDock 或 DBI 安装，需要 sigpatches。模拟器需要先解压。",
+		"Open it as it is":        "可直接打开",
+		"Do not open it as it is": "不能直接打开",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "游戏、最新更新和 DLC 无需先解压即可在模拟器中打开。",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "游戏、最新更新或某个 DLC 需要先解压：游戏页面会说明是哪个文件以及如何处理。",
 	}
 }

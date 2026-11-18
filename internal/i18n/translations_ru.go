@@ -2447,7 +2447,7 @@ func init() {
 		"Print now":                          "Печатать сейчас",
 		"Getting the covers ready: %v of %v": "Подготовка обложек: %v из %v",
 
-		// which installers and emulators a file works with
+		// which installers and emulators a file works with, and the games of the Library by it
 		"Installers: all":                            "Установщики: все",
 		"Installers: all but Awoo":                   "Установщики: все, кроме Awoo",
 		"Installers: only NXDock":                    "Установщики: только NXDock",
@@ -2463,5 +2463,9 @@ func init() {
 		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Сделан с дополнительным сжатием NXPress. NXDock устанавливает его как есть; для DBI, Tinfoil и эмуляторов сначала распакуйте его в NXPress.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "Игра, объединённая со своим обновлением (оптимизирована для установки или другой программой): устанавливайте через NXDock или DBI, с sigpatches. Эмуляторы открывают её как есть.",
 		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "Игра, объединённая со своим обновлением (оптимизирована для установки или другой программой): устанавливайте через NXDock или DBI, с sigpatches. Для эмуляторов её сначала нужно распаковать.",
+		"Open it as it is":        "Открывают как есть",
+		"Do not open it as it is": "Не открывают как есть",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "Игра, её последнее обновление и DLC открываются в эмуляторах без предварительной распаковки.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "Игру, её последнее обновление или одно из DLC нужно сначала распаковать: на странице игры указано, какой файл и как.",
 	}
 }

@@ -21,7 +21,7 @@ const (
 )
 
 // the parameters of the Library a smart collection keeps; the page and its size are not kept
-var smartCollectionKeys = []string{"q", "status", "format", "kind", "region", "extra", "collection", "missing", "genre", "publisher", "players", "languages", "play", "score", "folder", "sort_by", "sort_order"}
+var smartCollectionKeys = []string{"q", "status", "format", "emulators", "kind", "region", "extra", "collection", "missing", "genre", "publisher", "players", "languages", "play", "score", "folder", "sort_by", "sort_order"}
 
 // SmartCollection is a filter of the Library with a name.
 type SmartCollection struct {
@@ -116,7 +116,7 @@ func cleanSmartQuery(query string) string {
 	if err != nil {
 		return ""
 	}
-	filter := &TitleItemFilter{Keyword: values.Get("q"), Status: values.Get("status"), Format: values.Get("format"), Kind: values.Get("kind"),
+	filter := &TitleItemFilter{Keyword: values.Get("q"), Status: values.Get("status"), Format: values.Get("format"), Emulators: values.Get("emulators"), Kind: values.Get("kind"),
 		Region: values.Get("region"), Extra: values.Get("extra"), Collection: values.Get("collection"), WithMissing: values.Get("missing"),
 		Genre: values.Get("genre"), Publisher: values.Get("publisher"), Players: values.Get("players"), GameLanguage: values.Get("languages"), Play: values.Get("play"), Score: values.Get("score"),
 		Folder: values.Get("folder"), SortBy: values.Get("sort_by"), SortOrder: values.Get("sort_order"), PerPage: 24, Page: 1}
@@ -150,7 +150,7 @@ func (web *Web) smartCollectionViews(filter *TitleItemFilter, lang string) []Sma
 	current := cleanSmartQuery(filter.query().Encode())
 	for _, collection := range web.smartCollections().list() {
 		values, _ := url.ParseQuery(collection.Query)
-		saved := &TitleItemFilter{Keyword: values.Get("q"), Status: values.Get("status"), Format: values.Get("format"), Kind: values.Get("kind"),
+		saved := &TitleItemFilter{Keyword: values.Get("q"), Status: values.Get("status"), Format: values.Get("format"), Emulators: values.Get("emulators"), Kind: values.Get("kind"),
 			Region: values.Get("region"), Extra: values.Get("extra"), Collection: values.Get("collection"), WithMissing: values.Get("missing"),
 			Genre: values.Get("genre"), Publisher: values.Get("publisher"), Players: values.Get("players"), GameLanguage: values.Get("languages"), Play: values.Get("play"), Score: values.Get("score"),
 			Folder: values.Get("folder"), SortBy: values.Get("sort_by"), SortOrder: values.Get("sort_order"), PerPage: 24, Page: 1}

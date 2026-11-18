@@ -1,6 +1,8 @@
 package web
 
 import (
+	"strings"
+
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -119,4 +121,75 @@ func readUnknownStorage(detail *TitleDetail) {
 	for i := range detail.Dlc {
 		read(detail.Dlc[i].File)
 	}
+}
+
+// the games of the Library by their emulators: the files the library keeps of the game (the
+// game, its newest update and its DLC) all open as they are, or one must be decompressed first
+const (
+	EMULATORS_AS_IS     = "as_is"
+	EMULATORS_NOT_AS_IS = "not_as_is"
+)
+
+// gameEmulators tells whether emulators open as they are all the files the library keeps of a
+// game: its own, its newest update and its DLC. It is EMULATORS_NOT_AS_IS when one of them must be
+// decompressed first, and "" when how one of the others is stored is not known. A NUP opens as it
+// is when Eglantine and Lichii read it.
+func gameEmulators(local *db.SwitchGameFiles) string {
+	if local == nil || !local.BaseExist {
+		return ""
+	}
+	files := []db.SwitchFileInfo{local.File}
+	if update, ok := local.Updates[local.LatestUpdate]; ok {
+		files = append(files, update)
+	}
+	for _, dlc := range local.Dlc {
+		files = append(files, dlc)
+	}
+	known := true
+	for _, file := range files {
+		switch fileOpensAsItIs(file) {
+		case EMULATORS_NOT_AS_IS:
+			return EMULATORS_NOT_AS_IS
+		case "":
+			known = false
+		}
+	}
+	if !known {
+		return ""
+	}
+	return EMULATORS_AS_IS
+}
+
+// fileOpensAsItIs tells whether emulators open a file as it is (EMULATORS_AS_IS), need it
+// decompressed (EMULATORS_NOT_AS_IS), or "" when it is not known.
+func fileOpensAsItIs(file db.SwitchFileInfo) string {
+	if file.Metadata == nil {
+		return ""
+	}
+	if switchfs.IsNupFile(file.ExtendedInfo.FileName) {
+		switch {
+		case file.Metadata.Emulators == nil:
+			return ""
+		case file.Metadata.Emulators.Ok():
+			return EMULATORS_AS_IS
+		}
+		return EMULATORS_NOT_AS_IS
+	}
+	works := worksWith(file.Metadata.Storage, false)
+	switch {
+	case works.Unknown:
+		return ""
+	case works.EmulatorsOk:
+		return EMULATORS_AS_IS
+	}
+	return EMULATORS_NOT_AS_IS
+}
+
+// cleanEmulators is the emulators filter as the Library takes it: one of its choices, else "".
+func cleanEmulators(value string) string {
+	value = strings.ToLower(strings.TrimSpace(value))
+	if value != EMULATORS_AS_IS && value != EMULATORS_NOT_AS_IS {
+		return ""
+	}
+	return value
 }
