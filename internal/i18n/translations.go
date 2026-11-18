@@ -2557,6 +2557,11 @@ var Translations = map[string]map[string]string{
 		"about %v h left":              "te quedan unas %v h",
 		"Hours played":                 "Horas jugadas",
 		"since %v":                     "desde el %v",
+		// Diagnostics › Reports from the consoles (see web/netreports.go)
+		"Reports from the consoles":                                                            "Informes de las consolas",
+		"Delete the report of %v from %v? It cannot be undone.":                                "¿Borrar el informe de %v del %v? No se puede deshacer.",
+		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Ninguna consola ha enviado un informe todavía. NXDock envía uno cuando se lo pides, para un issue.",
+		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Se guardan los 10 últimos de cada consola. Cada uno queda anotado en Actividad.",
 	},
 }
 

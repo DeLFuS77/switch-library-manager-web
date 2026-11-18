@@ -2530,5 +2530,10 @@ func init() {
 		"about %v h left":              "осталось около %v ч",
 		"Hours played":                 "Часов в игре",
 		"since %v":                     "с %v",
+		// Diagnostics › Reports from the consoles (see web/netreports.go)
+		"Reports from the consoles":                                                            "Отчёты консолей",
+		"Delete the report of %v from %v? It cannot be undone.":                                "Удалить отчёт %v от %v? Это нельзя отменить.",
+		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Пока ни одна консоль не отправила отчёт. NXDock отправляет его по вашей просьбе, для issue.",
+		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Хранятся последние 10 отчётов каждой консоли. Каждый отмечается в разделе «Активность».",
 	}
 }

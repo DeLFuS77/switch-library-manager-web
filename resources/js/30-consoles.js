@@ -1,7 +1,7 @@
 // The page Consoles: Bring up to date (the files the library has newer go to the console, which
 // asks before installing them), Remove from console (asked in a dialog; the console asks too, and
 // copies the saves of the game to the library first), and the page asked again while the library
-// is still counting what it has newer.
+// is still counting what it has newer. And in Diagnostics, Delete of the reports of the consoles.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
 function consoleUpdateMessage(json) {
@@ -109,6 +109,37 @@ function initConsoleRemove() {
 	});
 }
 
+// Diagnostics › Reports from the consoles: Delete, asked first; with the last one gone, the note
+// that there are none
+function initConsoleReports() {
+	const section = document.querySelector('[data-console-reports]');
+	if (!section) {
+		return;
+	}
+	section.addEventListener('click', e => {
+		const button = e.target.closest('[data-console-report-delete]');
+		if (!button || !window.confirm(button.dataset.confirm)) {
+			return;
+		}
+		button.disabled = true;
+		apiFetch(button.dataset.consoleReportDelete, { method: 'DELETE' })
+			.then(response => readJSON(response).then(json => {
+				if (!response.ok && response.status !== 404) {
+					throw new Error(netErrorMessage(response, json));
+				}
+				button.closest('[data-console-report]').remove();
+				if (!section.querySelector('[data-console-report]')) {
+					section.querySelector('.net-saves').remove();
+					section.querySelector('[data-console-reports-empty]').hidden = false;
+				}
+			}))
+			.catch(error => {
+				button.disabled = false;
+				showToast('alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message || t('Could not reach the server.'));
+			});
+	});
+}
+
 // while the library counts what it has newer, the page asks again in a moment
 function initConsolesCounting() {
 	if (!document.querySelector('[data-consoles-counting]')) {
@@ -128,4 +159,5 @@ document.addEventListener('DOMContentLoaded', () => {
 	initConsoleUpdate();
 	initConsoleRemove();
 	initConsolesCounting();
+	initConsoleReports();
 });

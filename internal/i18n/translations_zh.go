@@ -2530,5 +2530,10 @@ func init() {
 		"about %v h left":              "还剩约 %v 小时",
 		"Hours played":                 "游玩时长",
 		"since %v":                     "自 %v 起",
+		// Diagnostics › Reports from the consoles (see web/netreports.go)
+		"Reports from the consoles":                                                            "主机发来的报告",
+		"Delete the report of %v from %v? It cannot be undone.":                                "要删除 %v 的报告（%v）吗？此操作无法撤销。",
+		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "还没有主机发送报告。NXDock 会在你要求时发送一份，用于提交 issue。",
+		"The last 10 of each console are kept. Each one is noted in Activity.":                 "每台主机保留最近 10 份。每份都会记入活动记录。",
 	}
 }

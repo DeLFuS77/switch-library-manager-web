@@ -32,8 +32,8 @@ import (
 //   - The reports are kept in the data folder, in consoles/reports/<id of the key>/, named by the
 //     time they came (UTC); the newest 10 of each console stay.
 //   - The administrators list them with GET /api/install/reports, download one with GET
-//     /api/install/reports/{keyId}/{name} and delete it with DELETE on the same path. Not in the
-//     demo.
+//     /api/install/reports/{keyId}/{name} and delete it with DELETE on the same path; the page
+//     Diagnostics lists them, with Download and Delete. Not in the demo.
 
 const (
 	netInstallReport = NET_INSTALL_PREFIX + "report"
@@ -274,9 +274,17 @@ func (web *Web) handleNetReportList(w http.ResponseWriter, r *http.Request) {
 	if !web.netReportsAdmin(w, r) {
 		return
 	}
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, http.StatusOK, map[string]any{"reports": web.netReportRows()})
+}
+
+// netReportRows are the reports of every console, newest first.
+func (web *Web) netReportRows() []netReportRow {
 	keys := map[string]KeyRow{}
-	for _, key := range web.auth.users.KeyRows("") {
-		keys[key.ID] = key
+	if web.auth != nil {
+		for _, key := range web.auth.users.KeyRows("") {
+			keys[key.ID] = key
+		}
 	}
 	rows := []netReportRow{}
 	folders, _ := os.ReadDir(web.netReportsRoot())
@@ -300,8 +308,7 @@ func (web *Web) handleNetReportList(w http.ResponseWriter, r *http.Request) {
 		}
 		return rows[i].KeyId < rows[j].KeyId
 	})
-	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, map[string]any{"reports": rows})
+	return rows
 }
 
 // handleNetReportDownload gives a report, for the administrators.

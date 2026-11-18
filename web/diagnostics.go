@@ -55,6 +55,10 @@ type DiagnosticsPageData struct {
 	Report string
 	// the addresses to open the app from other devices, not in the report
 	OtherDevices OtherDevices
+	// the reports the consoles sent of what went wrong (see netreports.go), newest first; not in
+	// the demo
+	ShowReports bool
+	Reports     []netReportRow
 }
 
 var appStarted = time.Now()
@@ -284,6 +288,9 @@ func (web *Web) HandleDiagnostics() {
 	web.router.HandleFunc("/diagnostics.html", func(w http.ResponseWriter, r *http.Request) {
 		data := web.diagnostics(r, web.requestLanguage(r))
 		data.GlobalPageData = web.globalPageData("diagnostics")
+		if !isDemoMode() {
+			data.ShowReports, data.Reports = true, web.netReportRows()
+		}
 		web.render(w, r, templates, data)
 	}).Methods("GET")
 }

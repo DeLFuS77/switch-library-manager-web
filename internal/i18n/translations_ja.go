@@ -2530,5 +2530,10 @@ func init() {
 		"about %v h left":              "残り約 %v 時間",
 		"Hours played":                 "プレイ時間",
 		"since %v":                     "%v から",
+		// Diagnostics › Reports from the consoles (see web/netreports.go)
+		"Reports from the consoles":                                                            "本体からのレポート",
+		"Delete the report of %v from %v? It cannot be undone.":                                "%v のレポート (%v) を削除しますか？元に戻せません。",
+		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "まだどの本体からもレポートは届いていません。NXDock は求められたときに issue 用のレポートを送ります。",
+		"The last 10 of each console are kept. Each one is noted in Activity.":                 "本体ごとに最新の 10 件を保存します。それぞれアクティビティに記録されます。",
 	}
 }

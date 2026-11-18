@@ -224,3 +224,31 @@ func TestNetReportsForAdministrators(t *testing.T) {
 		t.Fatalf("none left: %+v", list.Reports)
 	}
 }
+
+// Diagnostics lists the reports of the consoles for the administrators, with Download and Delete,
+// and says when there is none; not in the demo.
+func TestNetReportsInDiagnostics(t *testing.T) {
+	web, admin, _, console, auth, keyId, _ := pushWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleDiagnostics()
+	page := admin.do("GET", "/diagnostics.html", nil).Body.String()
+	if !strings.Contains(page, "Reports from the consoles") || !strings.Contains(page, "No console has sent a report yet") || strings.Contains(page, "data-console-report-delete") {
+		t.Fatalf("none yet: %s", page)
+	}
+	var answer struct {
+		Stored string `json:"stored"`
+	}
+	json.Unmarshal(sendReport(console, bytes.NewReader(reportZip(t, "nxdock.log")), "application/zip", "Authorization", auth).Body.Bytes(), &answer)
+	path := "/api/install/reports/" + keyId + "/" + answer.Stored
+	page = admin.do("GET", "/diagnostics.html", nil).Body.String()
+	for _, want := range []string{`href="` + path + `" download`, `data-console-report-delete="` + path + `"`, ">Switch</td>", "<span>bob</span>", "The last 10 of each console are kept",
+		"Delete the report of Switch from"} {
+		if !strings.Contains(page, want) {
+			t.Errorf("Diagnostics has no %s", want)
+		}
+	}
+	t.Setenv("SLM_DEMO", "true")
+	if page := admin.do("GET", "/diagnostics.html", nil).Body.String(); strings.Contains(page, "Reports from the consoles") {
+		t.Error("not in the demo")
+	}
+}
