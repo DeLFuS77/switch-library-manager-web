@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.17
+
+### Improvements
+
+- Settings: the messages of the automations and of the save vault can also be turned off in the list of Notifications. Thanks to @TerrorSource for reporting it (#189)
+
 ## 2.0.16
 
 ### Fixes

@@ -2366,6 +2366,8 @@ func init() {
 		"The console could not install what it was sent.":    "主机无法安装发送给它的内容。",
 		"The install was cancelled on the console.":          "安装已在主机上取消。",
 		"Notify when a console finishes installing (NXDock)": "主机安装完成时通知（NXDock）",
+		"Notify what the automations did":                    "通知自动化完成的操作",
+		"Notify every new backup of saves":                   "每次有新的存档备份时通知",
 		"NXDock finished installing on %v":                   "NXDock 已在 %v 上完成安装",
 		"%v installed, %v failed":                            "已安装 %v 个，失败 %v 个",
 		"Search the eShop":                                   "在 eShop 中搜索",
