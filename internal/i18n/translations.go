@@ -2577,6 +2577,27 @@ var Translations = map[string]map[string]string{
 		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, basado en el trabajo de giwty, dtrunk90 y trembon. Software libre con licencia AGPL-3.0, sin ninguna garantía. Una versión cambiada debe decir que lo es.",
 		"See the license": "Ver la licencia",
 		"See the code":    "Ver el código",
+
+		// which installers and emulators a file works with, and the games of the Library by it
+		"Installers: all":                            "Instaladores: todos",
+		"Installers: all but Awoo":                   "Instaladores: todos menos Awoo",
+		"Installers: only NXDock":                    "Instaladores: solo NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "Instaladores: NXDock o DBI, con sigpatches",
+		"Emulators: as it is":                        "Emuladores: tal cual",
+		"Emulators: decompress it first":             "Emuladores: descomprímelo antes",
+		"Emulators: no":                              "Emuladores: no",
+		"Installers and emulators: unknown":          "Instaladores y emuladores: no se sabe",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "No se ha podido leer cómo está guardado el archivo: puede que falte o que esté dañado.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Sin comprimir: lo instalan todos los instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) y los emuladores lo abren tal cual.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "Comprimido de una pieza (sólido): lo instalan todos los instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira); los emuladores lo necesitan descomprimido antes.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "Comprimido en bloques: lo instalan todos los instaladores menos Awoo, y los emuladores que leen NSZ y XCZ lo abren tal cual.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Hecho con la compresión extra de NXPress. NXDock lo instala tal cual; para DBI, Tinfoil y los emuladores, descomprímelo antes con NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "El juego juntado con su actualización (optimizado para instalar, o con otra herramienta): instálalo con NXDock o DBI, con sigpatches. Los emuladores lo abren tal cual.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "El juego juntado con su actualización (optimizado para instalar, o con otra herramienta): instálalo con NXDock o DBI, con sigpatches. Los emuladores lo necesitan descomprimido antes.",
+		"Open it as it is":        "Los abren tal cual",
+		"Do not open it as it is": "No los abren tal cual",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "El juego, su actualización más reciente y sus DLC se abren en los emuladores sin descomprimirlos antes.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "Hay que descomprimir antes el juego, su actualización más reciente o alguno de sus DLC: la página del juego dice qué archivo y cómo.",
 	},
 }
 

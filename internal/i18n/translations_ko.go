@@ -2550,5 +2550,26 @@ func init() {
 		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, giwty, dtrunk90, trembon의 작업을 바탕으로 합니다. AGPL-3.0의 자유 소프트웨어이며 어떠한 보증도 없습니다. 변경한 버전은 변경 버전임을 밝혀야 합니다.",
 		"See the license": "라이선스 보기",
 		"See the code":    "코드 보기",
+
+		// which installers and emulators a file works with, and the games of the Library by it
+		"Installers: all":                            "설치 프로그램: 모두",
+		"Installers: all but Awoo":                   "설치 프로그램: Awoo 빼고 모두",
+		"Installers: only NXDock":                    "설치 프로그램: NXDock만",
+		"Installers: NXDock or DBI, with sigpatches": "설치 프로그램: NXDock 또는 DBI, sigpatches 필요",
+		"Emulators: as it is":                        "에뮬레이터: 그대로",
+		"Emulators: decompress it first":             "에뮬레이터: 먼저 압축 해제",
+		"Emulators: no":                              "에뮬레이터: 안 됨",
+		"Installers and emulators: unknown":          "설치 프로그램과 에뮬레이터: 알 수 없음",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "파일이 어떻게 저장됐는지 읽지 못했어요. 파일이 없거나 손상됐을 수 있어요.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "압축되지 않았어요. 모든 설치 프로그램(NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira)이 설치하고, 에뮬레이터도 그대로 열어요.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "한 덩어리로(솔리드) 압축됐어요. 모든 설치 프로그램(NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira)이 설치하지만, 에뮬레이터는 먼저 압축을 풀어야 해요.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "블록 단위로 압축됐어요. Awoo를 뺀 모든 설치 프로그램이 설치하고, NSZ와 XCZ를 읽는 에뮬레이터는 그대로 열어요.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "NXPress의 추가 압축으로 만들어졌어요. NXDock은 그대로 설치해요. DBI, Tinfoil, 에뮬레이터에서는 먼저 NXPress로 압축을 푸세요.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "업데이트를 합친 게임이에요(설치용 최적화 또는 다른 도구). NXDock 또는 DBI로, sigpatches를 갖추고 설치하세요. 에뮬레이터는 그대로 열어요.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "업데이트를 합친 게임이에요(설치용 최적화 또는 다른 도구). NXDock 또는 DBI로, sigpatches를 갖추고 설치하세요. 에뮬레이터는 먼저 압축을 풀어야 해요.",
+		"Open it as it is":        "그대로 열려요",
+		"Do not open it as it is": "그대로는 안 열려요",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "게임, 최신 업데이트, DLC를 먼저 압축 해제하지 않아도 에뮬레이터에서 열려요.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "게임, 최신 업데이트, DLC 중 하나를 먼저 압축 해제해야 해요. 어떤 파일을 어떻게 할지는 게임 페이지에 나와요.",
 	}
 }

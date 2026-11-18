@@ -2550,5 +2550,26 @@ func init() {
 		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, baseado no trabalho de giwty, dtrunk90 e trembon. Software livre sob a licença AGPL-3.0, sem nenhuma garantia. Uma versão alterada deve dizer que é uma.",
 		"See the license": "Ver a licença",
 		"See the code":    "Ver o código",
+
+		// which installers and emulators a file works with, and the games of the Library by it
+		"Installers: all":                            "Instaladores: todos",
+		"Installers: all but Awoo":                   "Instaladores: todos exceto o Awoo",
+		"Installers: only NXDock":                    "Instaladores: só o NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "Instaladores: NXDock ou DBI, com sigpatches",
+		"Emulators: as it is":                        "Emuladores: tal como está",
+		"Emulators: decompress it first":             "Emuladores: descomprima-o primeiro",
+		"Emulators: no":                              "Emuladores: não",
+		"Installers and emulators: unknown":          "Instaladores e emuladores: desconhecido",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "Não foi possível ler como o ficheiro está guardado: pode estar em falta ou danificado.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Sem compressão: todos os instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) o instalam e os emuladores abrem-no tal como está.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "Comprimido numa só peça (sólido): todos os instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) o instalam; os emuladores precisam dele descomprimido primeiro.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "Comprimido em blocos: todos os instaladores exceto o Awoo o instalam, e os emuladores que leem NSZ e XCZ abrem-no tal como está.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Feito com a compressão extra do NXPress. O NXDock instala-o tal como está; para o DBI, o Tinfoil e os emuladores, descomprima-o primeiro com o NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "O jogo juntado com a sua atualização (otimizado para instalar, ou por outra ferramenta): instale-o com o NXDock ou DBI, com sigpatches. Os emuladores abrem-no tal como está.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "O jogo juntado com a sua atualização (otimizado para instalar, ou por outra ferramenta): instale-o com o NXDock ou DBI, com sigpatches. Os emuladores precisam dele descomprimido primeiro.",
+		"Open it as it is":        "Abrem-no tal como está",
+		"Do not open it as it is": "Não o abrem tal como está",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "O jogo, a sua atualização mais recente e os seus DLC abrem nos emuladores sem os descomprimir primeiro.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "O jogo, a sua atualização mais recente ou um dos seus DLC tem de ser descomprimido primeiro: a página do jogo diz qual ficheiro e como.",
 	}
 }

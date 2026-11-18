@@ -2550,5 +2550,26 @@ func init() {
 		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, basato sul lavoro di giwty, dtrunk90 e trembon. Software libero con licenza AGPL-3.0, senza alcuna garanzia. Una versione modificata deve dire di esserlo.",
 		"See the license": "Vedi la licenza",
 		"See the code":    "Vedi il codice",
+
+		// which installers and emulators a file works with, and the games of the Library by it
+		"Installers: all":                            "Installer: tutti",
+		"Installers: all but Awoo":                   "Installer: tutti tranne Awoo",
+		"Installers: only NXDock":                    "Installer: solo NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "Installer: NXDock o DBI, con le sigpatch",
+		"Emulators: as it is":                        "Emulatori: così com'è",
+		"Emulators: decompress it first":             "Emulatori: prima decomprimilo",
+		"Emulators: no":                              "Emulatori: no",
+		"Installers and emulators: unknown":          "Installer ed emulatori: sconosciuto",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "Non è stato possibile leggere come è salvato il file: forse manca o è danneggiato.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Non compresso: lo installano tutti gli installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) e gli emulatori lo aprono così com'è.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "Compresso in un unico blocco (solido): lo installano tutti gli installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira); gli emulatori lo vogliono prima decompresso.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "Compresso a blocchi: lo installano tutti gli installer tranne Awoo, e gli emulatori che leggono NSZ e XCZ lo aprono così com'è.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Creato con la compressione extra di NXPress. NXDock lo installa così com'è; per DBI, Tinfoil e gli emulatori, prima decomprimilo con NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "Il gioco unito al suo aggiornamento (ottimizzato per l'installazione, o con un altro strumento): installalo con NXDock o DBI, con le sigpatch. Gli emulatori lo aprono così com'è.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "Il gioco unito al suo aggiornamento (ottimizzato per l'installazione, o con un altro strumento): installalo con NXDock o DBI, con le sigpatch. Gli emulatori lo vogliono prima decompresso.",
+		"Open it as it is":        "Lo aprono così com'è",
+		"Do not open it as it is": "Non lo aprono così com'è",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "Il gioco, il suo aggiornamento più recente e i suoi DLC si aprono negli emulatori senza decomprimerli prima.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "Il gioco, il suo aggiornamento più recente o uno dei suoi DLC va prima decompresso: la pagina del gioco dice quale file e come.",
 	}
 }

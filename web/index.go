@@ -272,7 +272,20 @@ func (f *libraryFilter) takes(index int) bool {
 		status.apply(&copied)
 		item = &copied
 	}
-	return f.formatAndRegion(item) && f.collection(item) && f.onConsole(item) && f.attributes(item) && f.kindAndExtra(item) && f.play(item) && f.status(item)
+	return f.formatAndRegion(item) && f.collection(item) && f.onConsole(item) && f.attributes(item) && f.kindAndExtra(item) && f.emulators(item) && f.play(item) && f.status(item)
+}
+
+// emulators counts the games whose files emulators open as they are, and those with one to
+// decompress first, then takes the game in the choice made; a game not in the library, or whose
+// files are not known, shows with Any only.
+func (f *libraryFilter) emulators(item *TitleItem) bool {
+	switch item.Emulators {
+	case EMULATORS_AS_IS:
+		f.facets.EmulatorsAsIs++
+	case EMULATORS_NOT_AS_IS:
+		f.facets.EmulatorsNotAsIs++
+	}
+	return f.filter.Emulators == "" || item.Emulators == f.filter.Emulators
 }
 
 // formatAndRegion counts the formats and regions of the game, and takes it in the format and
@@ -607,6 +620,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		}
 		item.Added = added["game:"+item.Id]
 		item.Optimized = mergedUpdate(v)
+		item.Emulators = gameEmulators(v)
 		item.TimeToBeat = timesToBeat[item.Id].Main()
 		item.Score = timesToBeat[item.Id].Score()
 		item.Collections = collections[item.Id]

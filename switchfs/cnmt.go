@@ -52,6 +52,10 @@ type ContentMetaAttributes struct {
 	// false in data cached before
 	NcaLz4     bool `json:"nca_lz4,omitempty"`
 	NcaLz4Read bool `json:"nca_lz4_read,omitempty"`
+	// how the file it is in keeps its NCA files (see FileFacts.Storage), the same for each title
+	// of the file, noted by the library when it reads the file; "" when it was not read (a NUP,
+	// data cached before, a file named only)
+	Storage string `json:"storage,omitempty"`
 }
 
 type ContentMeta struct {

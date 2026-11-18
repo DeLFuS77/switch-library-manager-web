@@ -2550,5 +2550,26 @@ func init() {
 		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77。giwty、dtrunk90、trembon の成果をもとにしています。AGPL-3.0 のフリーソフトウェアで、保証は一切ありません。変更したバージョンは、変更版であることを示す必要があります。",
 		"See the license": "ライセンスを見る",
 		"See the code":    "コードを見る",
+
+		// which installers and emulators a file works with, and the games of the Library by it
+		"Installers: all":                            "インストーラー: すべて",
+		"Installers: all but Awoo":                   "インストーラー: Awoo 以外すべて",
+		"Installers: only NXDock":                    "インストーラー: NXDock のみ",
+		"Installers: NXDock or DBI, with sigpatches": "インストーラー: NXDock または DBI(sigpatches が必要)",
+		"Emulators: as it is":                        "エミュレーター: そのまま",
+		"Emulators: decompress it first":             "エミュレーター: 先に展開が必要",
+		"Emulators: no":                              "エミュレーター: 不可",
+		"Installers and emulators: unknown":          "インストーラーとエミュレーター: 不明",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "ファイルの保存形式を読み取れませんでした。ファイルがないか、壊れている可能性があります。",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "非圧縮です。すべてのインストーラー(NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira)でインストールでき、エミュレーターでもそのまま開けます。",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "一体で圧縮(ソリッド)されています。すべてのインストーラー(NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira)でインストールできますが、エミュレーターでは先に展開が必要です。",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "ブロック単位で圧縮されています。Awoo 以外のすべてのインストーラーでインストールでき、NSZ と XCZ を読めるエミュレーターならそのまま開けます。",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "NXPress の追加圧縮で作られています。NXDock ならそのままインストールできます。DBI、Tinfoil、エミュレーターでは、先に NXPress で展開してください。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "アップデートを統合したゲームです(インストール用の最適化、または別のツールによるもの)。NXDock または DBI で、sigpatches を入れてインストールしてください。エミュレーターではそのまま開けます。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "アップデートを統合したゲームです(インストール用の最適化、または別のツールによるもの)。NXDock または DBI で、sigpatches を入れてインストールしてください。エミュレーターでは先に展開が必要です。",
+		"Open it as it is":        "そのまま開ける",
+		"Do not open it as it is": "そのままでは開けない",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "ゲーム本体、最新のアップデート、DLC が、先に展開しなくてもエミュレーターで開けます。",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "ゲーム本体、最新のアップデート、DLC のどれかを先に展開する必要があります。どのファイルをどうするかはゲームのページに表示されます。",
 	}
 }

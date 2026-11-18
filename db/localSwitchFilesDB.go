@@ -1394,6 +1394,34 @@ func needsNcaLz4(fileName string, metadata map[string]*switchfs.ContentMetaAttri
 	return false
 }
 
+// needsStorage tells cached data of a file read before the library noted how the file keeps its
+// NCA files (see ContentMetaAttributes.Storage).
+func needsStorage(metadata map[string]*switchfs.ContentMetaAttributes) bool {
+	for _, meta := range metadata {
+		if meta != nil && meta.Storage == "" {
+			return true
+		}
+	}
+	return false
+}
+
+// noteStorage notes in the data of a file how it keeps its NCA files, the same for each of its
+// titles, from the headers of its NCZ files; it reports whether they could be read. A file that
+// cannot be read is left without it, and tried again on the next scan.
+func noteStorage(filePath string, metadata map[string]*switchfs.ContentMetaAttributes) bool {
+	storage, err := switchfs.ReadStorage(filePath)
+	if err != nil {
+		zap.S().Debugf("[file:%v] how it is stored could not be read [reason: %v]", filepath.Base(filePath), err)
+		return false
+	}
+	for _, meta := range metadata {
+		if meta != nil {
+			meta.Storage = storage
+		}
+	}
+	return true
+}
+
 // noteNacpTried notes in the data of a file just read the generation of the keys its games and
 // updates without a NACP were read with.
 func noteNacpTried(metadata map[string]*switchfs.ContentMetaAttributes, generation int) {
@@ -1462,6 +1490,11 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		}
 		if metadata != nil && !ldb.needsAttributes(metadata) && !needsNacp(metadata, generation) && !needsNcaLz4(file.FileName, metadata) {
 			result.metadata = metadata
+			// data cached before the storage was noted: only the headers of the NCZ are read,
+			// and the data is cached again with it
+			if needsStorage(metadata) && noteStorage(filePath, metadata) {
+				result.cacheKey = fileKey
+			}
 			return result
 		}
 
@@ -1491,6 +1524,7 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		}
 		if metadata != nil {
 			noteNacpTried(metadata, generation)
+			noteStorage(filePath, metadata)
 			result.metadata = metadata
 			result.cacheKey = fileKey
 			return result

@@ -800,6 +800,52 @@
 	}
 }
 
+// which installers and emulators a file works with, on its row in Files: each with a dot, in
+// green when everything does and in orange when there is a limit (never red: the file is whole),
+// in grey when it is not known; the colors of the chips, AA in both themes. The case shows on
+// hover, and stays under the line on a touch screen (21-hover-help.js)
+.works-with {
+	--works-ok: #{shade-color($success, 38%)};
+	--works-limit: #{shade-color($warning, 45%)};
+	margin-top: .35rem;
+	font-size: .8125rem;
+	line-height: 1.45;
+	color: var(--bs-secondary-color);
+
+	.form-text {
+		margin-top: .2rem;
+		font-size: .8125rem;
+	}
+}
+
+[data-bs-theme="dark"] .works-with {
+	--works-ok: #{tint-color($success, 45%)};
+	--works-limit: #{tint-color($warning, 35%)};
+}
+
+// on a narrow screen each part goes to the next line whole, its dot with it
+.works-part {
+	display: inline-block;
+
+	&.is-ok {
+		color: var(--works-ok);
+	}
+
+	&.is-limit {
+		color: var(--works-limit);
+	}
+}
+
+.works-dot {
+	display: inline-block;
+	width: .5rem;
+	height: .5rem;
+	margin-right: .375rem;
+	border-radius: 50%;
+	vertical-align: .0625rem;
+	background: currentColor;
+}
+
 // the button that writes again the metadata of a NUP counted from 0: in the orange of the
 // warning above it, never red (nothing is wrong with the file); its help shows on hover, and it
 // keeps the hand of a button

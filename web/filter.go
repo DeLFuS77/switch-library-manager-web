@@ -26,6 +26,9 @@ type TitleItemFilter struct {
 	// library only: status of the games and file format
 	Status string `in:"form=status"`
 	Format string `in:"form=format"`
+	// library only: the games whose files emulators open as they are, or not (EMULATORS_AS_IS,
+	// EMULATORS_NOT_AS_IS)
+	Emulators string `in:"form=emulators"`
 	// library only: games or demos, region, and games without a cover or unknown
 	Kind string `in:"form=kind"`
 	// library only: the games of one console, the Switch or the Switch 2 (CONSOLE_SWITCH...)
@@ -205,6 +208,7 @@ func (f *TitleItemFilter) Normalize() {
 	if len(f.Format) > 16 {
 		f.Format = ""
 	}
+	f.Emulators = cleanEmulators(f.Emulators)
 	if _, ok := allowedKind[f.Kind]; !ok {
 		f.Kind = ""
 	}
@@ -254,7 +258,7 @@ func (f *TitleItemFilter) Normalize() {
 // Active reports whether the items are filtered by a keyword, a status, a format or another
 // library filter.
 func (f *TitleItemFilter) Active() bool {
-	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Console != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != "" || f.Folder != "" || f.OnConsole != ""
+	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Emulators != "" || f.Kind != "" || f.Console != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != "" || f.Folder != "" || f.OnConsole != ""
 }
 
 // Filters reports whether the Library shows only some of its games: what a smart collection
@@ -283,7 +287,7 @@ func (f *TitleItemFilter) ShowsMissing() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score, f.Folder, f.Publisher, f.OnConsole} {
+	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Emulators, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score, f.Folder, f.Publisher, f.OnConsole} {
 		if value != "" {
 			count++
 		}
@@ -298,6 +302,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("q", f.Keyword)
 	values.Set("status", f.Status)
 	values.Set("format", strings.ToLower(f.Format))
+	values.Set("emulators", f.Emulators)
 	values.Set("kind", f.Kind)
 	values.Set("console", f.Console)
 	values.Set("region", strings.ToLower(f.Region))

@@ -2550,5 +2550,26 @@ func init() {
 		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, basé sur le travail de giwty, dtrunk90 et trembon. Logiciel libre sous licence AGPL-3.0, sans aucune garantie. Une version modifiée doit dire qu'elle l'est.",
 		"See the license": "Voir la licence",
 		"See the code":    "Voir le code",
+
+		// which installers and emulators a file works with, and the games of the Library by it
+		"Installers: all":                            "Installateurs : tous",
+		"Installers: all but Awoo":                   "Installateurs : tous sauf Awoo",
+		"Installers: only NXDock":                    "Installateurs : NXDock seulement",
+		"Installers: NXDock or DBI, with sigpatches": "Installateurs : NXDock ou DBI, avec les sigpatches",
+		"Emulators: as it is":                        "Émulateurs : tel quel",
+		"Emulators: decompress it first":             "Émulateurs : décompressez-le d’abord",
+		"Emulators: no":                              "Émulateurs : non",
+		"Installers and emulators: unknown":          "Installateurs et émulateurs : inconnu",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "Impossible de lire comment le fichier est stocké : il est peut-être absent ou endommagé.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Non compressé : tous les installateurs (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) l’installent, et les émulateurs l’ouvrent tel quel.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "Compressé d’un seul bloc (solide) : tous les installateurs (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) l’installent ; les émulateurs ont besoin qu’il soit d’abord décompressé.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "Compressé en blocs : tous les installateurs sauf Awoo l’installent, et les émulateurs qui lisent les NSZ et XCZ l’ouvrent tel quel.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Fait avec la compression extra de NXPress. NXDock l’installe tel quel ; pour DBI, Tinfoil et les émulateurs, décompressez-le d’abord avec NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "Le jeu fusionné avec sa mise à jour (optimisé pour l’installation, ou par un autre outil) : installez-le avec NXDock ou DBI, avec les sigpatches. Les émulateurs l’ouvrent tel quel.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "Le jeu fusionné avec sa mise à jour (optimisé pour l’installation, ou par un autre outil) : installez-le avec NXDock ou DBI, avec les sigpatches. Les émulateurs ont besoin qu’il soit d’abord décompressé.",
+		"Open it as it is":        "Ils l’ouvrent tel quel",
+		"Do not open it as it is": "Ils ne l’ouvrent pas tel quel",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "Le jeu, sa dernière mise à jour et ses DLC s’ouvrent dans les émulateurs sans les décompresser d’abord.",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "Le jeu, sa dernière mise à jour ou l’un de ses DLC doit d’abord être décompressé : la page du jeu indique quel fichier et comment.",
 	}
 }

@@ -2550,5 +2550,26 @@ func init() {
 		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77，基于 giwty、dtrunk90 和 trembon 的成果。采用 AGPL-3.0 许可的自由软件，不附带任何担保。修改过的版本必须说明自己是修改版。",
 		"See the license": "查看许可证",
 		"See the code":    "查看代码",
+
+		// which installers and emulators a file works with, and the games of the Library by it
+		"Installers: all":                            "安装程序：全部",
+		"Installers: all but Awoo":                   "安装程序：除 Awoo 外全部",
+		"Installers: only NXDock":                    "安装程序：仅 NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "安装程序：NXDock 或 DBI，需要 sigpatches",
+		"Emulators: as it is":                        "模拟器：直接打开",
+		"Emulators: decompress it first":             "模拟器：需先解压",
+		"Emulators: no":                              "模拟器：不支持",
+		"Installers and emulators: unknown":          "安装程序和模拟器：未知",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "无法读取文件的存储方式：文件可能不存在或已损坏。",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "未压缩：所有安装程序（NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira）都能安装，模拟器也能直接打开。",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "整体压缩（固实）：所有安装程序（NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira）都能安装；模拟器需要先解压。",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "分块压缩：除 Awoo 外所有安装程序都能安装，能读取 NSZ 和 XCZ 的模拟器可直接打开。",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "用 NXPress 的额外压缩制作。NXDock 可直接安装；用于 DBI、Tinfoil 和模拟器时，请先用 NXPress 解压。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "已并入更新的游戏（为安装优化，或由其他工具合并）：请用 NXDock 或 DBI 安装，需要 sigpatches。模拟器可直接打开。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "已并入更新的游戏（为安装优化，或由其他工具合并）：请用 NXDock 或 DBI 安装，需要 sigpatches。模拟器需要先解压。",
+		"Open it as it is":        "可直接打开",
+		"Do not open it as it is": "不能直接打开",
+		"The game, its newest update and its DLC open in emulators without decompressing them first.":                                "游戏、最新更新和 DLC 无需先解压即可在模拟器中打开。",
+		"The game, its newest update or one of its DLC has to be decompressed first: the page of the game tells which file and how.": "游戏、最新更新或某个 DLC 需要先解压：游戏页面会说明是哪个文件以及如何处理。",
 	}
 }
