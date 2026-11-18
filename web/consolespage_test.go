@@ -72,8 +72,8 @@ func TestConsolesPageInstalled(t *testing.T) {
 			t.Errorf("the page has no %s", want)
 		}
 	}
-	if strings.Contains(body, "See what is installed") {
-		t.Error("the list is shown already")
+	if strings.Contains(body, "See what is installed") || strings.Contains(body, "0 DLC") {
+		t.Error("the list is shown already, without the DLC it has none of")
 	}
 	order := func(sort string) []string {
 		body := bob.do("GET", "/consoles.html?console="+keyId+"&sort="+sort, nil).Body.String()

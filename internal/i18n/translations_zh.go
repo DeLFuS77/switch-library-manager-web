@@ -2535,5 +2535,7 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "要删除 %v 的报告（%v）吗？此操作无法撤销。",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "还没有主机发送报告。NXDock 会在你要求时发送一份，用于提交 issue。",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "每台主机保留最近 10 份。每份都会记入活动记录。",
+		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
+		"1 DLC missing": "缺少 1 个 DLC",
 	}
 }

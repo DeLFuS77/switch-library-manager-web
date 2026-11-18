@@ -102,7 +102,7 @@
 							<img class="console-cover" src="{{if .Cover}}{{.Cover}}{{else}}/resources/static/noimage.png{{end}}" alt="" loading="lazy" decoding="async">
 							<span class="console-game-main">
 								<span class="console-game-name">{{.Name}}</span>
-								<span class="console-game-sub">{{if .To}}v{{.From}} → v{{.To}}{{end}}{{if and .To .MissingDlc}} &middot; {{end}}{{if .MissingDlc}}{{t "%v DLC missing" .MissingDlc}}{{end}}</span>
+								<span class="console-game-sub">{{if .To}}v{{.From}} → v{{.To}}{{end}}{{if and .To .MissingDlc}} &middot; {{end}}{{if .MissingDlc}}{{if eq .MissingDlc 1}}{{t "1 DLC missing"}}{{else}}{{t "%v DLC missing" .MissingDlc}}{{end}}{{end}}</span>
 							</span>
 							<span class="console-game-size">{{formatSize .Size}}</span>
 						</li>
@@ -171,7 +171,7 @@
 						<div class="console-row-meta">
 							<span>v{{.Version}}{{with .Newer}} → v{{.}}{{end}}</span>
 							{{- with .Storage}}<span><span class="bi {{if eq . "nand"}}bi-cpu{{else}}bi-sd-card{{end}} me-1" aria-hidden="true"></span>{{if eq . "nand"}}{{t "Internal memory"}}{{else}}{{t "SD card"}}{{end}}</span>{{end}}
-							{{- if or .Dlc .MissingDlc}}<span><span class="bi bi-puzzle me-1" aria-hidden="true"></span>{{t "%v DLC" .Dlc}}{{if .MissingDlc}} &middot; {{t "%v DLC missing" .MissingDlc}}{{end}}</span>{{end}}
+							{{- if or .Dlc .MissingDlc}}<span><span class="bi bi-puzzle me-1" aria-hidden="true"></span>{{if .Dlc}}{{t "%v DLC" .Dlc}}{{end}}{{if and .Dlc .MissingDlc}} &middot; {{end}}{{if eq .MissingDlc 1}}{{t "1 DLC missing"}}{{else if .MissingDlc}}{{t "%v DLC missing" .MissingDlc}}{{end}}</span>{{end}}
 						</div>
 						{{- with .PlayText}}<div class="console-row-play"><span class="bi bi-joystick me-1" aria-hidden="true"></span>{{.}}</div>{{end}}
 					</div>

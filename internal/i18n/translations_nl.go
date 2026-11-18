@@ -2535,5 +2535,7 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "Het rapport van %v van %v verwijderen? Dit kan niet ongedaan worden gemaakt.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Nog geen console heeft een rapport gestuurd. NXDock stuurt er een als je erom vraagt, voor een issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "De laatste 10 van elke console worden bewaard. Elk ervan staat in Activiteit.",
+		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
+		"1 DLC missing": "1 DLC ontbreekt",
 	}
 }

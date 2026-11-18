@@ -2535,5 +2535,7 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "%v의 보고서(%v)를 삭제할까요? 되돌릴 수 없습니다.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "아직 보고서를 보낸 콘솔이 없습니다. NXDock은 요청하면 이슈용 보고서를 보냅니다.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "콘솔마다 최근 10개를 보관합니다. 각각 활동에 기록됩니다.",
+		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
+		"1 DLC missing": "DLC 1개 누락",
 	}
 }
