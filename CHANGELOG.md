@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Improvements
+
+- Saves: the saves of Eden on a computer paired with a code (NXPress), or on the same computer as the app, stay in step with the ones of the console by themselves, while Eden is closed; when both changed, you choose which one stays, and both are kept
+- Saves: 10 copies are kept per game for the consoles and 10 for each emulator
+
 ### Fixes
 
 - Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out
