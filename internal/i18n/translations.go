@@ -2473,6 +2473,18 @@ var Translations = map[string]map[string]string{
 		"Print or save as PDF":               "Imprimir o guardar en PDF",
 		"Print now":                          "Imprimir ya",
 		"Getting the covers ready: %v of %v": "Preparando las portadas: %v de %v",
+		// the consoles: removing a game, their reports and what they tell (see web/netconsoles.go, netremove.go, netreports.go)
+		"Asked a console to remove a game":                        "Pidió a una consola quitar un juego",
+		"A console removed a game":                                "Una consola quitó un juego",
+		"A console declined to remove a game":                     "Una consola rechazó quitar un juego",
+		"A console could not remove a game":                       "Una consola no pudo quitar un juego",
+		"A console sent a report":                                 "Una consola envió un informe",
+		"it was not on the console":                               "no estaba en la consola",
+		"choose a game installed on the console":                  "elige un juego instalado en la consola",
+		"the game is not installed on the console":                "el juego no está instalado en la consola",
+		"the console has not told what is installed on it":        "la consola aún no ha dicho qué tiene instalado",
+		"the body is nothing, or {\"compressed\": true}":          "el cuerpo va vacío o es {\"compressed\": true}",
+		"only an administrator reads the reports of the consoles": "solo un administrador lee los informes de las consolas",
 	},
 }
 

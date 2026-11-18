@@ -2446,5 +2446,17 @@ func init() {
 		"Print or save as PDF":               "인쇄 또는 PDF로 저장",
 		"Print now":                          "지금 인쇄",
 		"Getting the covers ready: %v of %v": "커버 준비 중: %v / %v",
+		// the consoles: removing a game, their reports and what they tell (see web/netconsoles.go, netremove.go, netreports.go)
+		"Asked a console to remove a game":                        "콘솔에 게임 삭제를 요청함",
+		"A console removed a game":                                "콘솔이 게임을 삭제함",
+		"A console declined to remove a game":                     "콘솔이 게임 삭제를 거절함",
+		"A console could not remove a game":                       "콘솔이 게임을 삭제하지 못함",
+		"A console sent a report":                                 "콘솔이 보고서를 보냄",
+		"it was not on the console":                               "콘솔에 없었음",
+		"choose a game installed on the console":                  "콘솔에 설치된 게임을 선택하세요",
+		"the game is not installed on the console":                "이 게임은 콘솔에 설치되어 있지 않습니다",
+		"the console has not told what is installed on it":        "콘솔이 아직 설치된 내용을 알려 주지 않았습니다",
+		"the body is nothing, or {\"compressed\": true}":          "본문은 비어 있거나 {\"compressed\": true}입니다",
+		"only an administrator reads the reports of the consoles": "콘솔의 보고서는 관리자만 볼 수 있습니다",
 	}
 }

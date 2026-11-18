@@ -334,6 +334,8 @@ type netConsoleGame struct {
 	Outdated bool `json:"outdated"`
 	// how much it was played on the console, when the console told it
 	Play *netPlayStats `json:"play,omitempty"`
+	// the console was asked to remove it and has not answered yet (see netremove.go)
+	Removing bool `json:"removing,omitempty"`
 }
 
 // netMissingDlc is a DLC of the library a console lacks.
@@ -520,6 +522,10 @@ func (web *Web) netConsoleCompared(console KeyRow, options settings.NetInstallOp
 	kept, byId := web.netFilesKept(options)
 	switchDB, _ := web.state.get()
 	detail.Games, detail.ToUpdate = compareNetConsole(inventory, kept, switchDB)
+	removals := web.netPushes.removals(console.ID)
+	for i := range detail.Games {
+		detail.Games[i].Removing = removals[detail.Games[i].TitleId]
+	}
 	detail.Inventory, detail.System = summarizeNetInventory(inventory), inventory.System
 	countNetConsole(detail.Inventory, detail.Games, detail.ToUpdate)
 	if inventory.System != nil && inventory.System.SdTotal > 0 {

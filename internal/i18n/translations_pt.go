@@ -2446,5 +2446,17 @@ func init() {
 		"Print or save as PDF":               "Imprimir ou guardar em PDF",
 		"Print now":                          "Imprimir já",
 		"Getting the covers ready: %v of %v": "A preparar as capas: %v de %v",
+		// the consoles: removing a game, their reports and what they tell (see web/netconsoles.go, netremove.go, netreports.go)
+		"Asked a console to remove a game":                        "Pediu a uma consola para remover um jogo",
+		"A console removed a game":                                "Uma consola removeu um jogo",
+		"A console declined to remove a game":                     "Uma consola recusou remover um jogo",
+		"A console could not remove a game":                       "Uma consola não conseguiu remover um jogo",
+		"A console sent a report":                                 "Uma consola enviou um relatório",
+		"it was not on the console":                               "não estava na consola",
+		"choose a game installed on the console":                  "escolhe um jogo instalado na consola",
+		"the game is not installed on the console":                "o jogo não está instalado na consola",
+		"the console has not told what is installed on it":        "a consola ainda não disse o que tem instalado",
+		"the body is nothing, or {\"compressed\": true}":          "o corpo vai vazio, ou {\"compressed\": true}",
+		"only an administrator reads the reports of the consoles": "só um administrador lê os relatórios das consolas",
 	}
 }

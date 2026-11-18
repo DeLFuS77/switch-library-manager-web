@@ -2446,5 +2446,17 @@ func init() {
 		"Print or save as PDF":               "Печать или сохранение в PDF",
 		"Print now":                          "Печатать сейчас",
 		"Getting the covers ready: %v of %v": "Подготовка обложек: %v из %v",
+		// the consoles: removing a game, their reports and what they tell (see web/netconsoles.go, netremove.go, netreports.go)
+		"Asked a console to remove a game":                        "Попросил консоль удалить игру",
+		"A console removed a game":                                "Консоль удалила игру",
+		"A console declined to remove a game":                     "Консоль отказалась удалять игру",
+		"A console could not remove a game":                       "Консоль не смогла удалить игру",
+		"A console sent a report":                                 "Консоль отправила отчёт",
+		"it was not on the console":                               "её не было на консоли",
+		"choose a game installed on the console":                  "выберите игру, установленную на консоли",
+		"the game is not installed on the console":                "игра не установлена на консоли",
+		"the console has not told what is installed on it":        "консоль ещё не сообщила, что на ней установлено",
+		"the body is nothing, or {\"compressed\": true}":          "тело запроса пустое или {\"compressed\": true}",
+		"only an administrator reads the reports of the consoles": "отчёты консолей читает только администратор",
 	}
 }

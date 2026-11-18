@@ -176,7 +176,7 @@ var (
 		oidcFailedDetail:                oidcFailedDetail,
 		recoveryActivityDetail:          recoveryActivityDetail,
 	}
-	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
+	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check", netRemoveMissingPhrase}
 )
 
 // translateActivity returns the activity with its details in a language. The details are

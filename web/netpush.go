@@ -91,9 +91,23 @@ type netPushItem struct {
 	Format  string `json:"format"`
 	Name    string `json:"name"`
 	From    string `json:"from"`
+	// what the console is asked: nothing to install a file, netPushRemove to remove the game of
+	// TitleId (the ID of the application), named Game, from the console
+	Action string `json:"action,omitempty"`
 }
 
-// netPush is a file sent to a console that waits for it, or that it got and has not answered.
+// the actions a console is asked besides installing a file (see netPushItem)
+const netPushRemove = "remove"
+
+// what NXDock tells it did with a game it was asked to remove, besides accepting it
+const (
+	netRemoveDone    = "removed"
+	netRemoveFailed  = "failed"
+	netRemoveMissing = "missing"
+)
+
+// netPush is a file sent to a console that waits for it, or that it got and has not answered; or,
+// with item.Action, a game it is asked to remove.
 type netPush struct {
 	id, keyId, keyName, owner, fileId, game string
 	made                                    time.Time
@@ -217,6 +231,26 @@ func (q *netPushQueue) waiting(key string) int {
 	defer q.mutex.Unlock()
 	q.forgetOld(time.Now())
 	return len(q.pending[key])
+}
+
+// removals are the games a console was asked to remove, by the ID of the application, while it
+// has not answered: waiting for it, or given to it.
+func (q *netPushQueue) removals(key string) map[string]bool {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	q.forgetOld(time.Now())
+	asked := map[string]bool{}
+	for _, push := range q.pending[key] {
+		if push.item.Action == netPushRemove {
+			asked[push.item.TitleId] = true
+		}
+	}
+	for _, push := range q.delivered {
+		if push.keyId == key && push.item.Action == netPushRemove {
+			asked[push.item.TitleId] = true
+		}
+	}
+	return asked
 }
 
 // netConsoleKey is the key of the console of a request: a key of the role Console.
@@ -412,9 +446,19 @@ func (web *Web) handleNetPushWait(w http.ResponseWriter, r *http.Request) {
 	for {
 		pushes, signal := web.netPushes.take(key.KeyID)
 		if len(pushes) > 0 {
-			_, byId := web.netFilesKept(options)
+			var byId map[string]netFile
 			items := []netPushItem{}
 			for _, push := range pushes {
+				// a game to remove has no file
+				if push.item.Action != "" {
+					push.item.Id, push.item.From = push.id, push.owner
+					web.netPushes.given(push)
+					items = append(items, push.item)
+					continue
+				}
+				if byId == nil {
+					_, byId = web.netFilesKept(options)
+				}
 				file, found := byId[push.fileId]
 				if !found {
 					// gone from the library since it was sent
@@ -454,9 +498,11 @@ func (web *Web) handleNetPushAnswer(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// with a game to remove, what the console did: removed, failed or missing (not installed)
 	var body struct {
 		Id       string `json:"id"`
 		Accepted bool   `json:"accepted"`
+		Result   string `json:"result"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&body); err != nil || !netPushIdPattern.MatchString(body.Id) {
 		http.Error(w, "the id of an install sent to the console", http.StatusBadRequest)
@@ -465,6 +511,11 @@ func (web *Web) handleNetPushAnswer(w http.ResponseWriter, r *http.Request) {
 	push, found := web.netPushes.answered(key.KeyID, body.Id)
 	if !found {
 		writeJSON(w, http.StatusNotFound, map[string]string{"state": "unknown"})
+		return
+	}
+	if push.item.Action == netPushRemove {
+		web.netRemoveAnswered(r, key, push, body.Accepted, body.Result)
+		writeJSON(w, http.StatusOK, map[string]string{"state": "noted"})
 		return
 	}
 	action, word := activity.ACTION_NET_PUSH_NO, "declined"
@@ -866,6 +917,7 @@ func (web *Web) handleNetPush() {
 	web.router.HandleFunc(netInstallConsoles, web.handleNetConsoles).Methods(http.MethodGet)
 	web.router.HandleFunc(netInstallConsoles+"/{id:[0-9a-f]{16}}", web.handleNetConsoleDetail).Methods(http.MethodGet)
 	web.router.HandleFunc(netInstallConsoles+"/{id:[0-9a-f]{16}}/update", web.handleNetConsoleUpdate).Methods(http.MethodPost)
+	web.router.HandleFunc(netInstallConsoles+"/{id:[0-9a-f]{16}}/remove", web.handleNetConsoleRemove).Methods(http.MethodPost)
 	web.router.HandleFunc(netInstallGame+"{titleId:[0-9A-Fa-f]{16}}", web.handleNetGame).Methods(http.MethodGet)
 	web.router.HandleFunc(netInventoryForgetPrefix+"{id:[0-9a-f]{16}}", web.handleNetInventoryForget).Methods(http.MethodDelete)
 	web.router.PathPrefix(netInstallCompressed).HandlerFunc(web.handleNetCompressed).Methods(http.MethodGet, http.MethodHead)

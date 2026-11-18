@@ -2446,5 +2446,17 @@ func init() {
 		"Print or save as PDF":               "印刷または PDF に保存",
 		"Print now":                          "今すぐ印刷",
 		"Getting the covers ready: %v of %v": "カバー画像を準備中: %v / %v",
+		// the consoles: removing a game, their reports and what they tell (see web/netconsoles.go, netremove.go, netreports.go)
+		"Asked a console to remove a game":                        "本体にゲームの削除を依頼",
+		"A console removed a game":                                "本体がゲームを削除",
+		"A console declined to remove a game":                     "本体がゲームの削除を拒否",
+		"A console could not remove a game":                       "本体がゲームを削除できませんでした",
+		"A console sent a report":                                 "本体がレポートを送信",
+		"it was not on the console":                               "本体にありませんでした",
+		"choose a game installed on the console":                  "本体にインストールされているゲームを選んでください",
+		"the game is not installed on the console":                "このゲームは本体にインストールされていません",
+		"the console has not told what is installed on it":        "本体はまだインストール内容を知らせていません",
+		"the body is nothing, or {\"compressed\": true}":          "本文は空か {\"compressed\": true} です",
+		"only an administrator reads the reports of the consoles": "本体のレポートを読めるのは管理者だけです",
 	}
 }

@@ -791,6 +791,89 @@
         }
       }
     },
+    "/api/install/consoles/{id}/remove": {
+      "post": {
+        "summary": "Remove a game from a console",
+        "description": "Asks a console of the user to remove a game installed on it: it waits with what is sent to the console (GET /install/push/wait), as an item with action remove, the title ID of the game and its name (game). NXDock asks on the console before removing it and copies its saves to the library first; it answers on POST /install/push/answer with accepted and, when it accepted, result: removed, failed or missing (it was not installed). Asked again before the console answers, it is not asked twice. Noted in the activity, and so is the answer.",
+        "tags": [
+          "Consoles"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the key of the console, from GET /api/install/consoles",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "titleId"
+                ],
+                "properties": {
+                  "titleId": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Fa-f]{16}$",
+                    "description": "The title ID of the game (the application), as GET /api/install/consoles/{id} gives it"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asked: the console asks before removing it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "asked"
+                      ]
+                    },
+                    "console": {
+                      "type": "string"
+                    },
+                    "game": {
+                      "type": "string",
+                      "description": "The name of the game"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not the title ID of a game"
+          },
+          "403": {
+            "description": "Not a user who may download"
+          },
+          "404": {
+            "description": "No such console of the user"
+          },
+          "409": {
+            "description": "The network install is off, the console has not told what is installed on it, or the game is not installed on it"
+          },
+          "429": {
+            "description": "50 installs already wait for the console"
+          }
+        }
+      }
+    },
     "/api/install/reports": {
       "get": {
         "summary": "Reports of the consoles",
@@ -2037,6 +2120,10 @@
               }
             },
             "description": "How much it was played on the console; missing when it did not tell"
+          },
+          "removing": {
+            "type": "boolean",
+            "description": "The console was asked to remove it (POST /api/install/consoles/{id}/remove) and has not answered yet"
           }
         }
       },

@@ -2446,5 +2446,17 @@ func init() {
 		"Print or save as PDF":               "打印或保存为 PDF",
 		"Print now":                          "立即打印",
 		"Getting the covers ready: %v of %v": "正在准备封面：%v / %v",
+		// the consoles: removing a game, their reports and what they tell (see web/netconsoles.go, netremove.go, netreports.go)
+		"Asked a console to remove a game":                        "请求主机删除游戏",
+		"A console removed a game":                                "主机删除了游戏",
+		"A console declined to remove a game":                     "主机拒绝删除游戏",
+		"A console could not remove a game":                       "主机未能删除游戏",
+		"A console sent a report":                                 "主机发送了报告",
+		"it was not on the console":                               "主机上没有该游戏",
+		"choose a game installed on the console":                  "请选择主机上已安装的游戏",
+		"the game is not installed on the console":                "该游戏未安装在主机上",
+		"the console has not told what is installed on it":        "主机尚未告知其已安装的内容",
+		"the body is nothing, or {\"compressed\": true}":          "请求体为空，或为 {\"compressed\": true}",
+		"only an administrator reads the reports of the consoles": "只有管理员可以查看主机的报告",
 	}
 }
