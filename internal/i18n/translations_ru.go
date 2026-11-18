@@ -2512,5 +2512,9 @@ func init() {
 		"Most played":       "Больше всего играли",
 		"Played lately":     "Недавно играли",
 		"Out of date first": "Сначала устаревшие",
+		// the filter On the console of the Library (see web/libraryconsoles.go)
+		"On the console":      "На консоли",
+		"Not installed on %v": "Не установлено на %v",
+		"Out of date on %v":   "Устарело на %v",
 	}
 }

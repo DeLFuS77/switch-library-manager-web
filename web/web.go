@@ -536,7 +536,11 @@ type LibraryFacets struct {
 	Score90 int
 	// the collections with their number of games, before the collection filter
 	Collections []userdata.CollectionCount
-	Regions     []string
+	// the consoles of the user that told what is installed on them, with the games of each choice
+	// of the filter On the console, before it; and the choice made, as its chip tells it
+	Consoles       []ConsoleChoice
+	OnConsoleLabel string
+	Regions        []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool
 }

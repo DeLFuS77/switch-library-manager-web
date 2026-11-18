@@ -2512,5 +2512,9 @@ func init() {
 		"Most played":       "Meest gespeeld",
 		"Played lately":     "Onlangs gespeeld",
 		"Out of date first": "Niet bijgewerkt eerst",
+		// the filter On the console of the Library (see web/libraryconsoles.go)
+		"On the console":      "Op de console",
+		"Not installed on %v": "Niet geïnstalleerd op %v",
+		"Out of date on %v":   "Niet bijgewerkt op %v",
 	}
 }

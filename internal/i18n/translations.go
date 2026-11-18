@@ -2539,6 +2539,10 @@ var Translations = map[string]map[string]string{
 		"Most played":       "Más jugados",
 		"Played lately":     "Jugados hace poco",
 		"Out of date first": "Desactualizados primero",
+		// the filter On the console of the Library (see web/libraryconsoles.go)
+		"On the console":      "En la consola",
+		"Not installed on %v": "No instalado en %v",
+		"Out of date on %v":   "Desactualizado en %v",
 	},
 }
 

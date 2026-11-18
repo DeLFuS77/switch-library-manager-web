@@ -222,6 +222,8 @@ type libraryFilter struct {
 	plays map[string]userdata.PlayEntry
 	// the folders of the library, for its filter
 	folders []LibraryFolder
+	// the consoles of the user that told what is installed on them, for the filter On the console
+	consoles []*libraryConsole
 }
 
 func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []TitleItem) *libraryFilter {
@@ -234,6 +236,8 @@ func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []Tit
 	f.merged = web.mergedStatus(lang)
 	f.once = web.newMissingOnce()
 	f.plays = web.play().All(filter.player)
+	f.consoles = web.libraryConsoles(filter.player, filter)
+	f.facets.OnConsoleLabel = onConsoleLabel(filter, f.consoles, lang)
 	f.facets.Play = map[string]int{}
 	for _, entry := range f.plays {
 		if entry.Status != "" {
@@ -257,7 +261,7 @@ func (f *libraryFilter) takes(index int) bool {
 		status.apply(&copied)
 		item = &copied
 	}
-	return f.formatAndRegion(item) && f.collection(item) && f.attributes(item) && f.kindAndExtra(item) && f.play(item) && f.status(item)
+	return f.formatAndRegion(item) && f.collection(item) && f.onConsole(item) && f.attributes(item) && f.kindAndExtra(item) && f.play(item) && f.status(item)
 }
 
 // formatAndRegion counts the formats and regions of the game, and takes it in the format and
@@ -452,6 +456,10 @@ func (f *libraryFilter) sortFacets() {
 		if count := f.folderCounts[folder.Id]; count > 0 || folder.Id == f.filter.Folder {
 			facets.Folders = append(facets.Folders, FolderChoice{Id: folder.Id, Name: folder.Name, Count: count})
 		}
+	}
+	facets.Consoles = make([]ConsoleChoice, 0, len(f.consoles))
+	for _, console := range f.consoles {
+		facets.Consoles = append(facets.Consoles, console.choice)
 	}
 	facets.Genres = sortedCounts(f.genreCounts)
 	facets.Languages = sortedCounts(f.languageCounts)

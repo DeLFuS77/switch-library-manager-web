@@ -2512,5 +2512,9 @@ func init() {
 		"Most played":       "よく遊んだゲーム",
 		"Played lately":     "最近遊んだゲーム",
 		"Out of date first": "更新ありを先に",
+		// the filter On the console of the Library (see web/libraryconsoles.go)
+		"On the console":      "本体",
+		"Not installed on %v": "%v に未インストール",
+		"Out of date on %v":   "%v で更新あり",
 	}
 }

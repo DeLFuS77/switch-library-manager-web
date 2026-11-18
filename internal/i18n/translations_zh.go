@@ -2512,5 +2512,9 @@ func init() {
 		"Most played":       "玩得最多",
 		"Played lately":     "最近玩过",
 		"Out of date first": "需要更新的优先",
+		// the filter On the console of the Library (see web/libraryconsoles.go)
+		"On the console":      "主机上",
+		"Not installed on %v": "%v 上未安装",
+		"Out of date on %v":   "%v 上需要更新",
 	}
 }

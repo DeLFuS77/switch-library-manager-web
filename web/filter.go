@@ -51,6 +51,9 @@ type TitleItemFilter struct {
 	Score string `in:"form=score"`
 	// library only: the games of one of the folders scanned, by its id (see folderId)
 	Folder string `in:"form=folder"`
+	// library only: the games installed, not installed or out of date on a console of the user,
+	// as "installed.", "not." or "outdated." and the id of its key (see ON_CONSOLE_INSTALLED)
+	OnConsole string `in:"form=on_console"`
 	// catalogue only: the list it is of, the Library ("") or the Missing games (CATALOGUE_MISSING)
 	List string `in:"form=list"`
 	// the user who looks, for Play (set by the handler)
@@ -111,6 +114,23 @@ const (
 	// games whose installed version needs a newer firmware than the console has
 	EXTRA_FIRMWARE = "firmware"
 )
+
+// library filter On the console: the games installed on a console of the user, the ones not
+// installed on it, and the ones the library has something newer of for it
+const (
+	ON_CONSOLE_INSTALLED = "installed"
+	ON_CONSOLE_NOT       = "not"
+	ON_CONSOLE_OUTDATED  = "outdated"
+)
+
+var onConsolePattern = regexp.MustCompile(`^(installed|not|outdated)\.[0-9a-f]{16}$`)
+
+// onConsoleChoice is the choice of the filter On the console: what of the console, and the id of
+// its key; both "" without one.
+func (f *TitleItemFilter) onConsoleChoice() (string, string) {
+	state, id, _ := strings.Cut(f.OnConsole, ".")
+	return state, id
+}
 
 // games found in the folders in the last days count as recently added
 const recentDays = 30
@@ -219,12 +239,15 @@ func (f *TitleItemFilter) Normalize() {
 	if f.List != CATALOGUE_MISSING {
 		f.List = ""
 	}
+	if !onConsolePattern.MatchString(f.OnConsole) {
+		f.OnConsole = ""
+	}
 }
 
 // Active reports whether the items are filtered by a keyword, a status, a format or another
 // library filter.
 func (f *TitleItemFilter) Active() bool {
-	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Console != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != "" || f.Folder != ""
+	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Console != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != "" || f.Folder != "" || f.OnConsole != ""
 }
 
 // Filters reports whether the Library shows only some of its games: what a smart collection
@@ -253,7 +276,7 @@ func (f *TitleItemFilter) ShowsMissing() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score, f.Folder, f.Publisher} {
+	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score, f.Folder, f.Publisher, f.OnConsole} {
 		if value != "" {
 			count++
 		}
@@ -282,6 +305,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("play", f.Play)
 	values.Set("score", f.Score)
 	values.Set("folder", f.Folder)
+	values.Set("on_console", f.OnConsole)
 	values.Set("list", f.List)
 	values.Set("per_page", strconv.Itoa(f.chosenPerPage()))
 	values.Set("sort_by", f.SortBy)

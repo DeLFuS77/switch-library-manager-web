@@ -2512,5 +2512,9 @@ func init() {
 		"Most played":       "많이 플레이한 게임",
 		"Played lately":     "최근 플레이한 게임",
 		"Out of date first": "업데이트 필요 먼저",
+		// the filter On the console of the Library (see web/libraryconsoles.go)
+		"On the console":      "콘솔",
+		"Not installed on %v": "%v에 설치되지 않음",
+		"Out of date on %v":   "%v에서 업데이트 필요",
 	}
 }
