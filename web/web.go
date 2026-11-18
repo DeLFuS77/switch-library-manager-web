@@ -1233,6 +1233,8 @@ func (web *Web) Stop() {
 		}
 	}
 	web.taskLog().Flush()
+	// NXPress may keep the saves of Eden in step at once
+	web.edenLocalStop()
 	web.sugarLogger.Info("[SLM stops]")
 }
 

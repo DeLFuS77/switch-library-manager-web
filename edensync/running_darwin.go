@@ -4,6 +4,7 @@ package edensync
 
 import (
 	"bytes"
+	"errors"
 
 	"golang.org/x/sys/unix"
 )
@@ -24,4 +25,9 @@ func processNames() ([]string, error) {
 		names = append(names, string(name))
 	}
 	return names, nil
+}
+
+// processAlive tells whether a process runs on this computer; true when it cannot tell.
+func processAlive(pid int) bool {
+	return !errors.Is(unix.Kill(pid, 0), unix.ESRCH)
 }

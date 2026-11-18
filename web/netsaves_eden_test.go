@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/edensync"
 	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
@@ -488,6 +489,74 @@ func TestEdenOnThisComputer(t *testing.T) {
 	}
 	if strings.Contains(bob.do("GET", "/saves", nil).Body.String(), "data-eden-local") {
 		t.Fatal("without Eden there is no switch")
+	}
+}
+
+// NXPress keeping the saves of Eden in step on this computer: the page tells it, the switch can
+// still be turned on and the passes wait; once NXPress lets go, the app takes them, and gives them
+// up as it is turned off and as it stops.
+func TestEdenOnThisComputerWaitsForNXPress(t *testing.T) {
+	web, _, bob, _, _, _, _ := pushWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleNetSavesPage()
+	folder, _ := fakeEdenFolder(t, map[string]string{"save.dat": "eden 1"})
+	web.edenLocal.find = func() (edensync.Folder, bool) { return folder, true }
+	web.edenLocal.running = func() (bool, error) { return false, nil }
+	lockPath := filepath.Join(folder.Root, edensync.LockName)
+	computer, _ := os.Hostname()
+	nxpress, _ := json.Marshal(edensync.Lock{Owner: edensync.OwnerNXPress, Computer: computer, Pid: os.Getpid(), Updated: time.Now().Unix()})
+	os.WriteFile(lockPath, nxpress, 0o644)
+	told := "NXPress keeps these saves in step on this computer"
+
+	if !strings.Contains(bob.do("GET", "/saves", nil).Body.String(), told) {
+		t.Fatal("the page tells that NXPress keeps them in step")
+	}
+	if got := sendJSON(bob, "POST", "/api/saves/eden-local", `{"on":true}`); got.Code != http.StatusOK {
+		t.Fatalf("on: %d %s", got.Code, got.Body.String())
+	}
+	report, err := web.edenLocalPass()
+	if err != nil || report.HeldBy != edensync.OwnerNXPress || len(report.Uploaded) != 0 {
+		t.Fatalf("the app waits: %+v %v", report, err)
+	}
+	if saves := listSaves(t, bob, "/api/saves"); len(saves) != 0 {
+		t.Fatalf("nothing uploaded: %+v", saves)
+	}
+
+	// NXPress is turned off
+	os.Remove(lockPath)
+	report, err = web.edenLocalPass()
+	if err != nil || report.HeldBy != "" || len(report.Uploaded) != 1 {
+		t.Fatalf("the app takes them: %+v %v", report, err)
+	}
+	if lock, ok := edensync.ReadLock(folder); !ok || lock.Owner != edensync.OwnerLibrary || lock.Pid != os.Getpid() {
+		t.Fatalf("the lock: %+v", lock)
+	}
+	if strings.Contains(bob.do("GET", "/saves", nil).Body.String(), told) {
+		t.Fatal("the app keeps them in step itself")
+	}
+
+	if got := sendJSON(bob, "POST", "/api/saves/eden-local", `{"on":false}`); got.Code != http.StatusOK {
+		t.Fatalf("off: %d", got.Code)
+	}
+	web.edenLocalPass()
+	if _, err := os.Stat(lockPath); !os.IsNotExist(err) {
+		t.Fatalf("turned off, the lock is given up: %v", err)
+	}
+
+	sendJSON(bob, "POST", "/api/saves/eden-local", `{"on":true}`)
+	web.edenLocalPass()
+	if _, err := os.Stat(lockPath); err != nil {
+		t.Fatalf("on again: %v", err)
+	}
+	web.Stop()
+	if _, err := os.Stat(lockPath); !os.IsNotExist(err) {
+		t.Fatalf("as the app stops, the lock is given up: %v", err)
+	}
+	if report, _ := web.edenLocalPass(); report.HeldBy != "" || len(report.Uploaded) != 0 {
+		t.Fatalf("no pass once stopping: %+v", report)
+	}
+	if _, err := os.Stat(lockPath); !os.IsNotExist(err) {
+		t.Fatal("no lock once stopping")
 	}
 }
 

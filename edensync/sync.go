@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -12,10 +13,14 @@ import (
 
 // Syncer runs the passes that keep the saves of an emulator of this computer in step with the
 // library: only while the emulator is closed, both ways, and never replacing a save of the
-// emulator that the library does not hold (it is uploaded first).
+// emulator that the library does not hold (it is uploaded first), and only while no other program
+// keeps them in step on this computer (see lock.go).
 type Syncer struct {
 	Folder  Folder
 	Library Library
+	// the program that runs the passes, written in the lock of the folder: OwnerLibrary or
+	// OwnerNXPress; the name of the program when ""
+	Owner string
 	// what the passes remember; NewState when nil
 	State *State
 	// where the state is written after every change; "" keeps it in memory
@@ -25,6 +30,9 @@ type Syncer struct {
 	// whether the emulator is open: Running when nil (replaced in the tests)
 	IsRunning func() (bool, error)
 	Now       func() time.Time
+
+	// when the pass going on last wrote the lock
+	locked time.Time
 }
 
 // Item is a save of a game of a profile a pass did something with.
@@ -37,6 +45,9 @@ type Item struct {
 
 // Report is what a pass did.
 type Report struct {
+	// another program keeps the saves of the emulator in step on this computer (OwnerLibrary or
+	// OwnerNXPress): nothing was looked at, or nothing more once it took them
+	HeldBy string
 	// the emulator was open: nothing was looked at
 	Running   bool
 	Uploaded  []Item
@@ -70,13 +81,59 @@ func (s *Syncer) save() error {
 	return s.State.Save(s.StatePath)
 }
 
+func (s *Syncer) owner() string {
+	if s.Owner != "" {
+		return s.Owner
+	}
+	return strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
+}
+
+// lock takes or renews the lock of the folder of the emulator, and gives the program that holds
+// it instead, "" when it is ours. A folder without its data folder is not locked: Find and Open
+// always tell it.
+func (s *Syncer) lock() (string, error) {
+	if s.Folder.Root == "" {
+		return "", nil
+	}
+	now := s.now()
+	held, err := takeLock(s.Folder, s.owner(), now)
+	if err == nil && held == "" {
+		s.locked = now
+	}
+	return held, err
+}
+
+// renew renews the lock as a long pass goes, and tells the program that took it meanwhile.
+func (s *Syncer) renew() (string, error) {
+	if s.now().Sub(s.locked) < lockRenew {
+		return "", nil
+	}
+	return s.lock()
+}
+
+// Release removes the lock of the folder of the emulator when it is ours, so the other program
+// may keep the saves in step at once: as the passes are turned off, and as the program stops.
+func (s *Syncer) Release() error {
+	return Release(s.Folder, s.owner())
+}
+
 // Pass looks at every save of every profile of the emulator once: uploads the ones that changed,
 // brings the newer ones of the library, tells the conflicts and applies the choices of the user.
-// With the emulator open it does nothing.
+// With the emulator open it does nothing, and with the saves kept in step by another program on
+// this computer either (Report.HeldBy). It takes or renews the lock of the folder first, also while
+// the emulator is open.
 func (s *Syncer) Pass(ctx context.Context) (Report, error) {
 	report := Report{}
 	if s.State == nil {
 		s.State = NewState()
+	}
+	held, err := s.lock()
+	if err != nil {
+		return report, err
+	}
+	if held != "" {
+		report.HeldBy = held
+		return report, nil
 	}
 	running, err := s.running()
 	if err != nil {
@@ -102,12 +159,28 @@ func (s *Syncer) Pass(ctx context.Context) (Report, error) {
 	if err != nil {
 		return report, err
 	}
+	// a long pass renews the lock before each game it may write, and stops when another program
+	// took it meanwhile
+	stop := func() (bool, error) {
+		held, err := s.renew()
+		if err == nil && held == "" {
+			return false, nil
+		}
+		report.HeldBy = held
+		if saveErr := s.save(); err == nil {
+			err = saveErr
+		}
+		return true, err
+	}
 	open := map[string]bool{}
 	for _, conflict := range conflicts {
 		if conflict.Keep == "" {
 			open[conflict.Profile+"/"+strings.ToUpper(conflict.TitleId)] = true
 			report.Waiting = append(report.Waiting, Item{TitleId: conflict.TitleId, Profile: conflict.Profile, SaveId: conflict.ConsoleSave})
 			continue
+		}
+		if stopped, err := stop(); stopped {
+			return report, err
 		}
 		if err := s.apply(ctx, conflict, profiles, pairs, &saves, &report); err != nil {
 			report.Errors = append(report.Errors, fmt.Errorf("%s: %w", conflict.TitleId, err))
@@ -122,6 +195,9 @@ func (s *Syncer) Pass(ctx context.Context) (Report, error) {
 		for _, title := range titles {
 			if open[profile.ID.String()+"/"+title] {
 				continue
+			}
+			if stopped, err := stop(); stopped {
+				return report, err
 			}
 			if err := s.syncGame(ctx, profile, account, title, pairs, &saves, &report); err != nil {
 				report.Errors = append(report.Errors, fmt.Errorf("%s: %w", title, err))

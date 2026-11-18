@@ -32,14 +32,25 @@
 //
 //	folder, err := edensync.Find(edensync.Eden, "")      // or edensync.Open(edensync.Eden, path)
 //	state, err := edensync.LoadState(statePath)          // a file of NXPress
-//	syncer := &edensync.Syncer{Folder: folder, State: state, StatePath: statePath,
+//	syncer := &edensync.Syncer{Folder: folder, State: state, StatePath: statePath, Owner: edensync.OwnerNXPress,
 //		Library: &edensync.HTTPLibrary{BaseURL: address, Key: key}}
 //	report, err := syncer.Pass(ctx)                       // does nothing while Eden is open
+//	err = edensync.Release(folder, edensync.OwnerNXPress) // when turned off, and as NXPress stops
 //
 // The Report tells what was uploaded, brought, which conflicts were told and which games wait
 // (for the choice of the user, which NXPress may show too, or to be opened once in Eden). The
 // profiles of Eden are read with Folder.Profiles; Library.Pairs tells which account of the
 // console each one goes with, and ReportProfiles changes it.
+//
+// # One program at a time
+//
+// Switch Library Manager Web keeps the saves of the emulator of its own computer in step too, when
+// it runs on it. Both on one computer would write the same save folders, so a pass first takes the
+// lock of the data folder, slmw-eden-sync.lock in Folder.Root (see lock.go), and renews it on every
+// pass: while the other program holds it and renews it, a pass does nothing and Report.HeldBy
+// names that program, which HeldBy also tells the pages without taking it. A lock not renewed for
+// LockStale, or of a process that no longer runs on this computer, is taken over; Release gives it
+// up when the passes are turned off and as the program stops.
 //
 // # The library
 //

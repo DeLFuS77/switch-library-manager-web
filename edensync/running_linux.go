@@ -4,9 +4,12 @@ package edensync
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/sys/unix"
 )
 
 // processNames are the names of the programs that run, from /proc: the name of each process (cut
@@ -32,4 +35,9 @@ func processNames() ([]string, error) {
 		}
 	}
 	return names, nil
+}
+
+// processAlive tells whether a process runs on this computer; true when it cannot tell.
+func processAlive(pid int) bool {
+	return !errors.Is(unix.Kill(pid, 0), unix.ESRCH)
 }

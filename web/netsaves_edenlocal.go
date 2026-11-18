@@ -22,6 +22,9 @@ import (
 // saves of the emulator go to the library and the newer ones of the library go into the
 // emulator, a copy of the save replaced always staying in the library, and the conflicts are
 // asked on the page. It uses the storage of the saves itself, as the device "local".
+//
+// NXPress, paired and on, on the same computer would keep the same saves in step: the lock of the
+// package edensync lets one program do it at a time, and the page tells when NXPress does.
 
 const (
 	// in the folder of the saves: the user Eden of this computer is kept in step with
@@ -50,6 +53,10 @@ type edenLocalRunner struct {
 	// where the emulator is, and whether it is open: replaced in the tests
 	find    func() (edensync.Folder, bool)
 	running func() (bool, error)
+	// the folder whose lock the passes took, given up as they are turned off and as the app
+	// stops; and the program that held it at the last pass, to tell it once in the log
+	locked *edensync.Folder
+	heldBy string
 }
 
 func (r *edenLocalRunner) wakeChannel() chan struct{} {
@@ -102,7 +109,9 @@ type EdenLocalRow struct {
 	Emulator string
 	Folder   string
 	// kept in step with the saves of the user looking, or of another user
-	On, Other  bool
+	On, Other bool
+	// NXPress keeps the saves of the emulator in step on this computer: the passes wait
+	NXPress    bool
 	Seen, Sync time.Time
 }
 
@@ -117,6 +126,7 @@ func (web *Web) edenLocalRow(user string, file edenFile) *EdenLocalRow {
 	row := &EdenLocalRow{Emulator: folder.Emulator.Name(), Folder: folder.Root}
 	row.On = setting.User != "" && strings.EqualFold(setting.User, user)
 	row.Other = setting.User != "" && !row.On
+	row.NXPress = edensync.HeldBy(folder, edensync.OwnerLibrary) == edensync.OwnerNXPress
 	if computer := file.Computers[edenLocalDevice]; row.On {
 		if computer.Seen > 0 {
 			row.Seen = time.Unix(computer.Seen, 0)
@@ -166,9 +176,8 @@ func (web *Web) handleEdenLocalSwitch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.sugarLogger.Infof("Eden saves: %s turned %s the saves of Eden on this computer", principal.Name, map[bool]string{true: "on", false: "off"}[body.On])
-	if body.On {
-		web.edenLocalWake()
-	}
+	// on, a pass at once; off, the lock is given up at once, so NXPress may take the saves
+	web.edenLocalWake()
 	writeJSON(w, http.StatusOK, map[string]bool{"on": body.On})
 }
 
@@ -201,35 +210,55 @@ func (web *Web) StartEdenLocal() {
 }
 
 // edenLocalPass is one pass of the emulator of this computer, for the user who turned it on.
+// Turned off, it gives up the lock of the folder the passes took.
 func (web *Web) edenLocalPass() (edensync.Report, error) {
+	if web.stopping.Load() {
+		return edensync.Report{}, nil
+	}
 	setting := web.readEdenLocal()
 	if setting.User == "" {
+		web.edenLocalRelease()
 		return edensync.Report{}, nil
 	}
 	user, ok := web.auth.users.Get(setting.User)
 	if !ok || roleRank(user.Role) < roleRank(ROLE_VIEWER) {
+		web.edenLocalRelease()
 		return edensync.Report{}, nil
 	}
 	folder, ok := web.edenLocalFolder()
 	if !ok {
+		web.edenLocalRelease()
 		return edensync.Report{}, nil
 	}
 	runner := &web.edenLocal
 	runner.mutex.Lock()
 	defer runner.mutex.Unlock()
+	if runner.locked != nil && runner.locked.Root != folder.Root {
+		// the emulator is in another folder now
+		web.edenLocalReleaseLocked()
+	}
 	statePath := filepath.Join(web.netSavesUserFolder(user.Name), edenLocalStateFile)
 	state, err := edensync.LoadState(statePath)
 	if err != nil {
 		web.sugarLogger.Warnf("Eden saves: what the passes remember could not be read, they start again: %v", err)
 		state = edensync.NewState()
 	}
-	syncer := &edensync.Syncer{Folder: folder, Library: &edenLocalLibrary{web: web, user: user.Name}, State: state, StatePath: statePath, IsRunning: runner.running}
+	syncer := &edensync.Syncer{Folder: folder, Library: &edenLocalLibrary{web: web, user: user.Name}, State: state, StatePath: statePath,
+		IsRunning: runner.running, Owner: edensync.OwnerLibrary}
 	report, err := syncer.Pass(context.Background())
+	if report.HeldBy != runner.heldBy {
+		if report.HeldBy != "" {
+			web.sugarLogger.Infof("Eden saves: %s keeps the saves of %s in step on this computer, the app waits", report.HeldBy, folder.Emulator.Name())
+		}
+		runner.heldBy = report.HeldBy
+	}
+	// only a lock of the app is ever given up: kept also when NXPress took it during the pass
+	runner.locked = &folder
 	if err != nil {
 		web.sugarLogger.Warnf("Eden saves: the saves of %s on this computer could not be looked at: %v", folder.Emulator.Name(), err)
 		return report, err
 	}
-	if report.Running {
+	if report.Running || report.HeldBy != "" && len(report.Uploaded)+len(report.Brought)+len(report.Conflicts) == 0 {
 		return report, nil
 	}
 	for _, failed := range report.Errors {
@@ -241,6 +270,38 @@ func (web *Web) edenLocalPass() (edensync.Report, error) {
 	}
 	web.edenComputerSeen(user.Name, edenLocalDevice, moved > 0)
 	return report, nil
+}
+
+// edenLocalRelease gives up the lock of the folder the passes took, as they are turned off.
+func (web *Web) edenLocalRelease() {
+	runner := &web.edenLocal
+	runner.mutex.Lock()
+	defer runner.mutex.Unlock()
+	web.edenLocalReleaseLocked()
+}
+
+// edenLocalReleaseLocked gives up the lock, with the mutex of the runner held.
+func (web *Web) edenLocalReleaseLocked() {
+	runner := &web.edenLocal
+	if runner.locked == nil {
+		return
+	}
+	if err := edensync.Release(*runner.locked, edensync.OwnerLibrary); err != nil {
+		web.sugarLogger.Warnf("Eden saves: the lock of %s could not be given up: %v", runner.locked.Emulator.Name(), err)
+		return
+	}
+	runner.locked, runner.heldBy = nil, ""
+}
+
+// edenLocalStop gives up the lock as the app stops, unless a pass is going on: then the lock of
+// a process that ended is taken over anyway.
+func (web *Web) edenLocalStop() {
+	runner := &web.edenLocal
+	if !runner.mutex.TryLock() {
+		return
+	}
+	defer runner.mutex.Unlock()
+	web.edenLocalReleaseLocked()
 }
 
 // edenLocalLibrary is the library of a user as the passes of this computer see it: the storage of

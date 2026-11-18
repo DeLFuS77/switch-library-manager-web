@@ -94,6 +94,7 @@
 					</div>
 					<div class="small text-body-secondary eden-local-folder"><span class="bi bi-folder2" aria-hidden="true"></span> <span class="font-monospace">{{.Folder}}</span>{{if .On}} &middot; {{t "Last sync"}}: {{formatDateTime .Sync}}{{end}}</div>
 					{{- if .Other}}<p class="small text-warning-emphasis mb-0 mt-1">{{t "Another user keeps it in step with their saves."}}</p>{{end}}
+					{{- if .NXPress}}<p class="small text-warning-emphasis mb-0 mt-1">{{t "NXPress keeps these saves in step on this computer: turn it off there to use this one."}}</p>{{end}}
 				</div>
 				{{- end}}
 				{{- with .Eden.Computers}}
