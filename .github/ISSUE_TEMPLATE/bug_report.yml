@@ -9,6 +9,18 @@ body:
 
         **Never attach or paste `prod.keys`, `title.keys` or any console key**: they are not needed and must not be
         shared. Remove keys from logs and screenshots before posting.
+
+        This tracker is for the official versions of Switch Library Manager Web: the programs of its
+        [releases page](https://github.com/DeLFuS77/switch-library-manager-web/releases) and its Docker images on ghcr.io
+        and Docker Hub. A build made or changed by someone else is supported by whoever made it: report its problems
+        there. A copy you built yourself from this repository is an unofficial build: choose "Built from source" below.
+  - type: checkboxes
+    id: official
+    attributes:
+      label: Official version
+      options:
+        - label: I use an official version (from the releases page, a Docker image of this repository, or updated by the app itself) or a copy I built myself from this repository without changes, not one modified or built by someone else.
+          required: true
   - type: input
     id: version
     attributes:
@@ -24,7 +36,7 @@ body:
         - Docker (Docker Hub)
         - Docker (ghcr.io)
         - Binary
-        - Built from source
+        - Built from source (unofficial build)
     validations:
       required: true
   - type: input

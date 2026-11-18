@@ -13,6 +13,10 @@
 				{{- else}}
 				<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Everything is fine"}}</span>
 				{{- end}}
+				{{- /* as the report says it: a program not built by the workflows of this repository */}}
+				{{- if not .OfficialBuild}}
+				{{template "unofficialBuild"}}
+				{{- end}}
 				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-auto" data-copy="{{.Report}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-1" aria-hidden="true"></span><span data-copy-label>{{t "Copy the report"}}</span></button>
 			</div>
 			</section>

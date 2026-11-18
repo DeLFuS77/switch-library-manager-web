@@ -2541,5 +2541,14 @@ func init() {
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "本体ごとに最新の 10 件を保存します。それぞれアクティビティに記録されます。",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "DLCが1件不足",
+
+		// who makes the app and its license (the Disclaimer page and the footer), and a program
+		// not built by the workflows of the repository (TRADEMARKS.md)
+		"Unofficial build": "非公式ビルド",
+		"This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it.": "このプログラムはリポジトリのワークフローでビルドされていないため、公式バージョンではありません。不具合はビルドした人に報告してください。",
+		"Code and license": "コードとライセンス",
+		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77。giwty、dtrunk90、trembon の成果をもとにしています。AGPL-3.0 のフリーソフトウェアで、保証は一切ありません。変更したバージョンは、変更版であることを示す必要があります。",
+		"See the license": "ライセンスを見る",
+		"See the code":    "コードを見る",
 	}
 }

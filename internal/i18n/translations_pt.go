@@ -2541,5 +2541,14 @@ func init() {
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Guardam-se os 10 últimos de cada consola. Cada um fica registado na Atividade.",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "Falta 1 DLC",
+
+		// who makes the app and its license (the Disclaimer page and the footer), and a program
+		// not built by the workflows of the repository (TRADEMARKS.md)
+		"Unofficial build": "Compilação não oficial",
+		"This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it.": "Este programa não foi compilado pelo workflow do repositório, então não é uma versão oficial: informe os problemas dele a quem o compilou.",
+		"Code and license": "Código e licença",
+		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, baseado no trabalho de giwty, dtrunk90 e trembon. Software livre sob a licença AGPL-3.0, sem nenhuma garantia. Uma versão alterada deve dizer que é uma.",
+		"See the license": "Ver a licença",
+		"See the code":    "Ver o código",
 	}
 }

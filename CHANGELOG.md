@@ -11,6 +11,8 @@
 - Firmware: told by the consoles, in Settings, in the filter Need a newer firmware and on the page of a game
 - Time played: on the page of a game, the Library sorted by Most played and Played lately, and the hours of Your year
 - Diagnostics: the reports NXDock sends from the consoles, to download or delete
+- Disclaimer: Code and license at the top, with who makes the app, its license and links to the license and the code; the footer shows the license
+- A program not built by the workflows of this repository says it is an unofficial build
 
 ### Fixes
 
