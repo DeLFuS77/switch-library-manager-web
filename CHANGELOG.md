@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Install over the network: CyberFoil and Sphaira find the library by themselves on the local network (UDP 8465)
+
 ### Fixes
 
 - Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out

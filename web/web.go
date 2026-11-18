@@ -963,6 +963,7 @@ func (web *Web) Start() {
 		web.StartFolderWatcher()
 		web.StartUpdateChecker()
 		web.StartNetDiscovery()
+		web.StartOwnfoilDiscovery()
 	}
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
