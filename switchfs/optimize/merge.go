@@ -125,6 +125,7 @@ func Run(ctx context.Context, files []string, target string, o Options) (res Res
 	// a game alone (merged already, or with no update newer than it) is made again from its own
 	// program, laid out as Nintendo lays it out
 	alone := update == nil
+	res.Alone = alone
 	// what the new game is made of: the update's contents, or the game's own
 	from, of := update, "the update"
 	if alone {

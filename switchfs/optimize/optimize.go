@@ -46,6 +46,7 @@ type Result struct {
 	ProgramID     string // the content ID of the merged program
 	ProgramHash   string // its SHA-256
 	OnePass       bool   // the merged program written as it was packed, not packed twice
+	Alone         bool   // a game alone (merged already, or with no update) made again
 }
 
 // ErrNotBuilt is told by a build without cgo, which the code of NXDock needs.
