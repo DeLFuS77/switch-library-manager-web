@@ -35,8 +35,9 @@ $help-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 	}
 }
 
-// the label of a switch toggles it: it keeps the hand of a click
-label.has-help {
+// the label of a switch toggles it, and a button does what it says: they keep the hand of a click
+label.has-help,
+.btn.has-help {
 	cursor: pointer;
 }
 

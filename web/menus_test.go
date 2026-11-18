@@ -57,6 +57,12 @@ func TestMenus(t *testing.T) {
 	if !strings.Contains(page, "settings-shortcut full-header-only-flex") {
 		t.Error("the gear of Settings on the full header")
 	}
+	// the tools in the order of the steps of the tune-up, each with its number
+	tools := part(page, `aria-labelledby="toolsMenu"`, "</ul>")
+	organize, space, compress := strings.Index(tools, `href="/organize.html"`), strings.Index(tools, `href="/space.html"`), strings.Index(tools, `href="/compress.html"`)
+	if organize < 0 || !(organize < space && space < compress) || strings.Count(tools, `class="nav-step"`) != 3 {
+		t.Errorf("the tools in the order of the steps: %s", tools)
+	}
 	// the folded menu: Settings for the administrator, and the sections of the bar at the bottom
 	// marked to be left out of More
 	panel := part(page, `<div class="offcanvas offcanvas-end"`, `<div class="full-header-hide nav-account-section">`)

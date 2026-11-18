@@ -638,6 +638,7 @@ var funcMap = template.FuncMap{
 	"thumb":           thumbUrl,
 	"fullImage":       fullImageUrl,
 	"maintenanceStep": maintenanceStepOf,
+	"tuneUpSteps":     tuneUpStepsOf,
 	"formatBytes":     func(size int) string { return i18n.FormatSize(int64(size)) },
 	"asset":           func(path string) string { return path + "?v=" + assetVersion },
 	// the app runs in a container: its log is the log of the container, not a window

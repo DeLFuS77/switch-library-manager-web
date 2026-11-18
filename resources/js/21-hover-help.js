@@ -3,8 +3,10 @@
 // shows in a card while the mouse is on the name of the field, or the field has the focus of the
 // keyboard; a small ⓘ after the name tells there is one. The help stays in the page and describes
 // its field to screen readers. On a touch screen it stays under its field, as there is no mouse to
-// point at it (in a card or a choice of filter it is only read out). Statuses and warnings stay in
-// sight.
+// point at it (in a card or a choice of filter it is only read out), except where the page asks
+// for its cards on touch too (data-hover-help="touch", names that are not fields, like the steps
+// of the tune-up): a touch on the name opens its card and another one closes it. Statuses and
+// warnings stay in sight.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
 const hoverHelp = { owners: new WeakMap(), open: null, control: null, timer: 0, hideTimer: 0, warm: 0 };
@@ -38,10 +40,8 @@ function helpName(help) {
 }
 
 function initHoverHelp() {
-	if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-		return;
-	}
-	const helps = document.querySelectorAll('[data-hover-help] .form-text:not(.help-keep)');
+	const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+	const helps = document.querySelectorAll(fine ? '[data-hover-help] .form-text:not(.help-keep)' : '[data-hover-help="touch"] .form-text:not(.help-keep)');
 	if (!helps.length) {
 		return;
 	}
@@ -75,6 +75,10 @@ function initHoverHelp() {
 		}
 	});
 	document.addEventListener('pointerover', event => {
+		// a finger opens the card with a touch, below
+		if (event.pointerType === 'touch') {
+			return;
+		}
 		if (pop.contains(event.target)) {
 			clearTimeout(hoverHelp.hideTimer);
 			return;
@@ -93,6 +97,9 @@ function initHoverHelp() {
 		hoverHelp.timer = setTimeout(() => showHoverHelp(name, null), hoverHelp.open || Date.now() < hoverHelp.warm ? 40 : 300);
 	});
 	document.addEventListener('pointerout', event => {
+		if (event.pointerType === 'touch') {
+			return;
+		}
 		const name = event.target.closest('.has-help');
 		if (!name && !pop.contains(event.target)) {
 			return;
@@ -133,12 +140,28 @@ function initHoverHelp() {
 			hideHoverHelp();
 		}
 	});
-	// a click elsewhere closes it; one in the field being filled in leaves it open
+	// a click elsewhere closes it; one in the field being filled in, or on the name of the card,
+	// leaves it open
 	document.addEventListener('pointerdown', event => {
-		if (!pop.contains(event.target) && !(hoverHelp.control && hoverHelp.control.contains(event.target))) {
+		if (!pop.contains(event.target) && !(hoverHelp.control && hoverHelp.control.contains(event.target)) && !(hoverHelp.open && hoverHelp.open.contains(event.target))) {
 			hideHoverHelp();
 		}
 	});
+	// on a touch screen, a touch on the name opens its card and another one closes it
+	if (!fine) {
+		document.addEventListener('click', event => {
+			const name = event.target.closest('.has-help');
+			if (!name) {
+				return;
+			}
+			event.preventDefault();
+			if (hoverHelp.open === name) {
+				hideHoverHelp();
+			} else {
+				showHoverHelp(name, null);
+			}
+		});
+	}
 	document.addEventListener('scroll', hideHoverHelp, true);
 	window.addEventListener('blur', hideHoverHelp);
 }

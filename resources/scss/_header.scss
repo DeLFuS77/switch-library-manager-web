@@ -459,29 +459,7 @@ label.verify-choice:has(.verify-radio:checked) {
 	}
 }
 
-// the tune-up: the steps in order, the first one waiting marked
-.maintenance-steps {
-	display: grid;
-	gap: .75rem;
-	counter-reset: step;
-}
-
-.maintenance-step {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-	border-left: 4px solid transparent;
-
-	&.step-done {
-		border-left-color: #{$success};
-	}
-
-	&.is-next {
-		border-left-color: #{$warning};
-		box-shadow: 0 0 0 1px rgba($warning, .35);
-	}
-}
-
+// the number of a step of the tune-up: green with a tick when done, amber when next
 .maintenance-number {
 	flex-shrink: 0;
 	display: inline-grid;
@@ -500,37 +478,6 @@ label.verify-choice:has(.verify-radio:checked) {
 	.is-next & {
 		color: #000;
 		background: #{$warning};
-	}
-}
-
-.maintenance-action {
-	flex-shrink: 0;
-}
-
-@include media-breakpoint-down(sm) {
-	.maintenance-step {
-		flex-wrap: wrap;
-	}
-
-	.maintenance-action {
-		width: 100%;
-		padding-left: 3.25rem;
-	}
-}
-
-// the line of a tool page that tells its step of the tune-up
-// the step of the tune-up a page is: one line of text that wraps as text on phones, instead of
-// two columns (the step and the link to the steps) that each broke on their own
-.maintenance-hint {
-	display: inline-block;
-	margin: -.5rem 0 1rem;
-	font-size: var(--slm-text-sm);
-	text-decoration: none;
-	// a step of the tune-up, not a warning: the blue of work, not the red of errors
-	color: rgb(var(--slm-work-rgb));
-
-	> .bi {
-		margin-right: .4rem;
 	}
 }
 
