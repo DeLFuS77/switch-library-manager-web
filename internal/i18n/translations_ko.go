@@ -1524,6 +1524,8 @@ func init() {
 		"Keep the names that already have their title ID":      "Title ID가 이미 들어 있는 이름은 유지",
 		"Organize new files": "새 파일 정리",
 		"Organize all files": "모든 파일 정리",
+		"Organize leaves these files out, as it cannot read them": "이 파일들은 읽을 수 없어 정리에서 제외됩니다",
+		"Upload newer keys": "더 새로운 키 업로드",
 		"Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves.": "라이브러리 폴더에 따로 놓인 파일(업로드한 파일 등)을 해당 게임의 폴더나 새 폴더에 넣습니다. 다른 것은 옮기지 않습니다.",
 		"Keep the folder each game has": "각 게임의 폴더 유지",
 		"The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only.": "게임의 파일은 이미 있는 폴더로 가고, 폴더 이름은 그대로입니다. 템플릿은 새 게임의 폴더 이름에만 쓰입니다.",

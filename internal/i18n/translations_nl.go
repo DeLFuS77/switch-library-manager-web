@@ -1524,6 +1524,8 @@ func init() {
 		"Keep the names that already have their title ID":      "Namen houden die hun Title ID al hebben",
 		"Organize new files": "Nieuwe bestanden ordenen",
 		"Organize all files": "Alle bestanden ordenen",
+		"Organize leaves these files out, as it cannot read them": "Ordenen slaat deze bestanden over, omdat het ze niet kan lezen",
+		"Upload newer keys": "Nieuwere sleutels uploaden",
 		"Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves.": "Zet de losse bestanden in de bibliotheekmappen, zoals de geüploade, in de map van hun game, of in een nieuwe. Verder verplaatst er niets.",
 		"Keep the folder each game has": "De map van elke game behouden",
 		"The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only.": "De bestanden van een game gaan naar de map die hij al heeft, die zijn naam houdt: het sjabloon geeft alleen de mappen van nieuwe games een naam.",

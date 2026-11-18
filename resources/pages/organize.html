@@ -14,6 +14,36 @@
 					{{- end}}
 				</div>
 			</div>
+			{{- /* the files the scan could not read: Organize leaves them out, and says why and where
+					to see them; with keys too old, where to upload newer ones */}}
+			{{- with .Unreadable}}
+			<div class="alert alert-warning organize-unreadable mb-4" role="status">
+				<div class="d-flex gap-2 align-items-start">
+					<span class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1" aria-hidden="true"></span>
+					<div class="flex-grow-1 min-w-0">
+						<div class="fw-semibold">{{t "Organize leaves these files out, as it cannot read them"}}</div>
+						<ul class="list-unstyled mb-0">
+							{{- range .}}
+							<li class="organize-unreadable-row">
+								<div class="d-flex flex-wrap align-items-center gap-2">
+									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="fw-medium">{{t .Title}}</span><span class="badge rounded-pill organize-unreadable-count">{{num .Count}}</span>
+									<span class="d-flex flex-wrap gap-3 ms-auto">
+										<a class="alert-link" href="/issues.html?kind_of_issue={{.Kind}}">{{t "See the files"}}</a>
+										{{- if eq .Kind "keys"}}
+										<a class="alert-link" href="/settings.html#library">{{t "Upload newer keys"}}</a>
+										{{- end}}
+									</span>
+								</div>
+								{{- if eq .Kind "keys"}}
+								<div class="small mt-1">{{t "They need keys of a newer firmware than your prod.keys. Dump the keys of your console again, updated."}}</div>
+								{{- end}}
+							</li>
+							{{- end}}
+						</ul>
+					</div>
+				</div>
+			</div>
+			{{- end}}
 			<div class="page-tabs" role="tablist" aria-label="{{t "Organize"}}" data-page-tabs>
 				<button type="button" class="page-tab active" role="tab" id="tabActions" data-tab="actions" aria-controls="panelActions" aria-selected="true"><span class="bi bi-play-circle" aria-hidden="true"></span>{{t "Actions"}}</button>
 				<button type="button" class="page-tab" role="tab" id="tabOptions" data-tab="options" aria-controls="panelOptions" aria-selected="false" tabindex="-1"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "Options"}}</button>

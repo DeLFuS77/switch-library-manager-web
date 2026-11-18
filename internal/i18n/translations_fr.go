@@ -1571,6 +1571,8 @@ func init() {
 		"Keep the names that already have their title ID":      "Garder les noms qui ont déjà leur Title ID",
 		"Organize new files": "Organiser les nouveaux fichiers",
 		"Organize all files": "Organiser tous les fichiers",
+		"Organize leaves these files out, as it cannot read them": "Organiser laisse ces fichiers de côté, car il ne peut pas les lire",
+		"Upload newer keys": "Envoyer des clés plus récentes",
 		"Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves.": "Place les fichiers isolés dans les dossiers de la bibliothèque, comme ceux envoyés, dans le dossier de leur jeu, ou dans un nouveau. Rien d'autre ne bouge.",
 		"Keep the folder each game has": "Garder le dossier de chaque jeu",
 		"The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only.": "Les fichiers d'un jeu vont dans le dossier qu'il a déjà, qui garde son nom : le modèle ne nomme que les dossiers des nouveaux jeux.",

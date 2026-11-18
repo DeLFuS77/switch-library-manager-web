@@ -1524,6 +1524,8 @@ func init() {
 		"Keep the names that already have their title ID":      "Оставлять имена, в которых уже есть Title ID",
 		"Organize new files": "Упорядочить новые файлы",
 		"Organize all files": "Упорядочить все файлы",
+		"Organize leaves these files out, as it cannot read them": "Упорядочивание пропускает эти файлы, так как не может их прочитать",
+		"Upload newer keys": "Загрузить более новые ключи",
 		"Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves.": "Кладёт отдельные файлы из папок библиотеки, например загруженные, в папку их игры или в новую. Больше ничего не перемещается.",
 		"Keep the folder each game has": "Сохранять папку каждой игры",
 		"The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only.": "Файлы игры попадают в уже существующую папку, и её имя не меняется: шаблон задаёт имена только папкам новых игр.",
