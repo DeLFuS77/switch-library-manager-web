@@ -53,8 +53,10 @@ const (
 	// how long a console waits for an install by default, and at most, in seconds
 	netPushWaitDefault = 25
 	netPushWaitMax     = 55
-	// the titles kept of what is installed on a console at most
-	netInventoryMax = 5000
+	// the titles kept of what is installed on a console at most, and the longest request that
+	// tells them, with the system of the console and the time played
+	netInventoryMax     = 5000
+	netInventoryMaxBody = 4 << 20
 	// the folder of the data folder with what is installed on each console
 	netInventoryFolder = "consoles"
 )
@@ -89,9 +91,23 @@ type netPushItem struct {
 	Format  string `json:"format"`
 	Name    string `json:"name"`
 	From    string `json:"from"`
+	// what the console is asked: nothing to install a file, netPushRemove to remove the game of
+	// TitleId (the ID of the application), named Game, from the console
+	Action string `json:"action,omitempty"`
 }
 
-// netPush is a file sent to a console that waits for it, or that it got and has not answered.
+// the actions a console is asked besides installing a file (see netPushItem)
+const netPushRemove = "remove"
+
+// what NXDock tells it did with a game it was asked to remove, besides accepting it
+const (
+	netRemoveDone    = "removed"
+	netRemoveFailed  = "failed"
+	netRemoveMissing = "missing"
+)
+
+// netPush is a file sent to a console that waits for it, or that it got and has not answered; or,
+// with item.Action, a game it is asked to remove.
 type netPush struct {
 	id, keyId, keyName, owner, fileId, game string
 	made                                    time.Time
@@ -217,6 +233,26 @@ func (q *netPushQueue) waiting(key string) int {
 	return len(q.pending[key])
 }
 
+// removals are the games a console was asked to remove, by the ID of the application, while it
+// has not answered: waiting for it, or given to it.
+func (q *netPushQueue) removals(key string) map[string]bool {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	q.forgetOld(time.Now())
+	asked := map[string]bool{}
+	for _, push := range q.pending[key] {
+		if push.item.Action == netPushRemove {
+			asked[push.item.TitleId] = true
+		}
+	}
+	for _, push := range q.delivered {
+		if push.keyId == key && push.item.Action == netPushRemove {
+			asked[push.item.TitleId] = true
+		}
+	}
+	return asked
+}
+
 // netConsoleKey is the key of the console of a request: a key of the role Console.
 func netConsoleKey(w http.ResponseWriter, r *http.Request) (*Principal, bool) {
 	principal := principalFrom(r)
@@ -299,6 +335,18 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, byId := web.netFilesKept(appSettings.NetInstall)
+	sent, preparing, status, message := web.netPushFiles(r, principal, console, body.FileIds, body.Compressed, byId)
+	if status != http.StatusOK {
+		writeGlobalError(w, status, lang, message)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"sent": sent, "preparing": preparing, "console": console.Name})
+}
+
+// netPushFiles sends files of the library, by their ids, to a console of the user, and notes it in
+// the activity. It gives how many were sent and how many of them are compressed first, or the
+// status and the message of what stopped it: then nothing is sent.
+func (web *Web) netPushFiles(r *http.Request, principal *Principal, console KeyRow, ids []string, compressed bool, byId map[string]netFile) (int, int, int, string) {
 	web.netCopySweep(false)
 	now := time.Now()
 	pushes := []*netPush{}
@@ -308,11 +356,10 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 	var room int64
 	seen := map[string]bool{}
 	games := []string{}
-	for _, id := range body.FileIds {
+	for _, id := range ids {
 		file, found := byId[id]
 		if !found {
-			writeGlobalError(w, http.StatusNotFound, lang, errNetPushGone.Error())
-			return
+			return 0, 0, http.StatusNotFound, errNetPushGone.Error()
 		}
 		if seen[id] {
 			continue
@@ -325,7 +372,7 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 		if !containsString(games, file.game) {
 			games = append(games, file.game)
 		}
-		if body.Compressed {
+		if compressed {
 			switch netSendModeOf(file) {
 			case netSendNative:
 				push.native = true
@@ -346,17 +393,14 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(later) > 0 {
 		if web.netPushes.waiting(console.ID)+web.netCopyWaits.count(console.ID)+len(pushes)+len(later) > netPushMax {
-			writeGlobalError(w, http.StatusTooManyRequests, lang, errNetPushFull.Error())
-			return
+			return 0, 0, http.StatusTooManyRequests, errNetPushFull.Error()
 		}
 		if err := web.netSendRoom(room); err != nil {
-			writeGlobalError(w, http.StatusInsufficientStorage, lang, NOTE_NET_SEND_SPACE)
-			return
+			return 0, 0, http.StatusInsufficientStorage, NOTE_NET_SEND_SPACE
 		}
 	}
 	if err := web.netPushes.add(pushes); err != nil {
-		writeGlobalError(w, http.StatusTooManyRequests, lang, err.Error())
-		return
+		return 0, 0, http.StatusTooManyRequests, err.Error()
 	}
 	web.netSendPrepare(later, sources)
 	web.sugarLogger.Infof("Network install: %s sent %d files to the console %s, %d to compress first", principal.Name, len(pushes)+len(later), console.Name, len(later))
@@ -364,7 +408,7 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 		web.activities().Add(activity.Entry{Time: now, User: principal.Name, Action: activity.ACTION_NET_PUSH,
 			Detail: quotedKeyName(console.Name) + ": " + strings.Join(games, ", "), IP: clientIp(r)})
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"sent": len(pushes) + len(later), "preparing": len(later), "console": console.Name})
+	return len(pushes) + len(later), len(later), http.StatusOK, ""
 }
 
 func containsString(list []string, value string) bool {
@@ -402,9 +446,19 @@ func (web *Web) handleNetPushWait(w http.ResponseWriter, r *http.Request) {
 	for {
 		pushes, signal := web.netPushes.take(key.KeyID)
 		if len(pushes) > 0 {
-			_, byId := web.netFilesKept(options)
+			var byId map[string]netFile
 			items := []netPushItem{}
 			for _, push := range pushes {
+				// a game to remove has no file
+				if push.item.Action != "" {
+					push.item.Id, push.item.From = push.id, push.owner
+					web.netPushes.given(push)
+					items = append(items, push.item)
+					continue
+				}
+				if byId == nil {
+					_, byId = web.netFilesKept(options)
+				}
 				file, found := byId[push.fileId]
 				if !found {
 					// gone from the library since it was sent
@@ -444,9 +498,11 @@ func (web *Web) handleNetPushAnswer(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// with a game to remove, what the console did: removed, failed or missing (not installed)
 	var body struct {
 		Id       string `json:"id"`
 		Accepted bool   `json:"accepted"`
+		Result   string `json:"result"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&body); err != nil || !netPushIdPattern.MatchString(body.Id) {
 		http.Error(w, "the id of an install sent to the console", http.StatusBadRequest)
@@ -455,6 +511,11 @@ func (web *Web) handleNetPushAnswer(w http.ResponseWriter, r *http.Request) {
 	push, found := web.netPushes.answered(key.KeyID, body.Id)
 	if !found {
 		writeJSON(w, http.StatusNotFound, map[string]string{"state": "unknown"})
+		return
+	}
+	if push.item.Action == netPushRemove {
+		web.netRemoveAnswered(r, key, push, body.Accepted, body.Result)
+		writeJSON(w, http.StatusOK, map[string]string{"state": "noted"})
 		return
 	}
 	action, word := activity.ACTION_NET_PUSH_NO, "declined"
@@ -483,13 +544,16 @@ type netInventoryItem struct {
 	Storage string `json:"storage,omitempty"` // sd or nand
 }
 
-// netInventory is what is installed on a console, as it told it last.
+// netInventory is what is installed on a console, as it told it last; the newer versions of
+// NXDock tell its system and how much each game was played too (see netconsoles.go).
 type netInventory struct {
 	KeyId   string             `json:"keyId"`
 	Console string             `json:"console"`
 	Owner   string             `json:"owner"`
 	Updated time.Time          `json:"updated"`
 	Items   []netInventoryItem `json:"items"`
+	System  *netConsoleFacts   `json:"system,omitempty"`
+	Play    []netPlayEntry     `json:"play,omitempty"`
 }
 
 var netInventoryTypes = map[string]bool{"game": true, "update": true, "dlc": true}
@@ -514,15 +578,18 @@ func (web *Web) readNetInventory(keyId string) (*netInventory, bool) {
 	return inventory, true
 }
 
-// netInventoryForget deletes what is known to be installed on a console.
+// netInventoryForget deletes what is known to be installed on a console, and the time played
+// kept of each day.
 func (web *Web) netInventoryForget(keyId string) error {
 	if !netKeyIdPattern.MatchString(keyId) {
 		return nil
 	}
 	web.netInventories.Lock()
 	defer web.netInventories.Unlock()
-	if err := os.Remove(web.netInventoryPath(keyId)); err != nil && !os.IsNotExist(err) {
-		return err
+	for _, path := range []string{web.netInventoryPath(keyId), web.netPlayHistoryPath(keyId)} {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return err
+		}
 	}
 	return nil
 }
@@ -551,7 +618,8 @@ func cleanNetInventory(items []netInventoryItem) []netInventoryItem {
 	return cleaned
 }
 
-// handleNetInventory keeps what is installed on the console, in place of what it told before;
+// handleNetInventory keeps what is installed on the console, in place of what it told before,
+// with its system ("console") and the time played of each game ("play") when it tells them;
 // {"off": true} forgets it.
 func (web *Web) handleNetInventory(w http.ResponseWriter, r *http.Request) {
 	if _, ok := web.netInstallGate(w, r); !ok {
@@ -561,11 +629,15 @@ func (web *Web) handleNetInventory(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// the system and the titles played are read fact by fact: one told wrong is left out, not the
+	// whole inventory
 	var body struct {
-		Off   bool               `json:"off"`
-		Items []netInventoryItem `json:"items"`
+		Off     bool               `json:"off"`
+		Items   []netInventoryItem `json:"items"`
+		Console json.RawMessage    `json:"console"`
+		Play    []json.RawMessage  `json:"play"`
 	}
-	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2<<20)).Decode(&body); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, netInventoryMaxBody)).Decode(&body); err != nil {
 		http.Error(w, "the titles installed on the console, as JSON", http.StatusBadRequest)
 		return
 	}
@@ -582,12 +654,31 @@ func (web *Web) handleNetInventory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "at most 5000 titles", http.StatusRequestEntityTooLarge)
 		return
 	}
-	inventory := netInventory{KeyId: key.KeyID, Console: key.KeyName, Owner: key.Name, Updated: time.Now().UTC(), Items: cleanNetInventory(body.Items)}
+	if len(body.Play) > netPlayMax {
+		http.Error(w, "at most 5000 titles played", http.StatusRequestEntityTooLarge)
+		return
+	}
+	now := time.Now().UTC()
+	inventory := netInventory{KeyId: key.KeyID, Console: key.KeyName, Owner: key.Name, Updated: now, Items: cleanNetInventory(body.Items)}
+	facts, dropped := netConsoleFactsOf(body.Console)
+	inventory.System = facts
+	if len(dropped) > 0 {
+		web.sugarLogger.Warnf("Network install: the console %s (%s) told its system wrong, left out: %s", key.KeyName, key.Name, strings.Join(dropped, ", "))
+	}
+	if body.Play != nil {
+		inventory.Play = netPlayOf(body.Play)
+	}
 	data, err := json.Marshal(inventory)
 	if err == nil {
 		web.netInventories.Lock()
 		if err = os.MkdirAll(filepath.Join(web.dataFolder, netInventoryFolder), 0755); err == nil {
 			err = durable.WriteFile(web.netInventoryPath(key.KeyID), data)
+		}
+		if err == nil && body.Play != nil {
+			// the inventory is kept even when the day played could not be
+			if dayErr := web.keepNetPlayDay(key.KeyID, inventory.Play, now); dayErr != nil {
+				web.sugarLogger.Warnf("Network install: the time played on the console %s could not be kept: %v", key.KeyName, dayErr)
+			}
 		}
 		web.netInventories.Unlock()
 	}
@@ -596,7 +687,7 @@ func (web *Web) handleNetInventory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not keep what is installed", http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"stored": len(inventory.Items)})
+	writeJSON(w, http.StatusOK, map[string]any{"stored": len(inventory.Items), "played": len(inventory.Play)})
 }
 
 // netInventorySummary is what is known to be installed on a console, for the web.
@@ -604,6 +695,11 @@ type netInventorySummary struct {
 	Titles  int       `json:"titles"`
 	Items   int       `json:"items"`
 	Updated time.Time `json:"updated"`
+	// with the consoles: the games the library has something newer of (an update, or a DLC the
+	// console lacks), and the size of the files that bring them up to date; missing while the list
+	// of files is being made, and with the network install off
+	Outdated     *int   `json:"outdated,omitempty"`
+	ToUpdateSize *int64 `json:"toUpdateSize,omitempty"`
 }
 
 // netConsoleRow is a console of the user, for the web.
@@ -612,6 +708,8 @@ type netConsoleRow struct {
 	Name      string               `json:"name"`
 	Waiting   int                  `json:"waiting"`
 	Inventory *netInventorySummary `json:"inventory,omitempty"`
+	// the system of the console, when it told it
+	System *netConsoleFacts `json:"system,omitempty"`
 	// for the page of a game: what of it is installed on the console
 	Installed *netGameOnConsole `json:"installed,omitempty"`
 }
@@ -671,15 +769,28 @@ func netGameInInventory(inventory *netInventory, prefix string) *netGameOnConsol
 }
 
 // netConsoleRows are the consoles of the user, with what is known to be installed on them; with a
-// prefix, what of that game.
-func (web *Web) netConsoleRows(user string, prefix string) []netConsoleRow {
+// prefix, what of that game. counted adds what the library has newer for each, when the list of
+// files is made in time (see netConsolesCountWait).
+func (web *Web) netConsoleRows(user string, prefix string, counted bool) []netConsoleRow {
 	rows := []netConsoleRow{}
+	var kept []netFile
+	listed, ready := false, false
 	for _, key := range web.netUserConsoles(user) {
 		row := netConsoleRow{Id: key.ID, Name: key.Name, Waiting: web.netPushes.waiting(key.ID)}
 		if inventory, ok := web.readNetInventory(key.ID); ok {
 			row.Inventory = summarizeNetInventory(inventory)
+			row.System = inventory.System
 			if prefix != "" {
 				row.Installed = netGameInInventory(inventory, prefix)
+			}
+			if counted && !listed {
+				listed = true
+				kept, _, ready = web.netFilesReady(settings.ReadSettings(web.dataFolder).NetInstall, netConsolesCountWait)
+			}
+			if ready {
+				switchDB, _ := web.state.get()
+				games, files := compareNetConsole(inventory, kept, switchDB)
+				countNetConsole(row.Inventory, games, files)
 			}
 		}
 		rows = append(rows, row)
@@ -688,12 +799,13 @@ func (web *Web) netConsoleRows(user string, prefix string) []netConsoleRow {
 	return rows
 }
 
-// handleNetConsoles gives the consoles of the user, with what is installed on them.
+// handleNetConsoles gives the consoles of the user, with what is installed on them and, with the
+// network install on, what the library has newer for them.
 func (web *Web) handleNetConsoles(w http.ResponseWriter, r *http.Request) {
 	enabled := netInstallEnabled(settings.ReadSettings(web.dataFolder))
 	rows := []netConsoleRow{}
 	if principal, ok := netPairer(r); ok {
-		rows = web.netConsoleRows(principal.Name, "")
+		rows = web.netConsoleRows(principal.Name, "", enabled)
 	}
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, map[string]any{"enabled": enabled, "consoles": rows})
@@ -727,7 +839,7 @@ func (web *Web) handleNetGame(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, answer)
 		return
 	}
-	consoles := web.netConsoleRows(principal.Name, prefix)
+	consoles := web.netConsoleRows(principal.Name, prefix, false)
 	answer["consoles"] = consoles
 	if len(consoles) == 0 {
 		writeJSON(w, http.StatusOK, answer)
@@ -803,6 +915,9 @@ func (web *Web) handleNetPush() {
 	web.router.HandleFunc(netInstallInventory, web.handleNetInventory).Methods(http.MethodPost)
 	web.router.HandleFunc(netInstallPushSend, web.handleNetPushSend).Methods(http.MethodPost)
 	web.router.HandleFunc(netInstallConsoles, web.handleNetConsoles).Methods(http.MethodGet)
+	web.router.HandleFunc(netInstallConsoles+"/{id:[0-9a-f]{16}}", web.handleNetConsoleDetail).Methods(http.MethodGet)
+	web.router.HandleFunc(netInstallConsoles+"/{id:[0-9a-f]{16}}/update", web.handleNetConsoleUpdate).Methods(http.MethodPost)
+	web.router.HandleFunc(netInstallConsoles+"/{id:[0-9a-f]{16}}/remove", web.handleNetConsoleRemove).Methods(http.MethodPost)
 	web.router.HandleFunc(netInstallGame+"{titleId:[0-9A-Fa-f]{16}}", web.handleNetGame).Methods(http.MethodGet)
 	web.router.HandleFunc(netInventoryForgetPrefix+"{id:[0-9a-f]{16}}", web.handleNetInventoryForget).Methods(http.MethodDelete)
 	web.router.PathPrefix(netInstallCompressed).HandlerFunc(web.handleNetCompressed).Methods(http.MethodGet, http.MethodHead)

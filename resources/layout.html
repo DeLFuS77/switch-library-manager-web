@@ -96,6 +96,10 @@
 								</ul>
 							</li>
 							{{- end}}
+							{{- /* the consoles the user paired, as NXDock tells them; in the folded menu too */}}
+							{{- if .Auth.Consoles}}
+							{{- template "navLink" (dict "Page" .Page "Id" "consoles" "Href" "/consoles.html" "Icon" "bi-nintendo-switch" "Label" (t "Consoles") "Count" 0 "Badge" "")}}
+							{{- end}}
 						</ul>
 						<div class="full-header-hide">
 							<hr>

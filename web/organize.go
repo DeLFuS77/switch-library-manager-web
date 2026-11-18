@@ -435,7 +435,7 @@ func (web *Web) HandleOrganize() {
 		"resources/pages/organize.html",
 	}
 
-	web.HandleValidated("/organize.html", OrganizeForm{}, func() any {
+	web.HandleValidated("/organize.html", OrganizeForm{}, func(r *http.Request) any {
 		return OrganizePageData{
 			GlobalPageData: web.globalPageData("organize"),
 			Settings:       settings.ReadSettings(web.dataFolder),

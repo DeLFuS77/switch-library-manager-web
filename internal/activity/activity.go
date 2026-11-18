@@ -60,11 +60,20 @@ const (
 	ACTION_NET_PUSH_NO  = "A console declined an install"
 	// the files of a run of Organize put back where they were
 	ACTION_UNDO_ORGANIZE = "Undid an organize"
+	// a report of what went wrong sent by a console (see web/netreports.go)
+	ACTION_NET_REPORT = "A console sent a report"
+	// a game a console is asked to remove from the web, and what the console did (see
+	// web/netremove.go)
+	ACTION_NET_REMOVE      = "Asked a console to remove a game"
+	ACTION_NET_REMOVE_YES  = "A console removed a game"
+	ACTION_NET_REMOVE_NO   = "A console declined to remove a game"
+	ACTION_NET_REMOVE_FAIL = "A console could not remove a game"
 )
 
 var Actions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,
 	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL, ACTION_PORTAL_PROXY, ACTION_PORTAL_CF, ACTION_USER_EMAIL, ACTION_PORTAL_SETTINGS,
-	ACTION_PORTAL_OIDC, ACTION_OIDC_UNLINK, ACTION_NET_INSTALL, ACTION_NET_PUSH, ACTION_NET_PUSH_YES, ACTION_NET_PUSH_NO, ACTION_UNDO_ORGANIZE}
+	ACTION_PORTAL_OIDC, ACTION_OIDC_UNLINK, ACTION_NET_INSTALL, ACTION_NET_PUSH, ACTION_NET_PUSH_YES, ACTION_NET_PUSH_NO, ACTION_UNDO_ORGANIZE,
+	ACTION_NET_REPORT, ACTION_NET_REMOVE, ACTION_NET_REMOVE_YES, ACTION_NET_REMOVE_NO, ACTION_NET_REMOVE_FAIL}
 
 // Entry is an action of a user.
 type Entry struct {

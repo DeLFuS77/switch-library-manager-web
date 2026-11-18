@@ -638,6 +638,560 @@
         }
       }
     },
+    "/api/install/consoles": {
+      "get": {
+        "summary": "Consoles of the user",
+        "description": "The consoles of the user signed in (their API keys of the role Console), with what NXDock last told is installed on each, its system and, with the network install on, how many games the library has something newer of. The counts are missing while the list of files of the library is being made.",
+        "tags": [
+          "Consoles"
+        ],
+        "responses": {
+          "200": {
+            "description": "The consoles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "The network install is on"
+                    },
+                    "consoles": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Console"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/install/consoles/{id}": {
+      "get": {
+        "summary": "A console compared with the library",
+        "description": "Each game installed on a console of the user, the newest version the library has of it, the DLC of the library the console lacks and how much it was played; and the files that bring the console up to date (the newest update of each game, when newer than the version installed, and the DLC it lacks).",
+        "tags": [
+          "Consoles"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the key of the console, from GET /api/install/consoles",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The console",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsoleDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a user who may download"
+          },
+          "404": {
+            "description": "No such console of the user"
+          }
+        }
+      }
+    },
+    "/api/install/consoles/{id}/update": {
+      "post": {
+        "summary": "Bring a console up to date",
+        "description": "Sends the files of GET /api/install/consoles/{id} (toUpdate) to the console, as Send to console does: NXDock asks on the console before installing. At most 50 installs wait for a console: the files past that are left, to send again later. Noted in the activity.",
+        "tags": [
+          "Consoles"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the key of the console, from GET /api/install/consoles",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "compressed": {
+                    "type": "boolean",
+                    "description": "Send them in the experimental format of NXPress, which NXDock decompresses while it installs"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "queued": {
+                      "type": "integer",
+                      "description": "The files sent"
+                    },
+                    "preparing": {
+                      "type": "integer",
+                      "description": "Of them, the NSP compressed before they are sent"
+                    },
+                    "left": {
+                      "type": "integer",
+                      "description": "The files not sent, as 50 already wait"
+                    },
+                    "console": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A body that is not the one described"
+          },
+          "403": {
+            "description": "Not a user who may download"
+          },
+          "404": {
+            "description": "No such console of the user"
+          },
+          "409": {
+            "description": "The network install is off, or the console has not told what is installed on it"
+          },
+          "429": {
+            "description": "50 installs already wait for the console"
+          }
+        }
+      }
+    },
+    "/api/install/consoles/{id}/remove": {
+      "post": {
+        "summary": "Remove a game from a console",
+        "description": "Asks a console of the user to remove a game installed on it: it waits with what is sent to the console (GET /install/push/wait), as an item with action remove, the title ID of the game and its name (game). NXDock asks on the console before removing it and copies its saves to the library first; it answers on POST /install/push/answer with accepted and, when it accepted, result: removed, failed or missing (it was not installed). Asked again before the console answers, it is not asked twice. Noted in the activity, and so is the answer.",
+        "tags": [
+          "Consoles"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the key of the console, from GET /api/install/consoles",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "titleId"
+                ],
+                "properties": {
+                  "titleId": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Fa-f]{16}$",
+                    "description": "The title ID of the game (the application), as GET /api/install/consoles/{id} gives it"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asked: the console asks before removing it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "asked"
+                      ]
+                    },
+                    "console": {
+                      "type": "string"
+                    },
+                    "game": {
+                      "type": "string",
+                      "description": "The name of the game"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not the title ID of a game"
+          },
+          "403": {
+            "description": "Not a user who may download"
+          },
+          "404": {
+            "description": "No such console of the user"
+          },
+          "409": {
+            "description": "The network install is off, the console has not told what is installed on it, or the game is not installed on it"
+          },
+          "429": {
+            "description": "50 installs already wait for the console"
+          }
+        }
+      }
+    },
+    "/api/install/reports": {
+      "get": {
+        "summary": "Reports of the consoles",
+        "description": "The reports NXDock sent of what went wrong on the consoles, newest first; the newest 10 of each console are kept. Administrators only, not in the demo.",
+        "tags": [
+          "Consoles"
+        ],
+        "responses": {
+          "200": {
+            "description": "The reports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reports": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConsoleReport"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an administrator"
+          },
+          "404": {
+            "description": "In the demo"
+          }
+        }
+      }
+    },
+    "/api/install/reports/{keyId}/{name}": {
+      "get": {
+        "summary": "Download a report",
+        "description": "The report as the console sent it. Administrators only, not in the demo.",
+        "tags": [
+          "Consoles"
+        ],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the key of the console",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "description": "Name of the report, from GET /api/install/reports",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}T[0-9]{6}\\.[0-9]{3}Z\\.zip$",
+              "example": "20261118T153000.123Z.zip"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ZIP, as an attachment",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an administrator"
+          },
+          "404": {
+            "description": "No such report, or in the demo"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a report",
+        "description": "Administrators only, not in the demo.",
+        "tags": [
+          "Consoles"
+        ],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the key of the console",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "description": "Name of the report, from GET /api/install/reports",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}T[0-9]{6}\\.[0-9]{3}Z\\.zip$",
+              "example": "20261118T153000.123Z.zip"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "example": "deleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an administrator"
+          },
+          "404": {
+            "description": "No such report, or in the demo"
+          }
+        }
+      }
+    },
+    "/install/inventory": {
+      "post": {
+        "summary": "What is installed on a console (NXDock)",
+        "description": "Sent by NXDock with the key of the console, when its user agrees: replaces what it told before. Only with the network install on, and on the local network unless allowed. The titles told wrong or twice are left out; a system told wrong refuses the whole request. The minutes played are also kept once a day, for 400 days. {\"off\": true} forgets all of it.",
+        "tags": [
+          "Consoles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "off": {
+                    "type": "boolean"
+                  },
+                  "items": {
+                    "type": "array",
+                    "maxItems": 5000,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "titleId": {
+                          "type": "string",
+                          "pattern": "^[0-9A-Fa-f]{16}$"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "game",
+                            "update",
+                            "dlc"
+                          ]
+                        },
+                        "version": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "storage": {
+                          "type": "string",
+                          "enum": [
+                            "sd",
+                            "nand"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "console": {
+                    "$ref": "#/components/schemas/ConsoleSystem"
+                  },
+                  "play": {
+                    "type": "array",
+                    "maxItems": 5000,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "titleId": {
+                          "type": "string",
+                          "pattern": "^[0-9A-Fa-f]{16}$"
+                        },
+                        "minutes": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "launches": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "lastPlayed": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Unix time, in seconds"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kept",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stored": {
+                      "type": "integer",
+                      "description": "The titles kept"
+                    },
+                    "played": {
+                      "type": "integer",
+                      "description": "The titles played kept"
+                    },
+                    "off": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not JSON, or a system told wrong"
+          },
+          "403": {
+            "description": "Not the key of a console, or from outside the local network"
+          },
+          "404": {
+            "description": "The network install is off"
+          },
+          "413": {
+            "description": "More than 5000 titles, or titles played"
+          }
+        }
+      }
+    },
+    "/install/report": {
+      "post": {
+        "summary": "Send a report (NXDock)",
+        "description": "A report of what went wrong on the console, sent by NXDock with the key of the console: a ZIP of at most 16 MiB and 200 files, whose names are relative and stay inside it (no symbolic links). Kept for the administrators; the newest 10 of each console stay. Noted in the activity.",
+        "tags": [
+          "Consoles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/zip": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kept",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stored": {
+                      "type": "string",
+                      "example": "20261118T153000.123Z.zip"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not such a ZIP"
+          },
+          "403": {
+            "description": "Not the key of a console, or from outside the local network"
+          },
+          "404": {
+            "description": "The network install is off"
+          },
+          "413": {
+            "description": "Bigger than 16 MiB"
+          },
+          "415": {
+            "description": "Sent as another type than application/zip or application/octet-stream"
+          },
+          "507": {
+            "description": "Not enough free space"
+          }
+        }
+      }
+    },
     "/api/openapi.json": {
       "get": {
         "summary": "This API description",
@@ -1403,6 +1957,265 @@
             }
           }
         ]
+      },
+      "ConsoleSystem": {
+        "type": "object",
+        "description": "The system of a console, as NXDock tells it. Texts of at most 32 letters, digits, spaces and . + - _ ( ); the space in bytes, the free space not above the total.",
+        "properties": {
+          "firmware": {
+            "type": "string",
+            "maxLength": 32,
+            "example": "19.0.1"
+          },
+          "atmosphere": {
+            "type": "string",
+            "maxLength": 32,
+            "example": "1.8.0"
+          },
+          "emummc": {
+            "type": "boolean"
+          },
+          "sdFree": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sdTotal": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nandFree": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nandTotal": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sigpatches": {
+            "type": "string",
+            "maxLength": 32,
+            "example": "sys-patch"
+          }
+        }
+      },
+      "ConsoleInventory": {
+        "type": "object",
+        "description": "What is known to be installed on a console",
+        "properties": {
+          "titles": {
+            "type": "integer",
+            "description": "The games installed"
+          },
+          "items": {
+            "type": "integer",
+            "description": "The titles installed: games, updates and DLC"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the console told it"
+          },
+          "outdated": {
+            "type": "integer",
+            "description": "The games the library has a newer update of, or a DLC the console lacks; missing when not counted"
+          },
+          "toUpdateSize": {
+            "type": "integer",
+            "description": "The size of the files that bring them up to date, in bytes; missing when not counted"
+          }
+        }
+      },
+      "Console": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "3f9c2a7d1e4b8a60"
+          },
+          "name": {
+            "type": "string",
+            "example": "Switch"
+          },
+          "waiting": {
+            "type": "integer",
+            "description": "The installs waiting for it"
+          },
+          "inventory": {
+            "$ref": "#/components/schemas/ConsoleInventory"
+          },
+          "system": {
+            "$ref": "#/components/schemas/ConsoleSystem"
+          }
+        }
+      },
+      "ConsoleGame": {
+        "type": "object",
+        "description": "A game installed on a console, compared with the library",
+        "properties": {
+          "titleId": {
+            "type": "string",
+            "example": "0100000000010000"
+          },
+          "name": {
+            "type": "string",
+            "description": "From the library or the titles database; empty when neither knows it"
+          },
+          "version": {
+            "type": "integer",
+            "description": "The version installed, of the game or its update"
+          },
+          "storage": {
+            "type": "string",
+            "enum": [
+              "sd",
+              "nand"
+            ]
+          },
+          "inLibrary": {
+            "type": "boolean"
+          },
+          "newest": {
+            "type": "integer",
+            "description": "The newest version the library has"
+          },
+          "dlc": {
+            "type": "integer",
+            "description": "The DLC installed"
+          },
+          "missingDlc": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "titleId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "fileId": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "outdated": {
+            "type": "boolean"
+          },
+          "play": {
+            "type": "object",
+            "properties": {
+              "minutes": {
+                "type": "integer"
+              },
+              "launches": {
+                "type": "integer"
+              },
+              "lastPlayed": {
+                "type": "integer",
+                "description": "Unix time, in seconds"
+              }
+            },
+            "description": "How much it was played on the console; missing when it did not tell"
+          },
+          "removing": {
+            "type": "boolean",
+            "description": "The console was asked to remove it (POST /api/install/consoles/{id}/remove) and has not answered yet"
+          }
+        }
+      },
+      "ConsoleUpdateFile": {
+        "type": "object",
+        "description": "A file of the library that brings a console up to date",
+        "properties": {
+          "fileId": {
+            "type": "string"
+          },
+          "titleId": {
+            "type": "string"
+          },
+          "game": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "update",
+              "dlc"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "integer",
+            "description": "In bytes"
+          }
+        }
+      },
+      "ConsoleDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Console"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "The network install is on"
+              },
+              "games": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ConsoleGame"
+                }
+              },
+              "toUpdate": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ConsoleUpdateFile"
+                }
+              },
+              "fits": {
+                "type": "boolean",
+                "nullable": true,
+                "description": "The files fit in the free space of its SD card; null when the console did not tell it"
+              }
+            }
+          }
+        ]
+      },
+      "ConsoleReport": {
+        "type": "object",
+        "properties": {
+          "keyId": {
+            "type": "string"
+          },
+          "console": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "example": "20261118T153000.123Z.zip"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "size": {
+            "type": "integer"
+          }
+        }
       }
     }
   }

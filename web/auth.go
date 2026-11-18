@@ -91,6 +91,8 @@ type AuthInfo struct {
 	// name of the button of OpenID Connect
 	Via      string
 	Provider string
+	// the user has paired a console: the page Consoles is in the menu
+	Consoles bool
 }
 
 type principalKey struct{}
@@ -503,6 +505,8 @@ func viewerAllowed(r *http.Request) bool {
 		// makes their own API keys
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
 			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/") || r.URL.Path == netInstallPushSend ||
+			// and bring their consoles up to date, or ask them to remove a game
+			netConsoleAskPath(r.URL.Path) ||
 			strings.HasPrefix(r.URL.Path, netQueueRead+"/") ||
 			// the saves they bring from an emulator, kept with the ones of their consoles
 			strings.HasPrefix(r.URL.Path, netSavesApi+"/")
@@ -1053,6 +1057,9 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	if web.auth != nil && web.auth.users != nil && principal.Name != "" {
 		if user, ok := web.auth.users.Get(principal.Name); ok {
 			info.Color = user.Color
+		}
+		if _, pairs := netPairer(r); pairs {
+			info.Consoles = len(web.netUserConsoles(principal.Name)) > 0
 		}
 	}
 	return info

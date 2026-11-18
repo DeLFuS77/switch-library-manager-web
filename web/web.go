@@ -183,6 +183,8 @@ type Web struct {
 	netQueues      netQueues
 	netSends       netSends // what the consoles are sent, as it is sent (see netprogress.go)
 	netInventories sync.Mutex
+	// the reports the consoles send (see netreports.go)
+	netReports netReportStore
 	// the index of the saves NXDock uploads, one file per user
 	netSaves sync.Mutex
 	// the games the consoles upload as they dump them, by the file being written
@@ -376,6 +378,9 @@ type TitleItem struct {
 	// as it is sorted; never shown, as it tells the path
 	folder     string
 	folderName string
+	// library: the firmware the installed game needs (a system version, 0 when not known), for
+	// the consoles of the user who looks (see firmwareCheck)
+	requiredFirmware int
 }
 
 // IsSwitch2 reports whether the game is of the Nintendo Switch 2 alone: its card says so.
@@ -508,8 +513,10 @@ type LibraryFacets struct {
 	// games with cheats for the version the library has, and for other versions only
 	Cheats      int
 	CheatsOther int
-	// games that need a newer firmware than the console has
-	FirmwareTooNew int
+	// games that need a newer firmware than the console has, and whether the consoles of the user
+	// told theirs (else the one of Settings counts)
+	FirmwareTooNew   int
+	ConsoleFirmwares bool
 	// the games of the user by how they go, and those without a state ("none")
 	Play map[string]int
 	// games not in the library, shown in the All view
@@ -540,7 +547,13 @@ type LibraryFacets struct {
 	Score90 int
 	// the collections with their number of games, before the collection filter
 	Collections []userdata.CollectionCount
-	Regions     []string
+	// the consoles of the user told how much each game was played: the Library sorts by it
+	Played bool
+	// the consoles of the user that told what is installed on them, with the games of each choice
+	// of the filter On the console, before it; and the choice made, as its chip tells it
+	Consoles       []ConsoleChoice
+	OnConsoleLabel string
+	Regions        []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool
 }
@@ -609,11 +622,13 @@ var funcMap = template.FuncMap{
 		return template.URL("?" + values.Encode())
 	},
 	// filterUrl links to the current list with some filter values replaced: filterUrl .Filter "status" "dlc"
-	"playStates":    userdata.PlayStates,
-	"roleName":      func(role string) string { return roleNames[role] },
-	"roleChoices":   RoleChoices,
-	"cheatTargets":  func() []cheatTarget { return cheatTargets },
-	"playStateName": func(state string) string { return userdata.PlayStateLooks[state].Name },
+	"playStates": userdata.PlayStates,
+	// the orders of what is installed on a console (see consolespage.go)
+	"consoleSortChoices": consoleSortChoices,
+	"roleName":           func(role string) string { return roleNames[role] },
+	"roleChoices":        RoleChoices,
+	"cheatTargets":       func() []cheatTarget { return cheatTargets },
+	"playStateName":      func(state string) string { return userdata.PlayStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
@@ -964,6 +979,7 @@ func (web *Web) Start() {
 	web.HandleFavorites()
 	web.HandleNetInstall()
 	web.HandleNetSavesPage()
+	web.HandleConsoles()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.startTelegramBot()

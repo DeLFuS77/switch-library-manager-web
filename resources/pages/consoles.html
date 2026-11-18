@@ -1,0 +1,192 @@
+{{define "title"}}{{if .Installed}}{{.Installed.Name}}{{else}}{{t "Consoles"}}{{end}}{{end}}
+{{define "main"}}
+			{{- if .Installed}}
+			<nav aria-label="{{t "breadcrumb"}}" class="mt-3">
+				<ol class="breadcrumb mb-0">
+					<li class="breadcrumb-item"><a class="link-secondary" href="/consoles.html">{{t "Consoles"}}</a></li>
+					<li class="breadcrumb-item active text-truncate" aria-current="page">{{.Installed.Name}}</li>
+				</ol>
+			</nav>
+			{{- template "pageHeader" (dict "Title" (t "Installed on %v" .Installed.Name) "Count" (len .Installed.Games) "Subtitle" "")}}
+			{{- else}}
+			{{- template "pageHeader" (dict "Title" (t "Consoles") "Count" -1 "Subtitle" (t "What NXDock tells of your consoles, and what your library has newer for them."))}}
+			{{- end}}
+			{{- if not .Enabled}}
+			<div class="alert alert-info d-flex align-items-start gap-2" role="status"><span class="bi bi-info-circle flex-shrink-0 mt-1" aria-hidden="true"></span><div>{{t "Install over the network is off: an administrator has to turn it on before the console can install."}}</div></div>
+			{{- end}}
+			{{- if not .Consoles}}
+			{{- template "emptyState" (dict "Icon" "bi-nintendo-switch" "Tone" "" "Title" (t "No console yet") "Text" (t "Pair a console with NXDock: it shows here, with what is installed on it.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- else}}
+			<div class="console-cards" data-hover-help{{if .Counting}} data-consoles-counting{{end}}>
+				{{- range .Consoles}}
+				{{- template "consoleCard" (dict "Card" . "Enabled" $.Enabled "Listed" $.Installed)}}
+				{{- end}}
+			</div>
+			{{- end}}
+			{{- with .Installed}}{{template "consoleInstalled" (dict "List" . "Enabled" $.Enabled)}}{{end}}
+			{{- if .Enabled}}
+			<div class="modal fade" id="consoleRemove" tabindex="-1" aria-labelledby="consoleRemoveTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<form class="modal-content" data-console-remove-form>
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="consoleRemoveTitle"><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Remove from console"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<p class="fw-semibold mb-2" data-console-remove-what data-text="{{t "Remove %v from %v?"}}"></p>
+							<p class="text-body-secondary mb-0">{{t "The console will ask before removing it; its saves are copied to the library first."}}</p>
+							<div class="net-error small mt-3" role="alert" data-console-remove-error hidden></div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-link" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="submit" class="btn btn-primary rounded-pill px-4" data-console-remove-go><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Remove"}}</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			{{- end}}
+{{- end}}
+
+{{- /* a console: its system, its free space and what the library has newer for it */}}
+{{- define "consoleCard"}}
+				{{- $c := .Card}}
+				<article class="surface console-card" aria-labelledby="console-{{$c.Id}}">
+					<header class="console-head">
+						<h2 class="console-name" id="console-{{$c.Id}}"><span class="bi bi-nintendo-switch" aria-hidden="true"></span><span class="text-break">{{$c.Name}}</span></h2>
+						<div class="console-chips">
+							{{- with $c.System}}
+							{{- if .Emummc}}<span class="chip chip-console">emuMMC</span>{{else}}<span class="chip chip-muted">sysMMC</span>{{end}}
+							{{- if $c.Sigpatches}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Sigpatches"}}</span>
+							{{- else}}<span class="chip chip-warning help-name"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span>{{t "No sigpatches"}}</span><span class="form-text">{{t "Games install, but without them they do not start."}}</span>{{end}}
+							{{- end}}
+							{{- if and $c.Counted (eq $c.Outdated 0)}}<span class="chip chip-success"><span class="bi bi-check2-all" aria-hidden="true"></span>{{t "Up to date"}}</span>{{end}}
+							{{- if $c.Waiting}}<span class="chip chip-console"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "%v waiting" $c.Waiting}}</span>{{end}}
+						</div>
+						{{- with $c.Seen}}<span class="console-seen">{{.}}</span>{{end}}
+					</header>
+					{{- if not $c.Told}}
+					<p class="console-untold mb-0"><span class="bi bi-info-circle" aria-hidden="true"></span><span>{{t "This console has not told what is installed on it yet. Turn it on in NXDock: Settings › Share what is installed."}}</span></p>
+					{{- else}}
+					{{- with $c.System}}
+					<div class="console-facts">
+						{{- if or .Firmware .Atmosphere}}
+						<div class="console-fact">
+							<span class="console-fact-label">{{t "Firmware"}}</span>
+							<span class="console-fact-value">{{if .Firmware}}{{.Firmware}}{{else}}&mdash;{{end}}{{with .Atmosphere}} <span class="console-fact-sub">&middot; Atmosphère {{.}}</span>{{end}}</span>
+						</div>
+						{{- end}}
+						{{- if $c.Sd.Known}}{{template "consoleSpace" (dict "Name" (t "SD card") "Space" $c.Sd)}}{{end}}
+						{{- if $c.Nand.Known}}{{template "consoleSpace" (dict "Name" (t "Internal memory") "Space" $c.Nand)}}{{end}}
+					</div>
+					{{- end}}
+					{{- if $c.Counted}}
+					{{- if $c.Outdated}}
+					<div class="console-outdated">
+						<span class="console-outdated-count">{{num $c.Outdated}}</span>
+						<div class="console-outdated-text">
+							<span class="console-outdated-label help-name">{{if eq $c.Outdated 1}}{{t "game out of date"}}{{else}}{{t "games out of date"}}{{end}}</span><span class="form-text">{{t "Your library has a newer update of them, or a DLC the console lacks."}}</span>
+							<span class="console-outdated-sub">{{consoleFiles $c.Updates $c.Dlc}} &middot; {{formatSize $c.ToUpdateSize}}{{with $c.Fits}} &middot; {{if .}}<span class="text-success-emphasis">{{t "they fit"}}</span>{{else}}<span class="text-warning-emphasis"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t "they do not fit"}}</span>{{end}}{{end}}</span>
+						</div>
+						<div class="console-actions">
+							{{- if $.Enabled}}
+							<button type="button" class="btn btn-primary rounded-pill" data-console-update="{{$c.Id}}"><span class="bi bi-arrow-repeat me-2" aria-hidden="true"></span>{{t "Bring up to date"}}</button>
+							{{- end}}
+							{{- if not $.Listed}}
+							<a class="btn btn-outline-secondary rounded-pill" href="/consoles.html?console={{$c.Id}}"><span class="bi bi-list-ul me-2" aria-hidden="true"></span>{{t "See what is installed"}}</a>
+							{{- end}}
+						</div>
+					</div>
+					<ul class="console-games list-unstyled mb-0">
+						{{- range $c.Games}}
+						<li class="console-game">
+							<img class="console-cover" src="{{if .Cover}}{{.Cover}}{{else}}/resources/static/noimage.png{{end}}" alt="" loading="lazy" decoding="async">
+							<span class="console-game-main">
+								<span class="console-game-name">{{.Name}}</span>
+								<span class="console-game-sub">{{if .To}}v{{.From}} → v{{.To}}{{end}}{{if and .To .MissingDlc}} &middot; {{end}}{{if .MissingDlc}}{{if eq .MissingDlc 1}}{{t "1 DLC missing"}}{{else}}{{t "%v DLC missing" .MissingDlc}}{{end}}{{end}}</span>
+							</span>
+							<span class="console-game-size">{{formatSize .Size}}</span>
+						</li>
+						{{- end}}
+						{{- if $c.More}}
+						<li class="console-game console-game-more">{{if $.Listed}}{{t "and %v more" $c.More}}…{{else}}<a href="/consoles.html?console={{$c.Id}}&amp;sort=outdated">{{t "and %v more" $c.More}}…</a>{{end}}</li>
+						{{- end}}
+					</ul>
+					{{- else}}
+					<div class="console-outdated is-done">
+						<span class="console-outdated-text"><span class="console-outdated-sub">{{if eq $c.Titles 1}}{{t "1 game installed"}}{{else}}{{t "%v games installed" (num $c.Titles)}}{{end}} &middot; {{t "your library has nothing newer for them"}}</span></span>
+						{{- if not $.Listed}}
+						<div class="console-actions"><a class="btn btn-outline-secondary rounded-pill" href="/consoles.html?console={{$c.Id}}"><span class="bi bi-list-ul me-2" aria-hidden="true"></span>{{t "See what is installed"}}</a></div>
+						{{- end}}
+					</div>
+					{{- end}}
+					{{- else}}
+					<div class="console-outdated is-counting" role="status">
+						<span class="spinner-border spinner-border-sm text-work flex-shrink-0" aria-hidden="true"></span>
+						<span class="console-outdated-sub">{{t "Counting what your library has newer…"}}</span>
+						{{- if not $.Listed}}
+						<div class="console-actions"><a class="btn btn-outline-secondary rounded-pill" href="/consoles.html?console={{$c.Id}}"><span class="bi bi-list-ul me-2" aria-hidden="true"></span>{{t "See what is installed"}}</a></div>
+						{{- end}}
+					</div>
+					{{- end}}
+					{{- end}}
+				</article>
+{{- end}}
+
+{{- define "consoleSpace"}}
+						<div class="console-fact">
+							<span class="console-fact-label d-flex justify-content-between gap-2"><span>{{.Name}}</span><span class="console-fact-sub">{{t "%v free" (formatSize .Space.Free)}}</span></span>
+							<div class="progress console-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Space.Used}}" aria-valuemin="0" aria-valuemax="100" aria-valuetext="{{t "%v free" (formatSize .Space.Free)}}">
+								<div class="progress-bar is-work" style="width: {{.Space.Used}}%"></div>
+							</div>
+						</div>
+{{- end}}
+
+{{- /* what is installed on a console, game by game, with how much each was played */}}
+{{- define "consoleInstalled"}}
+			{{- $l := .List}}
+			{{- if $l.Minutes}}
+			<div class="console-stats">
+				<div class="console-stat"><span class="console-stat-value">{{playedTime $l.Minutes}}</span><span class="console-stat-label">{{t "Played on this console"}}</span></div>
+				<div class="console-stat"><span class="console-stat-value">{{num $l.Played}}</span><span class="console-stat-label">{{t "Games played"}}</span></div>
+				{{- if $l.LastText}}<div class="console-stat"><span class="console-stat-value">{{$l.LastText}}</span><span class="console-stat-label">{{t "Last played"}}</span></div>{{end}}
+			</div>
+			{{- end}}
+			{{- if $l.Games}}
+			<nav class="console-sorts" aria-label="{{t "Sort by"}}">
+				<span class="console-sorts-label" aria-hidden="true">{{t "Sort by"}}</span>
+				<ul class="list-unstyled d-flex flex-wrap gap-2 mb-0">
+					{{- range consoleSortChoices}}
+					<li><a class="filter-pill{{if eq $l.Sort .Value}} active{{end}}" href="/consoles.html?console={{$l.Id}}{{if ne .Value "name"}}&amp;sort={{.Value}}{{end}}"{{if eq $l.Sort .Value}} aria-current="true"{{end}}><span class="bi {{.Icon}}" aria-hidden="true"></span>{{t .Name}}</a></li>
+					{{- end}}
+				</ul>
+			</nav>
+			<ul class="surface console-list list-unstyled" data-console-list="{{$l.Id}}" data-console-name="{{$l.Name}}">
+				{{- range $l.Games}}
+				<li class="console-row{{if .Removing}} is-removing{{end}}" data-console-game="{{.Id}}" data-console-game-name="{{.Name}}">
+					<img class="console-cover" src="{{if .Cover}}{{.Cover}}{{else}}/resources/static/noimage.png{{end}}" alt="" loading="lazy" decoding="async">
+					<div class="console-row-main">
+						<div class="console-row-name">{{if .Link}}<a href="{{.Link}}">{{.Name}}</a>{{else}}{{.Name}}{{end}}
+							{{- if .Outdated}} <span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Out of date"}}</span>{{end}}
+							{{- if .Removing}} <span class="chip chip-console" data-console-asked><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Asked to remove"}}</span>{{end}}</div>
+						<div class="console-row-meta">
+							<span>v{{.Version}}{{with .Newer}} → v{{.}}{{end}}</span>
+							{{- with .Storage}}<span><span class="bi {{if eq . "nand"}}bi-cpu{{else}}bi-sd-card{{end}} me-1" aria-hidden="true"></span>{{if eq . "nand"}}{{t "Internal memory"}}{{else}}{{t "SD card"}}{{end}}</span>{{end}}
+							{{- if or .Dlc .MissingDlc}}<span><span class="bi bi-puzzle me-1" aria-hidden="true"></span>{{if .Dlc}}{{t "%v DLC" .Dlc}}{{end}}{{if and .Dlc .MissingDlc}} &middot; {{end}}{{if eq .MissingDlc 1}}{{t "1 DLC missing"}}{{else if .MissingDlc}}{{t "%v DLC missing" .MissingDlc}}{{end}}</span>{{end}}
+						</div>
+						{{- with .PlayText}}<div class="console-row-play"><span class="bi bi-joystick me-1" aria-hidden="true"></span>{{.}}</div>{{end}}
+					</div>
+					{{- if $.Enabled}}
+					<div class="dropdown console-row-menu">
+						<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-toggle="dropdown" aria-expanded="false" title="{{t "More actions"}}"><span class="bi bi-three-dots" aria-hidden="true"></span><span class="visually-hidden">{{t "More actions"}}: {{.Name}}</span></button>
+						<ul class="dropdown-menu dropdown-menu-end">
+							<li><button type="button" class="dropdown-item" data-console-remove{{if .Removing}} disabled{{end}}><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Remove from console"}}…</button></li>
+						</ul>
+					</div>
+					{{- end}}
+				</li>
+				{{- end}}
+			</ul>
+			{{- else}}
+			{{- template "emptyState" (dict "Icon" "bi-nintendo-switch" "Tone" "" "Title" (t "Nothing installed") "Text" (t "The console told nothing installed on it.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- end}}
+{{- end}}

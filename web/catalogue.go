@@ -26,6 +26,8 @@ type CataloguePageData struct {
 	Date    time.Time
 	// the name of the folder of the filter, never its path
 	Folder string
+	// the choice of the filter On the console, as its chip tells it
+	OnConsole string
 }
 
 // catalogueGame is a game as the catalogue shows it.
@@ -63,16 +65,18 @@ func (web *Web) catalogue(filter *TitleItemFilter, lang string) CataloguePageDat
 	all.Page, all.PerPage = 1, math.MaxInt32
 	data := CataloguePageData{GlobalPageData: web.globalPageData("catalogue"), Filter: &chosen, Date: time.Now()}
 	var items []TitleItem
+	var facets LibraryFacets
 	if filter.List == CATALOGUE_MISSING {
-		items, _, _ = web.getMissingGamesWithFacets(&all, lang)
+		items, _, facets = web.getMissingGamesWithFacets(&all, lang)
 		data.View, data.BackUrl = "missing", "/missing.html"
 	} else {
-		items, _, _ = web.getLibraryWithFacets(&all, lang)
+		items, _, facets = web.getLibraryWithFacets(&all, lang)
 		data.View, data.BackUrl = "all", "/index.html"
 		if !filter.ShowsMissing() {
 			data.View = "mine"
 		}
 	}
+	data.OnConsole = facets.OnConsoleLabel
 	if filter.Folder != "" {
 		for _, folder := range libraryFolders(settings.ReadSettings(web.dataFolder)) {
 			if folder.Id == filter.Folder {

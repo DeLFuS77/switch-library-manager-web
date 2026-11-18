@@ -185,9 +185,22 @@
 							<h2 class="section-title" id="gamedataTitle"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Game data"}}</h2>
 							<div class="row g-3">
 								<div class="col-md-6">
+									{{- /* the firmware the consoles of the administrator tell (NXDock); the field to write it only without one */}}
+									{{- $told := false}}{{range .ConsoleFirmwares}}{{if .Firmware}}{{$told = true}}{{end}}{{end}}
+									{{- if $told}}
+									<input type="hidden" name="console_firmware" value="{{.Settings.ConsoleFirmware}}">
+									<span class="form-label fw-semibold d-block">{{t "Firmware of your consoles"}}</span>
+									<ul class="list-unstyled console-firmwares mb-0">
+										{{- range .ConsoleFirmwares}}{{if .Firmware}}
+										<li><span class="bi bi-nintendo-switch" aria-hidden="true"></span><span class="console-firmwares-name">{{.Name}}</span><strong>{{.Firmware}}</strong><span class="chip chip-success">{{t "told by the console"}}</span></li>
+										{{- end}}{{end}}
+									</ul>
+									<div class="form-text">{{t "Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand."}}</div>
+									{{- else}}
 									<label for="console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>
 									<input type="text" class="form-control" id="console_firmware" name="console_firmware" value="{{.Settings.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" aria-describedby="firmwareHelp">
 									<div class="form-text" id="firmwareHelp">{{t "Optional. Games and updates that need a newer firmware are marked. See it on the console in System Settings > System."}}</div>
+									{{- end}}
 								</div>
 								<div class="col-12">
 									<fieldset class="igdb-settings">

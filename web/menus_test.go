@@ -66,6 +66,19 @@ func TestMenus(t *testing.T) {
 		}
 	}
 
+	// Consoles, once the user paired one: on the bar and in the folded menu, not in the bar at the
+	// bottom
+	if strings.Contains(page, `href="/consoles.html"`) {
+		t.Error("Consoles without a console")
+	}
+	withConsole := admin
+	withConsole.Consoles = true
+	page = render(withConsole, NavCounts{})
+	if panel := part(page, `<div class="offcanvas offcanvas-end"`, `<div class="full-header-hide">`); !strings.Contains(panel, `href="/consoles.html"`) ||
+		strings.Contains(part(page, `<nav class="bottom-nav"`, "</nav>"), "consoles") {
+		t.Error("Consoles in the menu of a user with a console")
+	}
+
 	// without sign-in the gear is the account menu: Settings and the preferences of this browser
 	page = render(nobody, NavCounts{TuneUp: true})
 	account = part(page, `<div class="dropdown account-menu">`, "</ul>")
