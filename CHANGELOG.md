@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out
+
 ## 2.0.17
 
 ### Improvements
