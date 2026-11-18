@@ -151,7 +151,8 @@ var (
 	activityFilesPattern = regexp.MustCompile(`^(\d+) files`)
 	// values of the forms, shown with the name of what they do
 	activityValues = map[string]string{
-		ORGANIZE_ACTION_ORGANIZE:        "Organize files",
+		ORGANIZE_ACTION_NEW:             "Organize new files",
+		ORGANIZE_ACTION_ORGANIZE:        "Organize all files",
 		ORGANIZE_ACTION_CLEANUP:         "Delete old updates",
 		SPACE_OLD_UPDATES:               "Old updates",
 		SPACE_DUPLICATES:                "Duplicates",
