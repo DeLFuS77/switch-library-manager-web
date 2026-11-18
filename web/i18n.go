@@ -60,6 +60,9 @@ func i18nFuncs(lang string) template.FuncMap {
 		"formatSize":  func(size int64) string { return i18n.FormatSizeIn(lang, size) },
 		"formatBytes": func(size int) string { return i18n.FormatSizeIn(lang, int64(size)) },
 		"formatSpeed": func(megabytes float64) string { return i18n.FormatSpeedIn(lang, megabytes) },
+		// a time played, in minutes ("34 h"), and the files that bring a console up to date
+		"playedTime":   func(minutes int64) string { return playedTime(lang, minutes) },
+		"consoleFiles": func(updates int, dlc int) string { return consoleFilesText(lang, updates, dlc) },
 	}
 }
 

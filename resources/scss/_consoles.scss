@@ -1,0 +1,323 @@
+// The page Consoles: a card for each console the user paired, as NXDock tells it. The system in
+// chips (emuMMC in the blue of work, no signature patches in the orange of what waits for you),
+// the free space in bars of the blue of work, what is out of date with its main action in red;
+// and what is installed on one of them, game by game. On a phone the facts go one under the other
+// and the actions take the whole width.
+
+.console-cards {
+	display: grid;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.console-card {
+	display: grid;
+	gap: 1rem;
+}
+
+.console-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem .75rem;
+}
+
+.console-name {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	margin: 0;
+	font-size: var(--slm-text-lg);
+	font-weight: 700;
+
+	.bi {
+		color: rgb(var(--slm-work-rgb));
+	}
+}
+
+.console-chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35rem;
+
+	// the help of a chip is read out with it; with a mouse it shows on the chip (21-hover-help.js)
+	> .form-text {
+		@include visually-hidden();
+	}
+}
+
+.console-seen {
+	margin-left: auto;
+	font-size: var(--slm-text-xs);
+	color: var(--bs-secondary-color);
+}
+
+.console-untold {
+	display: flex;
+	align-items: baseline;
+	gap: .5rem;
+	color: var(--bs-secondary-color);
+
+	.bi {
+		color: rgb(var(--slm-work-rgb));
+	}
+}
+
+.console-facts {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+	gap: .75rem 1.5rem;
+}
+
+.console-fact {
+	display: grid;
+	align-content: start;
+	gap: .3rem;
+	min-width: 0;
+}
+
+.console-fact-label {
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	color: var(--bs-secondary-color);
+}
+
+.console-fact-value {
+	font-weight: 600;
+}
+
+.console-fact-sub {
+	font-weight: 400;
+	color: var(--bs-secondary-color);
+}
+
+.console-bar {
+	height: .5rem;
+}
+
+.console-outdated {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem 1rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--slm-border);
+}
+
+.console-outdated-count {
+	font-size: var(--slm-text-xl);
+	font-weight: 800;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+
+.console-outdated-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+
+	> .form-text {
+		@include visually-hidden();
+	}
+}
+
+.console-outdated-label {
+	align-self: flex-start;
+	font-weight: 600;
+}
+
+.console-outdated-sub {
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+}
+
+.console-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5rem;
+	margin-left: auto;
+
+	@include media-breakpoint-down(sm) {
+		width: 100%;
+		margin-left: 0;
+
+		.btn {
+			flex: 1 1 auto;
+		}
+	}
+}
+
+.console-games {
+	display: grid;
+}
+
+.console-game {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+	padding: .5rem 0;
+	border-top: 1px solid var(--slm-border);
+
+	&:first-child {
+		border-top: 0;
+		padding-top: 0;
+	}
+}
+
+.console-game-more {
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+}
+
+.console-cover {
+	flex: none;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: $border-radius-sm;
+	object-fit: cover;
+	background: var(--slm-surface-muted);
+}
+
+.console-game-main {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.console-game-name {
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.console-game-sub,
+.console-game-size {
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+}
+
+.console-game-size {
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+// what is installed on a console: how much it was played, the orders, and the games
+.console-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+	gap: .75rem;
+	margin-bottom: 1rem;
+}
+
+.console-stat {
+	display: flex;
+	flex-direction: column;
+	padding: .75rem 1rem;
+	border-radius: $border-radius-lg;
+	border: 1px solid var(--slm-border);
+	background: var(--slm-surface);
+}
+
+.console-stat-value {
+	font-size: var(--slm-text-lg);
+	font-weight: 700;
+}
+
+.console-stat-label {
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	color: var(--bs-secondary-color);
+}
+
+.console-sorts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem .75rem;
+	margin-bottom: .75rem;
+}
+
+.console-sorts-label {
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+}
+
+.console-list {
+	padding: .25rem 1.25rem;
+}
+
+.console-row {
+	display: flex;
+	align-items: center;
+	gap: .875rem;
+	padding: .75rem 0;
+	border-top: 1px solid var(--slm-border);
+
+	&:first-child {
+		border-top: 0;
+	}
+
+	.console-cover {
+		width: 3rem;
+		height: 3rem;
+	}
+
+	&.is-removing .console-cover {
+		opacity: .6;
+	}
+}
+
+.console-row-main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.console-row-name {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+
+	a {
+		color: inherit;
+		text-decoration: none;
+
+		&:hover,
+		&:focus-visible {
+			text-decoration: underline;
+		}
+	}
+
+	.chip {
+		margin-left: .25rem;
+		vertical-align: .1rem;
+	}
+}
+
+.console-row-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .15rem 1rem;
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+}
+
+.console-row-play {
+	margin-top: .15rem;
+	font-size: var(--slm-text-sm);
+
+	.bi {
+		color: rgb(var(--slm-work-rgb));
+	}
+}
+
+.console-row-menu {
+	flex: none;
+
+	// a target of 44px for a finger
+	.btn {
+		min-width: 2.75rem;
+		min-height: 2.75rem;
+	}
+}

@@ -91,6 +91,8 @@ type AuthInfo struct {
 	// name of the button of OpenID Connect
 	Via      string
 	Provider string
+	// the user has paired a console: the page Consoles is in the menu
+	Consoles bool
 }
 
 type principalKey struct{}
@@ -1055,6 +1057,9 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	if web.auth != nil && web.auth.users != nil && principal.Name != "" {
 		if user, ok := web.auth.users.Get(principal.Name); ok {
 			info.Color = user.Color
+		}
+		if _, pairs := netPairer(r); pairs {
+			info.Consoles = len(web.netUserConsoles(principal.Name)) > 0
 		}
 	}
 	return info
