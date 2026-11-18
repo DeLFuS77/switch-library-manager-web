@@ -1522,6 +1522,8 @@ func init() {
 		"Keep the names that already have their title ID":      "Title ID を含む名前はそのままにする",
 		"Organize new files": "新しいファイルを整理",
 		"Organize all files": "すべてのファイルを整理",
+		"Organize leaves these files out, as it cannot read them": "これらのファイルは読み取れないため、整理の対象外になります",
+		"Upload newer keys": "新しいキーをアップロード",
 		"Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves.": "ライブラリフォルダーに置かれたままのファイル（アップロードしたものなど）を、そのゲームのフォルダーか新しいフォルダーに入れます。ほかは何も移動しません。",
 		"Keep the folder each game has": "各ゲームのフォルダーを維持",
 		"The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only.": "ゲームのファイルはすでにあるフォルダーに入り、その名前は変わりません。テンプレートは新しいゲームのフォルダー名にだけ使われます。",

@@ -1522,6 +1522,8 @@ func init() {
 		"Keep the names that already have their title ID":      "保留已包含 Title ID 的名称",
 		"Organize new files": "整理新文件",
 		"Organize all files": "整理所有文件",
+		"Organize leaves these files out, as it cannot read them": "整理会跳过这些文件，因为无法读取它们",
+		"Upload newer keys": "上传更新的密钥",
 		"Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves.": "把散放在库文件夹里的文件（如上传的文件）放进其游戏的文件夹，或新建一个。其他文件都不移动。",
 		"Keep the folder each game has": "保留每个游戏的文件夹",
 		"The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only.": "游戏的文件会放进它已有的文件夹，文件夹名称不变：模板只用于命名新游戏的文件夹。",

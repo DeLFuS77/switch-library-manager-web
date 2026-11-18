@@ -6,6 +6,7 @@
 
 - Header: the quarantine has its bin next to Issues and Tasks while it is on: empty, or full with the number of files waiting and a panel with the room they take and when the oldest goes; a click opens it in Settings
 - Organize: the three actions are called Organize new files, Organize all files and Delete old updates, so it is clear what each one takes
+- Organize: a notice at the top tells the files it leaves out because it cannot read them, such as games that need newer keys, with a link to see them and to upload newer keys
 
 ### Fixes
 

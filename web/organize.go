@@ -30,6 +30,28 @@ type OrganizePageData struct {
 	Settings *settings.AppSettings
 	// the runs of Organize that can be undone, the newest first
 	UndoRuns []UndoRunRow
+	// the files the scan could not read, by kind: Organize leaves them out (see unreadableCounts)
+	Unreadable []IssueKindCount
+}
+
+// unreadableKinds are the kinds of issue of the files the scan could not read, which Organize
+// leaves out, as it knows nothing of them: the keys first, as newer keys bring those back.
+var unreadableKinds = []string{ISSUE_KEYS, ISSUE_UNREADABLE, ISSUE_TRUNCATED}
+
+// unreadableCounts are the files Organize leaves out as it cannot read them, by kind, for the
+// notice at the top of its page: empty when it reads them all.
+func (web *Web) unreadableCounts() []IssueKindCount {
+	counts := map[string]IssueKindCount{}
+	for _, count := range web.issueKindCounts() {
+		counts[count.Kind] = count
+	}
+	result := []IssueKindCount{}
+	for _, kind := range unreadableKinds {
+		if count, found := counts[kind]; found {
+			result = append(result, count)
+		}
+	}
+	return result
 }
 
 type OrganizeForm struct {
@@ -440,6 +462,7 @@ func (web *Web) HandleOrganize() {
 			GlobalPageData: web.globalPageData("organize"),
 			Settings:       settings.ReadSettings(web.dataFolder),
 			UndoRuns:       web.undoRows(),
+			Unreadable:     web.unreadableCounts(),
 		}
 	}, func(value any, lang string) ErrorResponse {
 		form := value.(*OrganizeForm)

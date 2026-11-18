@@ -335,3 +335,16 @@
 		white-space: normal;
 	}
 }
+
+// the notice of Organize of the files it cannot read: a row per kind, its count in grey
+.organize-unreadable-row {
+	padding-top: .5rem;
+	margin-top: .5rem;
+	border-top: 1px solid var(--bs-warning-border-subtle);
+}
+
+.organize-unreadable-count {
+	border: 1px solid var(--bs-border-color);
+	background: var(--bs-body-bg);
+	color: var(--bs-body-color);
+}

@@ -1787,6 +1787,8 @@ var Translations = map[string]map[string]string{
 		"Keep the names that already have their title ID":      "Conservar los nombres que ya llevan su Title ID",
 		"Organize new files": "Organizar archivos nuevos",
 		"Organize all files": "Organizar todos los archivos",
+		"Organize leaves these files out, as it cannot read them": "Organizar deja fuera estos archivos, porque no los puede leer",
+		"Upload newer keys": "Subir claves más nuevas",
 		"Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves.": "Pone los archivos sueltos en las carpetas de la biblioteca, como los subidos, en la carpeta que ya tiene su juego, o en una nueva. Nada más se mueve.",
 		"Keep the folder each game has": "Conservar la carpeta de cada juego",
 		"The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only.": "Los archivos de un juego van a la carpeta que ya tiene, que conserva su nombre: la plantilla solo nombra las carpetas de los juegos nuevos.",

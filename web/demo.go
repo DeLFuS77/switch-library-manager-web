@@ -193,7 +193,13 @@ func (web *Web) loadDemo() {
 		ReasonText: "old update file, newer update exist locally (" + filepath.Join(baseFolder, "Starlight Odyssey ["+demoTitleId(0)[:13]+"800][v262144].nsp") + ")"}
 	localDB.Skipped[file("Pixel Kart Rally ["+demoTitleId(1)+"][v0] (1).nsz", 3<<30)] = db.SkippedFile{ReasonCode: db.REASON_DUPLICATE,
 		ReasonText: "duplicate base file (" + filepath.Join(baseFolder, "Pixel Kart Rally ["+demoTitleId(1)+"][v0].nsz") + ")"}
-	localDB.NumFiles += 3
+	// two new games that need keys newer than the prod.keys: Organize and Issues tell it
+	for _, name := range []string{"Harbor Lights.nsp", "Cloudline Express.nsz"} {
+		localDB.Skipped[file(name, 6<<30)] = db.SkippedFile{ReasonCode: db.REASON_MALFORMED_FILE,
+			ReasonText: "failed to read Program: prod.keys has no key_area_key_application_15. The title needs keys from a newer firmware: " +
+				"update prod.keys, or add [TitleID][vVersion] to the file name"}
+	}
+	localDB.NumFiles += 5
 
 	// the favorites of the demo, which the recommendations follow
 	if data, err := json.Marshal(favorites); err == nil {
