@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.18
 
 ### Improvements
 
@@ -24,7 +24,7 @@
 
 ### Fixes
 
-- Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out
+- Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out. Thanks to easyonme (GBAtemp) for reporting it
 
 ## 2.0.17
 

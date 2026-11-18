@@ -1,4 +1,105 @@
 {
+  "2.0.18": {
+    "en": [
+      "Consoles: a page with each console paired with NXDock, the filter On the console, their firmware and the time played.",
+      "Saves: the saves of Eden on a computer stay in step with the ones of the console.",
+      "Install over the network: CyberFoil and Sphaira find the library by themselves on the local network.",
+      "The page of a game tells which installers take each file and whether emulators open it as it is.",
+      "Tune-up: the next step on top and each step as a tile; the long explanations go in an ⓘ.",
+      "Organize: a notice of the files it cannot read, such as games that need newer keys.",
+      "Header: the bin of the quarantine, with the files waiting in it."
+    ],
+    "es": [
+      "Consolas: una página con cada consola emparejada con NXDock, el filtro En la consola, su firmware y el tiempo jugado.",
+      "Partidas: las partidas de Eden de un ordenador se mantienen al día con las de la consola.",
+      "Instalar por red: CyberFoil y Sphaira encuentran la biblioteca solos en la red local.",
+      "La página de un juego dice qué instaladores aceptan cada archivo y si los emuladores lo abren tal cual.",
+      "Puesta a punto: el siguiente paso arriba y cada paso como ficha; las explicaciones largas van en una ⓘ.",
+      "Organizar: un aviso de los archivos que no puede leer, como juegos que necesitan claves más nuevas.",
+      "Barra de arriba: la papelera de la cuarentena, con los archivos que esperan en ella."
+    ],
+    "de": [
+      "Konsolen: eine Seite mit jeder mit NXDock gekoppelten Konsole, der Filter Auf der Konsole, ihre Firmware und die Spielzeit.",
+      "Spielstände: Die Spielstände von Eden auf einem Computer bleiben mit denen der Konsole abgeglichen.",
+      "Über das Netzwerk installieren: CyberFoil und Sphaira finden die Bibliothek im lokalen Netzwerk von selbst.",
+      "Die Seite eines Spiels zeigt, welche Installer jede Datei annehmen und ob Emulatoren sie so öffnen, wie sie ist.",
+      "Aufräumen: der nächste Schritt oben und jeder Schritt als Kachel; lange Erklärungen stehen hinter einem ⓘ.",
+      "Organisieren: ein Hinweis auf die Dateien, die es nicht lesen kann, etwa Spiele, die neuere Schlüssel brauchen.",
+      "Kopfzeile: der Papierkorb der Quarantäne mit den Dateien, die darin warten."
+    ],
+    "fr": [
+      "Consoles : une page avec chaque console associée à NXDock, le filtre Sur la console, leur firmware et le temps de jeu.",
+      "Sauvegardes : les sauvegardes d'Eden d'un ordinateur restent à jour avec celles de la console.",
+      "Installer par le réseau : CyberFoil et Sphaira trouvent la bibliothèque d'eux-mêmes sur le réseau local.",
+      "La page d'un jeu indique quels installateurs acceptent chaque fichier et si les émulateurs l'ouvrent tel quel.",
+      "Mise au point : l'étape suivante en haut et chaque étape en tuile ; les longues explications passent dans un ⓘ.",
+      "Organiser : un avis des fichiers qu'il ne peut pas lire, comme des jeux qui ont besoin de clés plus récentes.",
+      "En-tête : la corbeille de la quarantaine, avec les fichiers qui y attendent."
+    ],
+    "it": [
+      "Console: una pagina con ogni console associata a NXDock, il filtro Sulla console, il loro firmware e il tempo di gioco.",
+      "Salvataggi: i salvataggi di Eden di un computer restano allineati con quelli della console.",
+      "Installa via rete: CyberFoil e Sphaira trovano da soli la libreria nella rete locale.",
+      "La pagina di un gioco dice quali installer accettano ogni file e se gli emulatori lo aprono così com'è.",
+      "Messa a punto: il passo successivo in alto e ogni passo come riquadro; le spiegazioni lunghe vanno in una ⓘ.",
+      "Organizza: un avviso dei file che non riesce a leggere, come giochi che richiedono chiavi più recenti.",
+      "Barra in alto: il cestino della quarantena, con i file che vi attendono."
+    ],
+    "pt": [
+      "Consolas: uma página com cada consola emparelhada com o NXDock, o filtro Na consola, o seu firmware e o tempo de jogo.",
+      "Salvamentos: os salvamentos do Eden de um computador ficam em dia com os da consola.",
+      "Instalar pela rede: o CyberFoil e o Sphaira encontram a biblioteca sozinhos na rede local.",
+      "A página de um jogo diz que instaladores aceitam cada arquivo e se os emuladores o abrem tal como está.",
+      "Ajuste da biblioteca: o passo seguinte em cima e cada passo como um cartão; as explicações longas vão num ⓘ.",
+      "Organizar: um aviso dos arquivos que não consegue ler, como jogos que precisam de chaves mais recentes.",
+      "Barra de cima: o caixote da quarentena, com os arquivos que esperam nela."
+    ],
+    "nl": [
+      "Consoles: een pagina met elke console die aan NXDock gekoppeld is, het filter Op de console, hun firmware en de speeltijd.",
+      "Opslagbestanden: de opslagbestanden van Eden op een computer blijven gelijk met die van de console.",
+      "Installeren via het netwerk: CyberFoil en Sphaira vinden de bibliotheek zelf op het lokale netwerk.",
+      "De pagina van een game zegt welke installers elk bestand aannemen en of emulators het openen zoals het is.",
+      "Onderhoud: de volgende stap bovenaan en elke stap als tegel; lange uitleg staat achter een ⓘ.",
+      "Ordenen: een melding van de bestanden die het niet kan lezen, zoals games die nieuwere sleutels nodig hebben.",
+      "Bovenbalk: de prullenbak van de quarantaine, met de bestanden die erin wachten."
+    ],
+    "ru": [
+      "Консоли: страница с каждой консолью, связанной с NXDock, фильтр «На консоли», их прошивка и время в игре.",
+      "Сохранения: сохранения Eden на компьютере остаются в соответствии с сохранениями консоли.",
+      "Установка по сети: CyberFoil и Sphaira сами находят библиотеку в локальной сети.",
+      "Страница игры показывает, какие установщики принимают каждый файл и открывают ли его эмуляторы как есть.",
+      "Наведение порядка: следующий шаг вверху и каждый шаг в виде плитки; длинные пояснения — за значком ⓘ.",
+      "Упорядочить: уведомление о файлах, которые не удаётся прочитать, например играх, которым нужны более новые ключи.",
+      "Верхняя панель: корзина карантина с файлами, которые в ней ждут."
+    ],
+    "ja": [
+      "本体：NXDock と連携した各本体のページ、「本体」フィルター、ファームウェア、プレイ時間を追加しました。",
+      "セーブデータ：パソコン上の Eden のセーブデータが本体のものと同期されます。",
+      "ネットワークでインストール：CyberFoil と Sphaira がローカルネットワーク上のライブラリを自動で見つけます。",
+      "ゲームのページで、各ファイルに対応するインストーラーと、エミュレーターでそのまま開けるかがわかります。",
+      "整理の手順：次の手順を上に表示し、各手順をタイルで表示します。長い説明は ⓘ にまとめました。",
+      "整理：読み取れないファイル（新しいキーが必要なゲームなど）をお知らせします。",
+      "上部バー：隔離のごみ箱に、中で待っているファイルが表示されます。"
+    ],
+    "ko": [
+      "콘솔: NXDock과 연결된 각 콘솔의 페이지, 콘솔 필터, 펌웨어와 플레이 시간이 추가되었습니다.",
+      "세이브: 컴퓨터의 Eden 세이브가 콘솔의 세이브와 맞춰집니다.",
+      "네트워크로 설치: CyberFoil과 Sphaira가 로컬 네트워크에서 라이브러리를 스스로 찾습니다.",
+      "게임 페이지에서 각 파일을 받는 설치 프로그램과 에뮬레이터가 그대로 열 수 있는지 알려 줍니다.",
+      "정리 단계: 다음 단계를 위에, 각 단계를 타일로 보여 주며 긴 설명은 ⓘ에 넣었습니다.",
+      "정리: 더 새로운 키가 필요한 게임처럼 읽을 수 없는 파일을 알려 줍니다.",
+      "상단 바: 격리함 휴지통에 기다리는 파일이 표시됩니다."
+    ],
+    "zh": [
+      "主机：新增与 NXDock 配对的每台主机页面、“主机上”筛选、其固件和游戏时间。",
+      "存档：电脑上 Eden 的存档会与主机的存档保持同步。",
+      "通过网络安装：CyberFoil 和 Sphaira 会在局域网中自动找到游戏库。",
+      "游戏页面会显示每个文件可用哪些安装器，以及模拟器能否直接打开。",
+      "整理步骤：下一步显示在顶部，每一步以卡片显示；较长的说明放在 ⓘ 中。",
+      "整理：提示无法读取的文件，例如需要更新密钥的游戏。",
+      "顶部栏：隔离区的回收站，显示其中等待的文件。"
+    ]
+  },
   "2.0.17": {
     "en": [
       "Settings: the messages of the automations and of the save vault can also be turned off in the list of Notifications."
