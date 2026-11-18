@@ -23,6 +23,9 @@ VOLUME $SLM_DATA_DIR
 VOLUME /mnt/roms
 
 EXPOSE 3000
+# where CyberFoil and Sphaira ask the local network for the library, while installing over the
+# network is on (web/netdiscover.go)
+EXPOSE 8465/udp
 
 # /healthz answers without authentication, on the "port" of settings.json (docker-healthcheck.sh)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=2m --retries=3 \

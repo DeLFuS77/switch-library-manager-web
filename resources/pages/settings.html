@@ -589,6 +589,11 @@
 												<code class="net-code flex-grow-1" data-net-line="tinfoil"></code>
 												<button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-copy="" data-net-copy="tinfoil" aria-label="{{t "Copy"}}" title="{{t "Copy"}}"><span class="bi bi-clipboard" aria-hidden="true"></span></button>
 											</div>
+											{{- /* they find the library by themselves, as they find Ownfoil (netdiscover.go) */}}
+											<div class="net-discover small mt-2">
+												<span class="net-discover-dot" aria-hidden="true"></span><span class="help-name">{{t "CyberFoil and Sphaira find it by themselves on your network"}}</span>
+												<div class="form-text">{{t "They ask on the local network and this library answers with its address; the key of the console is still needed. In Docker, the UDP port 8465 must be published."}}</div>
+											</div>
 										</div>
 									</div>
 								</div>

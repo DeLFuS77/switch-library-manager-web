@@ -105,7 +105,7 @@ func TestOwnfoilHello(t *testing.T) {
 	for _, path := range []string{"/", "/install/tinfoil/", "/install/ownfoil"} {
 		got := console.do("OPTIONS", path, nil, "Authorization", auth)
 		var hello netOwnfoilHello
-		if got.Code != http.StatusOK || json.Unmarshal(got.Body.Bytes(), &hello) != nil || hello.Name == "" || !hello.Features.Shop || hello.Motd != "Hello" || len(hello.Uid) != 32 {
+		if got.Code != http.StatusOK || json.Unmarshal(got.Body.Bytes(), &hello) != nil || hello.Name == "" || !hello.Features.Shop || hello.Motd != "Hello" || len(hello.Uid) != 36 {
 			t.Fatalf("%s: %d %s", path, got.Code, got.Body.String())
 		}
 	}

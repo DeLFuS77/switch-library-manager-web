@@ -15,6 +15,7 @@
 - A program not built by the workflows of this repository says it is an unofficial build
 - The page of a game tells under each file which installers take it and whether emulators open it as it is (NSP and XCI, NSZ solid or in blocks, XCZ, the extra compression of NXPress, a game merged with its update)
 - Library: filter by emulators, in Filters › The file: the games whose files all open as they are, or those with one to decompress first
+- Install over the network: CyberFoil and Sphaira find the library by themselves on the local network (UDP 8465)
 
 ### Fixes
 

@@ -7,6 +7,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+      # CyberFoil and Sphaira find the library on the local network (Install over the network);
+      # remove it if another app, such as Ownfoil, already uses UDP 8465 on this computer
+      - "8465:8465/udp"
     environment:
       # user and group that own your library folder (see `id` on the host)
       - PUID=1000

@@ -151,6 +151,17 @@
 	border-radius: 999px;
 }
 
+// CyberFoil and Sphaira find the library by themselves: a green dot, as it answers them
+.net-discover-dot {
+	display: inline-block;
+	width: .5rem;
+	height: .5rem;
+	margin-right: .45rem;
+	border-radius: 50%;
+	background: var(--bs-success);
+	vertical-align: .05rem;
+}
+
 .net-stat {
 	padding: .6rem .75rem;
 	border-radius: $border-radius-lg;

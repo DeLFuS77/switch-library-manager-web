@@ -117,7 +117,8 @@ type netOwnfoilHello struct {
 }
 
 // handleNetOwnfoilHello says what the shop is: its name, version and message, and that it is a
-// shop whose downloads go on where they stopped.
+// shop whose downloads go on where they stopped. Its uid is the one the discovery of the local
+// network says (netdiscover.go), so Sphaira knows the shop it found as the one it saved.
 func (web *Web) handleNetOwnfoilHello(w http.ResponseWriter, r *http.Request) {
 	options, ok := web.netOwnfoilGate(w, r)
 	if !ok {
@@ -125,7 +126,7 @@ func (web *Web) handleNetOwnfoilHello(w http.ResponseWriter, r *http.Request) {
 	}
 	hello := web.netHello()
 	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, netOwnfoilHello{Uid: hello.Id, Name: hello.Name, Version: hello.Version, ProtocolVersion: netOwnfoilProtocol,
+	writeJSON(w, http.StatusOK, netOwnfoilHello{Uid: web.netShopUid(), Name: hello.Name, Version: hello.Version, ProtocolVersion: netOwnfoilProtocol,
 		Motd: netInstallMessage(options.Message), Features: netOwnfoilFeatures{Shop: true, ResumableDownload: true}})
 }
 
