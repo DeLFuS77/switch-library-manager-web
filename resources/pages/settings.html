@@ -633,6 +633,18 @@
 										<input class="form-check-input" type="checkbox" role="switch" id="notify_console_queue" name="notify_console_queue" value="true"{{if not .Settings.Notifications.ConsoleQueueQuiet}} checked{{end}}>
 										<label class="form-check-label" for="notify_console_queue">{{t "Notify when a console finishes installing (NXDock)"}}</label>
 									</div>
+									{{- /* the messages of the automations and of the save vault are switched on in their own sections:
+										the same switches here too, so every message can be turned off from this list (#189) */}}
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_automation" data-same-as="automation_notify"{{if .Settings.Automation.Notify}} checked{{end}}>
+										<label class="form-check-label" for="notify_automation">{{t "Notify what the automations did"}}</label>
+										<a class="small ms-1" href="#automation">{{t "Automations"}}</a>
+									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_vault" data-same-as="vault_notify"{{if .Settings.Vault.Notify}} checked{{end}}>
+										<label class="form-check-label" for="notify_vault">{{t "Notify every new backup of saves"}}</label>
+										<a class="small ms-1" href="#vault">{{t "Save vault"}}</a>
+									</div>
 									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-sm-auto" id="notificationTest"><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
 								</div>
 							</div>

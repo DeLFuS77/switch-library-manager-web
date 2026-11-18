@@ -2366,6 +2366,8 @@ func init() {
 		"The console could not install what it was sent.":    "Консоль не смогла установить то, что ей отправили.",
 		"The install was cancelled on the console.":          "Установка отменена на консоли.",
 		"Notify when a console finishes installing (NXDock)": "Сообщать, когда консоль закончит установку (NXDock)",
+		"Notify what the automations did":                    "Сообщать, что сделали автоматизации",
+		"Notify every new backup of saves":                   "Сообщать о каждой новой копии сохранений",
 		"NXDock finished installing on %v":                   "NXDock закончил установку на %v",
 		"%v installed, %v failed":                            "установлено: %v, ошибок: %v",
 		"Search the eShop":                                   "Искать в eShop",
