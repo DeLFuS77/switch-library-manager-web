@@ -197,6 +197,7 @@ docker run -d \
   --name switch-library-manager-web \
   --restart unless-stopped \
   -p 3000:3000 \
+  -p 8465:8465/udp \
   -e PUID=1000 -e PGID=1000 -e TZ=Europe/Madrid \
   -v /path/to/appdata:/usr/local/share/switch-library-manager-web \
   -v /path/to/your/switch/games:/mnt/roms \
@@ -212,6 +213,7 @@ once and changes every time the app starts.
 | Setting | Meaning |
 |---|---|
 | `-p 3000:3000` | The port of the web interface. For another one, change the first number: `-p 8080:3000` |
+| `-p 8465:8465/udp` | Where CyberFoil and Sphaira find the library on the local network (**Install over the network**). They are given the port of the app inside the container, so they find it when the web interface keeps the same number on both sides (`3000:3000`). Remove it if another app, such as Ownfoil, already uses UDP 8465 |
 | `/usr/local/share/switch-library-manager-web` | Data folder: settings, caches, covers and **your keys** |
 | `/mnt/roms` | Your games; writable, to organize and compress files |
 | `/mnt/roms2` | Optional: games in a second folder, such as another disk (`-v /path/to/more/games:/mnt/roms2`). Add `/mnt/roms2` to **Folders to scan** in **Settings › Library** |

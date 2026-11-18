@@ -10,6 +10,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+      # CyberFoil and Sphaira find the library on the local network (Install over the network);
+      # remove it if another app, such as Ownfoil, already uses UDP 8465 on the NAS
+      - "8465:8465/udp"
     environment:
       - PUID=1026
       - PGID=100
