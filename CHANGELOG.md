@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Keep this update, on the page of a game, in Issues and in Space: an older update kept on purpose is never deleted as old, and Compress offers it, as it now offers the older updates kept for their cheats. Thanks to @deafening832 for reporting it (#193)
+
+### Fixes
+
+- The list of Recompress is shown only to those who use Compress, as its other lists
+
 ## 2.0.20
 
 ### Improvements

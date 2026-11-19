@@ -51,7 +51,10 @@ type SpaceFile struct {
 	// checked without errors, only not whole
 	OnRequest bool
 	Note      string
-	file      db.ExtendedFileInfo
+	// an old update: it can be kept on purpose (Keep this update), and whether it is
+	Keepable   bool
+	KeptUpdate bool
+	file       db.ExtendedFileInfo
 }
 
 type SpaceGroup struct {
@@ -239,7 +242,10 @@ func (web *Web) spaceGroups() []SpaceGroup {
 				continue
 			}
 			entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file}
-			if note := web.newerDamaged(entry.KeptBy); note != "" {
+			entry.Keepable = updateKeyOf(file) != ""
+			if web.keptByChoice(file) {
+				entry.Deletable, entry.Note, entry.KeptUpdate = false, NOTE_KEPT_BY_CHOICE, true
+			} else if note := web.newerDamaged(entry.KeptBy); note != "" {
 				entry.Deletable = false
 				entry.Note = note
 			} else if note := web.keptForCheats(file); note != "" {
@@ -394,6 +400,9 @@ func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile)
 			return entry.Note
 		}
 	case db.REASON_OLD_UPDATE:
+		if web.keptByChoice(file) {
+			return NOTE_KEPT_BY_CHOICE
+		}
 		if note := web.newerDamaged(kept); note != "" {
 			return note
 		}

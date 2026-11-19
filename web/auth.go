@@ -443,14 +443,14 @@ func (a *Auth) anonymous(r *http.Request) *Principal {
 
 // pages and actions of administrators; read-only users can only look and download
 var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/wizard/folders": {}, "/wizard/admin": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/activity.html": {}, "/activity.csv": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
-	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}, netInstallSummaryPath: {}}
+	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/compress/recompress-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}, netInstallSummaryPath: {}}
 
 // downloadPath matches what takes a file of the library out of it: games, updates, DLC, their
 // archives, cheats and the lists of the library
 var downloadPath = regexp.MustCompile(`^/api/titles/[^/]+(/updates/[^/]+|/dlc/[^/]+|/archive\.zip|/cheats\.(txt|zip))?$|^/api/cheats\.zip$|^/export/|^/sd/list\.txt$|^/install/`)
 
 // editorPages are the pages of the tools an editor uses besides the ones of everybody
-var editorPages = map[string]struct{}{"/compress.html": {}, "/compress/xci-list": {}, "/compress/nsz-list": {}}
+var editorPages = map[string]struct{}{"/compress.html": {}, "/compress/xci-list": {}, "/compress/nsz-list": {}, "/compress/recompress-list": {}}
 
 // editorActions are what an editor may do besides looking and downloading: none deletes a file
 // or changes a setting (a compression keeps the originals for them, see /compress/start)

@@ -132,6 +132,9 @@
 						{{- if .CanKeep}}
 						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-issue-keep="{{.File}}" title="{{t "Keep this copy: the other one becomes the duplicate."}}"><span class="bi bi-pin-angle me-1" aria-hidden="true"></span>{{t "Keep this one"}}</button></div>
 						{{- end}}
+						{{- if .CanKeepUpdate}}
+						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-update-keep="{{.File}}" data-keep="true"><span class="bi bi-pin-angle me-1" aria-hidden="true"></span>{{t "Keep this update"}}</button></div>
+						{{- end}}
 					</div>
 				</li>
 				{{- end}}
