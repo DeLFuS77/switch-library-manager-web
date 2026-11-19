@@ -2640,5 +2640,12 @@ func init() {
 		"The file could not be written again, the NSZ is kept as it was.":               "无法重新写入该文件，NSZ 保持原样。",
 		"The new copy could not be checked whole, so the NSZ is kept as it was.":        "无法完整校验新副本，因此 NSZ 保持原样。",
 		"Made with the extra compression of NXPress: decompress it with NXPress first.": "由 NXPress 额外压缩制作：请先用 NXPress 解压。",
+
+		// older updates kept on purpose (#193)
+		"Keep this update": "保留此更新",
+		"Stop keeping":     "不再保留",
+		"You keep this version: it is not deleted.":               "你保留了此版本：它不会被删除。",
+		"Kept: no cleanup deletes this version":                   "已保留：任何清理都不会删除此版本",
+		"Older than v%v: Delete old updates and Space delete it.": "比 v%v 旧：“删除旧更新”和“空间”会删除它。",
 	}
 }

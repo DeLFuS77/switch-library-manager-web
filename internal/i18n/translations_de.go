@@ -2640,5 +2640,12 @@ func init() {
 		"The file could not be written again, the NSZ is kept as it was.":               "Die Datei konnte nicht neu geschrieben werden, das NSZ bleibt, wie es war.",
 		"The new copy could not be checked whole, so the NSZ is kept as it was.":        "Die neue Kopie konnte nicht ganz geprüft werden, daher bleibt das NSZ, wie es war.",
 		"Made with the extra compression of NXPress: decompress it with NXPress first.": "Mit der Extra-Komprimierung von NXPress erstellt: Dekomprimiere es zuerst mit NXPress.",
+
+		// older updates kept on purpose (#193)
+		"Keep this update": "Dieses Update behalten",
+		"Stop keeping":     "Nicht mehr behalten",
+		"You keep this version: it is not deleted.":               "Du behältst diese Version: Sie wird nicht gelöscht.",
+		"Kept: no cleanup deletes this version":                   "Behalten: Keine Bereinigung löscht diese Version",
+		"Older than v%v: Delete old updates and Space delete it.": "Älter als v%v: Alte Updates löschen und Speicherplatz löschen es.",
 	}
 }

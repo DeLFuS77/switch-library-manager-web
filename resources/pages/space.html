@@ -82,9 +82,18 @@
 								<span class="item-name d-block">{{$f.Name}}</span>
 								<span class="item-meta"><span class="font-monospace text-break" title="{{$f.Path}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{fileBase $f.Path}}</span>{{with $f.KeptBy}}<span class="font-monospace text-break text-success-emphasis" title="{{.}}"><span class="bi bi-check2-circle me-1" aria-hidden="true"></span>{{fileBase .}}</span>{{end}}</span>
 								{{- if $f.OnRequest}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway."}}</span>
+								{{- else if $f.KeptUpdate}}<span class="chip chip-info mt-1"><span class="bi bi-pin-angle-fill" aria-hidden="true"></span>{{t $f.Note}}</span>
 								{{- else}}{{with $f.Note}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t .}}</span>{{end}}{{end}}
 							</label>
+							{{- if $f.Keepable}}
+							{{- /* an old update can be kept on purpose, or let go: the button goes with the size, in its column (#193) */}}
+							<span class="d-flex align-items-center gap-2">
+								<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap admin-only" data-update-keep="{{$f.Path}}" data-keep="{{if $f.KeptUpdate}}false{{else}}true{{end}}"{{if not $f.KeptUpdate}} title="{{t "Keep this update"}}"{{end}}><span class="bi {{if $f.KeptUpdate}}bi-pin me-1{{else}}bi-pin-angle{{end}}" aria-hidden="true"></span>{{if $f.KeptUpdate}}{{t "Stop keeping"}}{{else}}<span class="visually-hidden">{{t "Keep this update"}}</span>{{end}}</button>
+								<span class="item-size">{{formatSize $f.Size}}</span>
+							</span>
+							{{- else}}
 							<span class="item-size">{{formatSize $f.Size}}</span>
+							{{- end}}
 						</li>
 						{{- end}}
 						{{- if $g.RestCount}}

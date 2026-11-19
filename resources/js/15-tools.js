@@ -399,6 +399,24 @@ function initIssueKeep() {
 	}));
 }
 
+// an old update kept on purpose, or let go (the page of a game, Issues, Space): the page shows it
+// again as it is now (#193)
+function initUpdateKeep() {
+	document.addEventListener('click', e => {
+		const button = e.target.closest('[data-update-keep]');
+		if (!button) {
+			return;
+		}
+		button.disabled = true;
+		postForm('/updates/keep', { path: button.dataset.updateKeep, keep: button.dataset.keep })
+			.then(() => window.location.reload())
+			.catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+	});
+}
+
 // the charts of the history: the values of the day under the pointer
 function initHistoryCharts() {
 	document.querySelectorAll('.history-charts [data-bs-toggle="pill"]').forEach((button) => {
