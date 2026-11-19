@@ -1,4 +1,39 @@
 {
+  "2.0.19": {
+    "en": [
+      "Tune-up: back to its list of steps of before."
+    ],
+    "es": [
+      "Puesta a punto: vuelve a su lista de pasos de antes."
+    ],
+    "de": [
+      "Aufräumen: wieder mit seiner Liste der Schritte wie zuvor."
+    ],
+    "fr": [
+      "Mise au point : retour à sa liste d'étapes d'avant."
+    ],
+    "it": [
+      "Messa a punto: torna al suo elenco di passi di prima."
+    ],
+    "pt": [
+      "Ajuste da biblioteca: volta à sua lista de passos de antes."
+    ],
+    "nl": [
+      "Onderhoud: weer met de lijst van stappen van eerder."
+    ],
+    "ru": [
+      "Наведение порядка: снова прежний список шагов."
+    ],
+    "ja": [
+      "整理の手順：以前の手順の一覧に戻しました。"
+    ],
+    "ko": [
+      "정리 단계: 예전의 단계 목록으로 돌아왔습니다."
+    ],
+    "zh": [
+      "整理步骤：恢复为之前的步骤列表。"
+    ]
+  },
   "2.0.18": {
     "en": [
       "Consoles: a page with each console paired with NXDock, the filter On the console, their firmware and the time played.",

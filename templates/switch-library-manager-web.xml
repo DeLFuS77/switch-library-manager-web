@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.18
+  <Changes>### 2.0.19
+- Tune-up: back to its list of steps of before
+### 2.0.18
 - Consoles paired with NXDock (page, filter, firmware, time played), Eden saves in step, CyberFoil and Sphaira find the library, which installers and emulators take each file, the tune-up as tiles, help in ⓘ, a notice of the files Organize cannot read and the bin of the quarantine in the header
 ### 2.0.17
 - Settings: the messages of the automations and of the save vault can also be turned off in the list of Notifications

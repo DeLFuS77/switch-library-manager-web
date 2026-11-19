@@ -115,11 +115,11 @@
 							<ul class="navbar-nav app-nav">
 								{{- if .Auth.IsAdmin}}
 								{{- template "navLink" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Count" 0 "Badge" "" "Dot" .Counts.TuneUp)}}
-								{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "" "Step" "3")}}
-								{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "" "Step" "4")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
 								{{- end}}
-								{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "" "Step" (and .Auth.IsAdmin "5"))}}
+								{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
 								{{- if .Auth.IsAdmin}}
+								{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
 								{{- if .VaultEnabled}}
 								{{- template "navLink" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Count" 0 "Badge" "")}}
@@ -295,7 +295,7 @@
 {{define "navLink"}}
 							<li class="nav-item{{with .InBar}} {{.}}{{end}}">
 								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
-									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{with .Step}}<span class="nav-step" title="{{t "Step %v of 5 of the tune-up" .}}">{{.}}</span>{{end}}{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{with .Running}}<span class="badge rounded-pill nav-count nav-running ms-auto ms-full-0" title="{{t "Tasks running: %v" (num .)}}">{{num .}}<span class="visually-hidden"> {{t "Tasks running: %v" (num .)}}</span></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}}{{if not .Running}} ms-auto{{end}} ms-full-0"{{with .CountLabel}} title="{{.}}"{{end}}>{{num .Count}}{{with .CountLabel}}<span class="visually-hidden"> {{.}}</span>{{end}}</span>{{end}}
+									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{with .Running}}<span class="badge rounded-pill nav-count nav-running ms-auto ms-full-0" title="{{t "Tasks running: %v" (num .)}}">{{num .}}<span class="visually-hidden"> {{t "Tasks running: %v" (num .)}}</span></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}}{{if not .Running}} ms-auto{{end}} ms-full-0"{{with .CountLabel}} title="{{.}}"{{end}}>{{num .Count}}{{with .CountLabel}}<span class="visually-hidden"> {{.}}</span>{{end}}</span>{{end}}
 								</a>
 							</li>
 {{- end}}
@@ -307,7 +307,7 @@
 {{- end}}
 
 {{define "navMenuItem"}}
-<li><a class="dropdown-item nav-menu-item{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true"></span><span><span class="nav-menu-label">{{.Label}}{{with .Step}}<span class="nav-step" title="{{t "Step %v of 5 of the tune-up" .}}">{{.}}</span>{{end}}{{if .Dot}}<span class="nav-dot ms-2" aria-hidden="true"></span>{{end}}</span><span class="nav-menu-text">{{.Text}}</span></span></a></li>
+<li><a class="dropdown-item nav-menu-item{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true"></span><span><span class="nav-menu-label">{{.Label}}{{if .Dot}}<span class="nav-dot ms-2" aria-hidden="true"></span>{{end}}</span><span class="nav-menu-text">{{.Text}}</span></span></a></li>
 {{- end}}
 
 {{define "discoverItems"}}
@@ -320,12 +320,11 @@
 {{- if .Auth.IsAdmin}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Text" (t "Tidy up your library step by step") "Dot" .Counts.TuneUp)}}
 <li><hr class="dropdown-divider"></li>
-{{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename files and sort into folders") "Step" "3")}}
-{{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Delete old updates and duplicates") "Step" "4")}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename files and sort into folders"))}}
 {{- end}}
-{{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space") "Step" (and .Auth.IsAdmin "5"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space"))}}
 {{- if .Auth.IsAdmin}}
-<li><hr class="dropdown-divider"></li>
+{{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Delete old updates and duplicates"))}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Text" (t "Choose what fits on your SD card"))}}
 {{- if .VaultEnabled}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Text" (t "The saves of your consoles"))}}

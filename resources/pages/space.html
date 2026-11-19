@@ -1,7 +1,7 @@
 {{define "title"}}{{t "Space"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Space") "Count" -1 "Subtitle" (t "Files that take space without being needed: old updates, duplicates and originals that already have a compressed copy. Nothing is deleted until you confirm it."))}}
-			{{- template "tuneUpCrumbs" .Page}}
+			{{- with maintenanceStep .Page}}<a class="maintenance-hint" href="/maintenance.html"><span class="bi bi-list-check" aria-hidden="true"></span>{{t "Step %v of 5 of the tune-up" .}} <span class="text-body-secondary">&middot; {{t "See the steps in order"}}</span></a>{{end}}
 			{{- if .Updating}}
 			<div class="alert alert-secondary d-flex align-items-center gap-2 py-2 small" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{t "Updating: this is what the page found last, the newer figures come with the next visit."}}</div>
 			{{- end}}
@@ -65,7 +65,7 @@
 			<form id="spaceForm">
 				{{- range $g := .Groups}}{{if $g.Files}}
 				<section class="mb-3" aria-labelledby="space-{{$g.Id}}">
-					<details class="space-group space-group-{{$g.Id}}" id="{{$g.Id}}">
+					<details class="space-group space-group-{{$g.Id}}">
 					<summary class="space-group-head">
 						<h2 class="h6 fw-semibold mb-0" id="space-{{$g.Id}}"><span class="space-dot space-dot-{{$g.Id}}" aria-hidden="true"></span>{{template "spaceGroupTitle" $g.Id}}</h2>
 						<span class="badge rounded-pill text-bg-secondary">{{len $g.Files}}</span>
@@ -114,7 +114,7 @@
 			{{- end}}
 			{{- with .Regions}}
 			<section class="mt-4" aria-labelledby="regionsTitle">
-				<details class="space-group space-group-regions" id="regions">
+				<details class="space-group space-group-regions">
 				<summary class="space-group-head">
 					<h2 class="h6 fw-semibold mb-0" id="regionsTitle"><span class="bi bi-globe2 me-2" aria-hidden="true"></span>{{t "The same game from several regions"}}</h2>
 					<span class="badge rounded-pill text-bg-secondary">{{len .}}</span>
