@@ -27,6 +27,8 @@ const (
 	TASK_CLEANUP    = "cleanup"
 	TASK_COMPRESS   = "compress"
 	TASK_DECOMPRESS = "decompress"
+	// NSZ files written again in blocks, for emulators, or in one piece (solid)
+	TASK_RECOMPRESS = "recompress"
 	TASK_VERIFY     = "verify"
 	TASK_CONVERT    = "convert"
 	TASK_PACK       = "pack"
@@ -138,6 +140,8 @@ type Resume struct {
 	Paths  []string `json:"paths"`
 	Level  string   `json:"level,omitempty"`
 	Delete bool     `json:"delete,omitempty"`
+	// a compression makes the NSZ files in blocks, and a recompression writes them so
+	Blocks bool `json:"blocks,omitempty"`
 	// a check of files: how old a result may be to be left out (see startVerificationAt), and
 	// when the check began, so the files it checked before the app stopped are not checked again
 	Recheck time.Duration `json:"recheck,omitempty"`
@@ -588,7 +592,7 @@ func (t Task) SpeedAt(now time.Time) int {
 // measuredInMegabytes tells the tasks whose progress counts megabytes of files.
 func measuredInMegabytes(kind string) bool {
 	switch kind {
-	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT, TASK_OPTIMIZE, TASK_NET_PREPARE:
+	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_RECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT, TASK_OPTIMIZE, TASK_NET_PREPARE:
 		return true
 	}
 	return false

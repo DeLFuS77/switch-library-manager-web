@@ -326,6 +326,9 @@ type AppSettings struct {
 	AutoCompressLevel string `json:"auto_compress_level"`
 	// keep the originals of automatic compressions
 	AutoCompressKeep bool `json:"auto_compress_keep"`
+	// NSZ files are compressed in blocks, which emulators read as they are, instead of solid:
+	// by the automatic compression, and chosen first on the Compress page (#193)
+	NszBlocks bool `json:"nsz_blocks,omitempty"`
 	// the threads that compress each file (0: half of the processors, at most 4) and the
 	// files compressed, decompressed or converted at the same time (0: one)
 	CompressThreads     int `json:"compress_threads,omitempty"`

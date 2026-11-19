@@ -224,7 +224,7 @@ func TestPackQueuedAfterACompressionTakesTheNsz(t *testing.T) {
 
 	// the compression deleted the NSP, and its scan runs
 	nsz := switchfs.CompressedPath(path)
-	if _, err := web.compressFile(t.Context(), path, switchfs.LevelFast, true, func(int64) func(int64, int64) { return func(int64, int64) {} }); err != nil {
+	if _, err := web.compressFile(t.Context(), path, switchfs.LevelFast, false, true, func(int64) func(int64, int64) { return func(int64, int64) {} }); err != nil {
 		t.Fatal(err)
 	}
 	if !web.state.startSync() {

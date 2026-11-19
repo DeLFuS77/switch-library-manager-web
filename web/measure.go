@@ -63,7 +63,10 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 	result := ServerMeasure{Processors: runtime.NumCPU()}
 	games := web.libraryFiles(".nsp", ".xci")
 	sort.Slice(games, func(i, j int) bool { return games[i].Size > games[j].Size })
-	level := settings.ReadSettings(web.dataFolder).AutoCompressLevel
+	appSettings := settings.ReadSettings(web.dataFolder)
+	level := appSettings.AutoCompressLevel
+	// the NSZ files as Settings makes them: in blocks every level uses the threads of each file
+	blocks := appSettings.NszBlocks
 	games = measurableGames(ctx, games, level, maxFilesAtOnce)
 	if len(games) == 0 {
 		return result, errNoGameToMeasure
@@ -90,7 +93,7 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 			wait.Add(1)
 			go func(game string, from float64) {
 				defer wait.Done()
-				done, err := web.measureOne(ctx, game, from, switchfs.CompressOptions{Level: level, Workers: trial.Threads})
+				done, err := web.measureOne(ctx, game, from, switchfs.CompressOptions{Level: level, Workers: trial.Threads, Blocks: blocks})
 				mutex.Lock()
 				defer mutex.Unlock()
 				total += done

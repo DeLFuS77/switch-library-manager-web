@@ -46,6 +46,7 @@ function initCompress() {
 	bindFileForm(document.getElementById('splitForm'), '/split/start');
 	bindFileForm(document.getElementById('packForm'), '/packs/start');
 	bindFileForm(document.getElementById('optimizeForm'), '/optimize/start');
+	bindFileForm(document.getElementById('recompressForm'), '/recompress/start');
 	bindFileForm(document.getElementById('spaceForm'), '/space/clean');
 }
 
@@ -156,7 +157,9 @@ function bindFileForm(form, url) {
 		}
 		const controller = new AbortController();
 		loading = controller;
-		return apiFetch(list.dataset.fileList + '?q=' + encodeURIComponent(query || ''), { signal: controller.signal })
+		// a list can carry a choice of its own in its address (Recompress: ?to=blocks)
+		const source = list.dataset.fileList;
+		return apiFetch(source + (source.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(query || ''), { signal: controller.signal })
 			.then(response => {
 				if (!response.ok) {
 					throw new Error(t('Unexpected server response (%v).', response.status));
@@ -265,6 +268,15 @@ function bindFileForm(form, url) {
 			}
 		});
 	}
+	// a choice that changes what the list holds (Recompress: the solid NSZ, or the ones in
+	// blocks) loads it again, with the filter written
+	form.querySelectorAll('[data-file-list-to]').forEach(choice => choice.addEventListener('change', () => {
+		if (list && choice.checked) {
+			list.dataset.fileList = choice.dataset.fileListTo;
+			delete list.dataset.loaded;
+			load(filter ? filter.value.trim().toLowerCase() : '');
+		}
+	}));
 	update();
 
 	form.addEventListener('submit', e => {
