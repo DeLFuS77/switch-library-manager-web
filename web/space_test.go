@@ -535,8 +535,8 @@ func TestSpaceGroupsCollapse(t *testing.T) {
 	}
 	page := out.String()
 	for _, want := range []string{
-		`<details class="space-group space-group-old_updates" id="old_updates">`,
-		`<details class="space-group space-group-regions" id="regions">`,
+		`<details class="space-group space-group-old_updates">`,
+		`<details class="space-group space-group-regions">`,
 		`<details class="region-group">`,
 		`<span class="fi fi-us" title="US"></span><span class="fi fi-jp" title="JP"></span>`,
 		`value="/g/old.nsp"`,

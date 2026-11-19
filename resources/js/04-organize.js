@@ -243,14 +243,6 @@ function initOrganize() {
 			.finally(() => setBusy(false));
 	}));
 
-	// a shortcut of the tune-up opens the preview of its action (#new, #organize, #cleanup); the
-	// address then keeps the tab, so a reload does not preview it again
-	const asked = [...actionButtons].find(button => '#' + button.dataset.organizeAction === window.location.hash);
-	if (asked && !asked.disabled) {
-		history.replaceState(history.state, '', '#actions');
-		asked.click();
-	}
-
 	// while the changes are applied, the progress of the task: the file or game it is on and
 	// how many are done
 	const progress = document.getElementById('organizeProgress');

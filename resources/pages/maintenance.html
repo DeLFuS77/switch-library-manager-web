@@ -1,87 +1,43 @@
 {{define "title"}}{{t "Tune-up"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Tune-up") "Count" -1 "Subtitle" (t "The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked."))}}
-			{{- $total := len .Steps}}
-			{{- /* the step to do now, with its button, and how many are done */}}
-			<section class="surface tune-hero{{if .AllDone}} is-complete{{end}}{{if .Again}} is-again{{end}}"{{with .NextStep}} data-step="{{.Id}}"{{end}}>
-				<span class="maintenance-ring tune-ring" style="--pct: {{.DonePercent}}" role="img" aria-label="{{t "%v of %v steps done" .DoneCount $total}}"><span><b>{{.DoneCount}}</b>/{{$total}}</span></span>
-				{{- if .NextStep}}{{with .NextStep}}
-				<div class="tune-hero-main">
-					<div class="tune-eyebrow"><span class="chip chip-warning"><span class="bi bi-arrow-right-circle" aria-hidden="true"></span>{{t "Next step"}}</span><span class="small text-body-secondary">{{t "Step %v of %v" .Number $total}}</span></div>
-					<h2 class="tune-hero-title"><span class="tune-icon" aria-hidden="true"><span class="bi {{.Icon}}"></span></span>{{.Title}}</h2>
-					<p class="tune-hero-detail">{{.Detail}}</p>
-				</div>
-				<div class="tune-hero-actions admin-only">
-					{{- if eq .Action "sync"}}<a class="btn btn-primary rounded-pill px-4" href="/sync" data-sync-action><span class="bi bi-arrow-repeat me-2" aria-hidden="true"></span>{{t "Synchronize"}}</a>
-					{{- else if eq .Action "verify"}}<button type="button" class="btn btn-primary rounded-pill px-4" data-verify="changed"><span class="bi bi-shield-check me-2" aria-hidden="true"></span>{{t "Check new files"}}</button>
-					{{- else}}<a class="btn btn-primary rounded-pill px-4" href="{{.Href}}"><span class="bi {{.Icon}} me-2" aria-hidden="true"></span>{{.Title}}</a>{{end}}
-					{{- if .Action}}<a class="btn btn-outline-secondary rounded-pill" href="{{.Href}}">{{t "Open"}} <span class="bi bi-arrow-right ms-1" aria-hidden="true"></span></a>{{end}}
-				</div>
-				{{- end}}
-				{{- else if .AllDone}}
-				<div class="tune-hero-main">
-					<div class="tune-eyebrow"><span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Done"}}</span></div>
-					<h2 class="tune-hero-title"><span class="tune-icon" aria-hidden="true"><span class="bi bi-stars"></span></span>{{t "Your library is tuned up"}}</h2>
-					<p class="tune-hero-detail">{{t "Checked, in order, without leftovers and compressed."}}</p>
-				</div>
-				{{- else}}
-				<div class="tune-hero-main">
-					<h2 class="tune-hero-title"><span class="spinner-border text-work" aria-hidden="true"></span>{{t "Looking..."}}</h2>
-					<p class="tune-hero-detail">{{t "Working out the steps; the page updates by itself."}}</p>
-				</div>
-				{{- end}}
-				<div class="tune-hero-side" data-hover-help{{if .Preparing}} data-maintenance-preparing{{end}}>
-					<div class="tune-mini" aria-hidden="true">{{range .Steps}}<span class="step-{{.Status}}{{if .Next}} is-next{{end}}"></span>{{end}}</div>
-					<span class="tune-review"><button type="button" class="btn btn-sm btn-outline-primary rounded-pill admin-only help-name" data-maintenance-review><span class="bi bi-arrow-clockwise me-1" aria-hidden="true"></span>{{t "Review again"}}</button></span>
-					<div class="form-text">{{if not .LastReview.IsZero}}{{t "Last reviewed %v. After changing files outside the app, review again." (formatDateTime .LastReview)}}{{else}}{{t "After changing files outside the app, review again."}}{{end}}</div>
-					{{- if and .Preparing .NextStep}}
-					<div class="form-text help-keep"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{t "Working out the steps; the page updates by itself."}}</div>
-					{{- end}}
-				</div>
-			</section>
-			{{- /* the steps in order: what is left in each, why it comes there (on its name) and the
-			parts of its tool */}}
-			<div class="tune-grid{{if .Again}} is-again{{end}}" data-hover-help>
-				{{- range .Steps}}
-				<article class="tune-tile step-{{.Status}}{{if .Next}} is-next{{end}}" data-step="{{.Id}}" style="--i: {{.Number}}">
-					<a class="tune-tile-link" href="{{.Href}}" data-tune-link aria-label="{{.Title}}, {{t "Step %v of 5 of the tune-up" .Number}}"></a>
-					<div class="tune-tile-top">
-						<span class="maintenance-number" aria-hidden="true">{{if eq .Status "done"}}<span class="bi bi-check-lg"></span>{{else}}{{.Number}}{{end}}</span>
-						<span class="tune-icon" aria-hidden="true"><span class="bi {{.Icon}}"></span></span>
-						{{- if .Next}}<span class="chip chip-warning"><span class="bi bi-arrow-right-circle" aria-hidden="true"></span>{{t "Next step"}}</span>
-						{{- else if eq .Status "done"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Done"}}</span>
-						{{- else if eq .Status "preparing"}}<span class="chip chip-muted"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{t "Looking..."}}</span>
-						{{- else}}<span class="chip chip-muted">{{t "Waiting"}}</span>{{end}}
-					</div>
-					<h3 class="tune-tile-title help-name">{{.Title}}</h3>
-					<p class="form-text">{{.Why}}</p>
-					<div class="tune-figure">
-						{{- if .Figure}}<b{{with .Count}} data-count="{{.}}"{{end}}>{{.Figure}}</b><span>{{.FigureLabel}}</span>
-						{{- else}}<span class="tune-detail">{{.Detail}}</span>{{end}}
-					</div>
-					{{- with .Note}}
-					<p class="tune-note">{{.}}</p>
-					{{- end}}
-					{{- with .Shortcuts}}
-					<div class="tune-chips admin-only">
-						{{- range .}}
-						{{- if eq .Action "verify"}}<button type="button" class="tune-chip" data-verify="changed"><span class="bi {{.Icon}}" aria-hidden="true"></span>{{.Label}}</button>
-						{{- else}}<a class="tune-chip" href="{{.Href}}"{{if eq .Action "sync"}} data-sync-action{{end}}><span class="bi {{.Icon}}" aria-hidden="true"></span>{{.Label}}{{with .Badge}} <span class="badge rounded-pill text-bg-secondary">{{.}}</span>{{end}}</a>{{end}}
-						{{- end}}
-					</div>
-					{{- end}}
-				</article>
-				{{- end}}
+			<div class="d-flex flex-wrap align-items-center gap-2 mb-3"{{if .Preparing}} data-maintenance-preparing{{end}}>
+				<button type="button" class="btn btn-sm btn-outline-primary rounded-pill admin-only" data-maintenance-review><span class="bi bi-arrow-clockwise me-1" aria-hidden="true"></span>{{t "Review again"}}</button>
+				<span class="small text-body-secondary">
+					{{- if .Preparing}}<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{t "Working out the steps; the page updates by itself."}}
+					{{- else if not .LastReview.IsZero}}{{t "Last reviewed %v. After changing files outside the app, review again." (formatDateTime .LastReview)}}
+					{{- else}}{{t "After changing files outside the app, review again."}}{{end}}
+				</span>
 			</div>
-			{{- if .Auth.IsAdmin}}
-			<h2 class="tune-section-title"><span class="bi bi-tools" aria-hidden="true"></span>{{t "Other tools"}}</h2>
-			<div class="tune-others">
-				<a class="tune-other" href="/sd.html"><span class="tune-icon" aria-hidden="true"><span class="bi bi-sd-card"></span></span><span><span class="fw-semibold d-block">{{t "SD card planner"}}</span><small>{{t "Choose what fits on your SD card"}}</small></span></a>
-				{{- if .VaultEnabled}}
-				<a class="tune-other" href="/saves.html"><span class="tune-icon" aria-hidden="true"><span class="bi bi-safe"></span></span><span><span class="fw-semibold d-block">{{t "Save backups"}}</span><small>{{t "The saves of your consoles"}}</small></span></a>
-				{{- end}}
+			{{- with .Steps}}
+			<div class="maintenance-progress" role="img" aria-label="{{t "%v of %v steps done" $.DoneCount (len .)}}">
+				<span class="maintenance-ring" style="--pct: {{$.DonePercent}}"><span>{{$.DoneCount}}/{{len .}}</span></span>
+				<span class="small fw-semibold">{{t "%v of %v steps done" $.DoneCount (len .)}}</span>
 			</div>
 			{{- end}}
+			<ol class="maintenance-steps list-unstyled">
+				{{- range .Steps}}
+				<li class="surface maintenance-step step-{{.Status}}{{if .Next}} is-next{{end}}">
+					<span class="maintenance-number" aria-hidden="true">{{if eq .Status "done"}}<span class="bi bi-check-lg"></span>{{else}}{{.Number}}{{end}}</span>
+					<div class="flex-grow-1 min-w-0">
+						<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+							<h2 class="h6 fw-semibold mb-0"><span class="bi {{.Icon}} me-1" aria-hidden="true"></span>{{.Title}}</h2>
+							{{- if .Next}}<span class="chip chip-warning"><span class="bi bi-arrow-right-circle" aria-hidden="true"></span>{{t "Next step"}}</span>
+							{{- else if eq .Status "done"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Done"}}</span>
+							{{- else if eq .Status "preparing"}}<span class="chip chip-muted"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{t "Looking..."}}</span>
+							{{- else}}<span class="chip chip-muted">{{t "Waiting"}}</span>{{end}}
+						</div>
+						<p class="small text-body-secondary mb-1">{{.Why}}</p>
+						<p class="mb-0 fw-semibold small">{{.Detail}}</p>
+					</div>
+					<div class="maintenance-action admin-only">
+						{{- if eq .Action "sync"}}<a class="btn btn-sm {{if .Next}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" href="/sync" data-sync-action><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{t "Synchronize"}}</a>
+						{{- else if eq .Action "verify"}}<button type="button" class="btn btn-sm {{if .Next}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" data-verify="changed"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check new files"}}</button>
+						{{- else}}<a class="btn btn-sm {{if .Next}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" href="{{.Href}}">{{t "Open"}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>{{end}}
+					</div>
+				</li>
+				{{- end}}
+			</ol>
 			<div class="alert alert-info d-flex gap-2 align-items-start mt-4">
 				<span class="bi bi-magic mt-1" aria-hidden="true"></span>
 				<div>{{if .AutomationsOn}}{{t "The automations are on: new files are checked, compressed and the updates they replace deleted by themselves, in this same order."}}{{else}}{{t "For the files that come later, the automations can do these steps by themselves, in this same order."}} <a class="alert-link admin-only" href="/settings.html#automation">{{t "Set up the automations"}}</a>{{end}}</div>
