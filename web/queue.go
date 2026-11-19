@@ -32,6 +32,9 @@ type QueuedTask struct {
 	Paths []string `json:"paths,omitempty"`
 	// the level of a compression, or of a check (see verifyLevel)
 	Level string `json:"level,omitempty"`
+	// a compression makes the NSZ files in blocks, and a recompression writes them so; solid
+	// otherwise
+	Blocks bool `json:"blocks,omitempty"`
 	// the originals are deleted once their new files are checked
 	Delete bool `json:"delete,omitempty"`
 	// the names of the packs, by the path of the base file of their game
@@ -218,7 +221,9 @@ func (q *taskQueue) list() []QueuedTask {
 func (web *Web) startQueued(task QueuedTask) bool {
 	switch task.Kind {
 	case tasklog.TASK_COMPRESS:
-		return web.startCompressionBy(task.Paths, task.Level, task.Delete, tasklog.TRIGGER_MANUAL)
+		return web.startCompressionBy(task.Paths, task.Level, task.Blocks, task.Delete, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_RECOMPRESS:
+		return web.startRecompressionBy(task.Paths, task.Blocks, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_DECOMPRESS:
 		return web.startDecompressionBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_CONVERT:
@@ -299,7 +304,7 @@ func (web *Web) runQueue() {
 
 // queueKinds are the kinds of tasks the queue runs.
 var queueKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_VERIFY: true, tasklog.TASK_OPTIMIZE: true,
-	tasklog.TASK_NUP_FIX: true, tasklog.TASK_NUP_ICON: true, tasklog.TASK_NET_PREPARE: true}
+	tasklog.TASK_NUP_FIX: true, tasklog.TASK_NUP_ICON: true, tasklog.TASK_NET_PREPARE: true, tasklog.TASK_RECOMPRESS: true}
 
 // notifyQueueDone tells by the channels of the notifications that the queue is done, with each
 // task on files that ran since it began and how it ended.

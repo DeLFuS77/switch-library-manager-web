@@ -38,7 +38,7 @@
 			{{- if .Damaged}}
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-exclamation-triangle flex-shrink-0 mt-1 text-warning" aria-hidden="true"></span><span>{{t "%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy." .Damaged}} <a href="/issues.html?kind=damaged">{{t "Issues"}}</a></span></p>
 			{{- end}}
-			{{- $tabs := or .CardCount .SplitCount .PackCount .OptimizeCount .CompressedCount}}
+			{{- $tabs := or .CardCount .SplitCount .PackCount .OptimizeCount .RecompressSolid .RecompressBlocks .CompressedCount}}
 			{{- if $tabs}}
 			<div class="page-tabs" role="tablist" aria-label="{{t "Compress"}}" data-page-tabs>
 				<button type="button" class="page-tab active" role="tab" id="tabCompress" data-tab="compress" aria-controls="panelCompress" aria-selected="true"><span class="bi bi-file-zip" aria-hidden="true"></span>{{t "Compress"}}{{with add (len .Candidates) .RestCount}} <span class="badge rounded-pill text-bg-secondary">{{num .}}</span>{{end}}</button>
@@ -53,6 +53,9 @@
 				{{- end}}
 				{{- if .OptimizeCount}}
 				<button type="button" class="page-tab" role="tab" id="tabOptimize" data-tab="optimize" aria-controls="panelOptimize" aria-selected="false" tabindex="-1"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Optimize for install"}} <span class="badge rounded-pill text-bg-secondary">{{num .OptimizeCount}}</span></button>
+				{{- end}}
+				{{- if or .RecompressSolid .RecompressBlocks}}
+				<button type="button" class="page-tab" role="tab" id="tabRecompress" data-tab="recompress" aria-controls="panelRecompress" aria-selected="false" tabindex="-1"><span class="bi bi-arrow-repeat" aria-hidden="true"></span>{{t "Recompress"}} <span class="badge rounded-pill text-bg-secondary">{{num (or .RecompressSolid .RecompressBlocks)}}</span></button>
 				{{- end}}
 				{{- if .CompressedCount}}
 				<button type="button" class="page-tab" role="tab" id="tabDecompress" data-tab="decompress" aria-controls="panelDecompress" aria-selected="false" tabindex="-1"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{num .CompressedCount}}</span></button>
@@ -77,6 +80,14 @@
 								<label class="compress-level" for="levelMax"><span class="fw-semibold">{{t "Maximum"}}</span><span class="small text-body-secondary">{{t "Smallest files, slower"}}</span></label>
 							</div>
 							<p class="form-text mb-0 mt-2" id="compressLevelsHelp">{{if nativeZstd}}{{t "Maximum is about 8 times slower than Balanced for files about 4% smaller; both use several threads on each file. Installers read every level the same."}}{{else}}{{t "Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller. Installers read every level the same."}}{{end}}</p>
+							<div class="made-for-name help-name" id="madeForName">{{t "Made for"}}</div>
+							<div class="compress-levels made-for" role="radiogroup" aria-labelledby="madeForName">
+								<input type="radio" class="btn-check" name="blocks" id="madeForInstallers" value="false"{{if not .Blocks}} checked{{end}}>
+								<label class="compress-level" for="madeForInstallers"><span class="fw-semibold">{{t "Installers"}}</span><span class="small text-body-secondary">{{t "Solid: the smallest files"}}</span>{{template "madeForTags" false}}</label>
+								<input type="radio" class="btn-check" name="blocks" id="madeForEmulators" value="true"{{if .Blocks}} checked{{end}}>
+								<label class="compress-level" for="madeForEmulators"><span class="fw-semibold">{{t "Emulators and installers"}}</span><span class="small text-body-secondary">{{t "In blocks: emulators run them as they are"}}</span>{{template "madeForTags" true}}</label>
+							</div>
+							<p class="form-text mb-0 mt-2">{{t "XCZ files are always in blocks, as nsz writes them. Settings › Compression chooses which one is marked here and the one of the automatic compression."}}</p>
 						</section>
 					</div>
 					<div class="col-lg-5">
@@ -272,6 +283,36 @@
 				</form>
 			</div>
 			{{- end}}
+			{{- if or .RecompressSolid .RecompressBlocks}}
+			<div class="surface" role="tabpanel" id="panelRecompress" aria-labelledby="tabRecompress" hidden>
+				<form id="recompressForm" data-hover-help>
+					<h2 class="section-title help-name"><span class="bi bi-arrow-repeat" aria-hidden="true"></span>{{t "Recompress"}}</h2>
+					<p class="form-text">{{t "The NSZ files are written again, solid or in blocks, at the level of Settings: no keys are needed and no NSP is written in between. Each one is replaced once its new copy is checked; the old one goes to the quarantine when Settings keeps originals there. Files made with the extra compression of NXPress are not listed: decompress them first."}}</p>
+					<p class="small text-body-secondary mb-3">{{t "Write your NSZ files again in blocks, so emulators run them as they are, or solid, the smallest for installers."}}</p>
+					<div class="compress-levels made-for mb-3" role="radiogroup" aria-label="{{t "Write them"}}">
+						<input type="radio" class="btn-check" name="to" id="recompressBlocks" value="blocks" data-file-list-to="/compress/recompress-list?to=blocks"{{if .RecompressSolid}} checked{{end}}>
+						<label class="compress-level" for="recompressBlocks"><span class="fw-semibold">{{t "In blocks, for emulators"}}</span><span class="small text-body-secondary">{{if eq .RecompressSolid 1}}{{t "1 NSZ solid now"}}{{else}}{{t "%v NSZ solid now" (num .RecompressSolid)}}{{end}}</span></label>
+						<input type="radio" class="btn-check" name="to" id="recompressSolid" value="solid" data-file-list-to="/compress/recompress-list?to=solid"{{if not .RecompressSolid}} checked{{end}}>
+						<label class="compress-level" for="recompressSolid"><span class="fw-semibold">{{t "Solid, the smallest"}}</span><span class="small text-body-secondary">{{if eq .RecompressBlocks 1}}{{t "1 NSZ in blocks now"}}{{else}}{{t "%v NSZ in blocks now" (num .RecompressBlocks)}}{{end}}</span></label>
+					</div>
+					<div class="file-list-head">
+						<div class="form-check mb-0">
+							<input class="form-check-input" type="checkbox" id="recompressAll" data-file-all>
+							<label class="form-check-label fw-semibold" for="recompressAll">{{t "Select all"}}</label>
+						</div>
+						<div class="toolbar-search file-filter">
+							<span class="bi bi-search" aria-hidden="true"></span>
+							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
+						</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" data-template-one="{{t "%v file selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
+					</div>
+					<div data-file-list="/compress/recompress-list?to={{if .RecompressSolid}}blocks{{else}}solid{{end}}" class="mb-3"><p class="text-body-secondary small">{{t "Loading..."}}</p></div>
+					<div class="d-flex justify-content-end">
+						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"><span class="bi bi-arrow-repeat me-2" aria-hidden="true"></span>{{t "Recompress selected"}}</button>
+					</div>
+				</form>
+			</div>
+			{{- end}}
 			{{- if .CompressedCount}}
 			<div class="surface" role="tabpanel" id="panelDecompress" aria-labelledby="tabDecompress" hidden>
 				<form id="decompressForm" data-hover-help>
@@ -299,6 +340,16 @@
 				</form>
 			</div>
 			{{- end}}
+{{- end}}
+
+{{define "madeForTags"}}
+{{- /* the installers that take the NSZ files of a choice: all of them solid, all but Awoo in blocks, and emulators only in blocks; one crossed out is told to screen readers */ -}}
+<span class="made-tags">
+	<span>NXDock</span><span>DBI</span><span>Tinfoil</span>
+	{{- if .}}<span class="is-no" aria-hidden="true">Awoo</span><span class="visually-hidden">{{t "Not for %v" "Awoo"}}</span>{{else}}<span>Awoo</span>{{end -}}
+	<span>CyberFoil</span><span>Sphaira</span>
+	{{- if .}}<span>{{t "emulators"}}</span>{{else}}<span class="is-no" aria-hidden="true">{{t "emulators"}}</span><span class="visually-hidden">{{t "Not for %v" (t "emulators")}}</span>{{end -}}
+</span>
 {{- end}}
 
 {{define "nszRows"}}

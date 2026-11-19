@@ -175,6 +175,44 @@
 	}
 }
 
+// what the NSZ files are made for, under the levels: installers (solid) or emulators too (in
+// blocks), two cards as the levels, each with the installers that take its files (#193)
+.made-for-name {
+	margin: 1rem 0 .5rem;
+	font-size: .875rem;
+	font-weight: 600;
+}
+
+.compress-levels.made-for {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: 1fr;
+	}
+}
+
+.made-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .25rem;
+	margin-top: .4rem;
+
+	> span {
+		padding: 0 .45rem;
+		border: 1px solid var(--bs-success-border-subtle);
+		border-radius: 999px;
+		color: var(--bs-success-text-emphasis);
+		font-size: .75rem;
+		line-height: 1.5;
+	}
+
+	> .is-no {
+		border-color: var(--slm-border);
+		color: var(--bs-secondary-color);
+		text-decoration: line-through;
+	}
+}
+
 .task-history {
 	display: grid;
 	// a long file name is shortened instead of widening the page

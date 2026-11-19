@@ -331,7 +331,7 @@
 										<option value="{{.}}"{{if eq $.Settings.CompressThreads .}} selected{{end}}>{{if eq . $.Processors}}{{t "All (%v)" .}}{{else}}{{.}}{{end}}</option>
 										{{- end}}
 									</select>
-									<div class="form-text" id="compressThreadsHelp">{{if nativeZstd}}{{t "Automatic uses every processor but an eighth, shared among the files at once. Balanced, Maximum and game cards (XCZ) use these threads on each file; Fast compresses each NSZ on about one core. Fewer are used when little memory is free (Maximum takes about 190 MB per thread). More threads also leave less of the processor to the rest of the server."}}{{else}}{{t "Automatic uses every processor but an eighth, shared among the files at once. A normal NSZ is one stream per file, which zstd compresses on about one core whatever the threads: they only speed up game cards (XCZ), which are compressed in blocks. To use more cores with NSZ, compress more files at once. More threads also leave less of the processor to the rest of the server."}}{{end}}</div>
+									<div class="form-text" id="compressThreadsHelp">{{if nativeZstd}}{{t "Automatic uses every processor but an eighth, shared among the files at once. Balanced, Maximum, game cards (XCZ) and NSZ in blocks use these threads on each file; Fast compresses each solid NSZ on about one core. Fewer are used when little memory is free (Maximum takes about 190 MB per thread). More threads also leave less of the processor to the rest of the server."}}{{else}}{{t "Automatic uses every processor but an eighth, shared among the files at once. A solid NSZ is one stream per file, which zstd compresses on about one core whatever the threads: they only speed up game cards (XCZ) and NSZ in blocks. To use more cores with solid NSZ, compress more files at once. More threads also leave less of the processor to the rest of the server."}}{{end}}</div>
 								</div>
 								<div class="col-md-6">
 									<label for="compress_files_at_once" class="form-label fw-semibold">{{t "Files at once"}}</label>
@@ -341,6 +341,16 @@
 										{{- end}}
 									</select>
 									<div class="form-text" id="compressFilesHelp">{{t "Compressions, decompressions and conversions work on this many files at the same time. Hashing and checking each file uses one thread, so a few files at once keep the processor busy; each one needs free space and memory."}}</div>
+								</div>
+								<div class="col-12">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="nsz_blocks" name="nsz_blocks" value="true" aria-describedby="nszBlocksHelp"{{if .Settings.NszBlocks}} checked{{end}}>
+										<label class="form-check-label" for="nsz_blocks">{{t "NSZ in blocks, for emulators"}}</label>
+									</div>
+									<div class="form-text" id="nszBlocksHelp">{{t "NSZ files are written in blocks: emulators that read NSZ, such as Eden, run them as they are, and every installer but Awoo installs them. They are a little bigger than solid ones. The automatic compression uses it, and the Compress page chooses it first; XCZ files are always in blocks."}}</div>
+									{{- if and .Settings.NszBlocks .SolidNsz}}
+									<p class="small text-body-secondary mb-0 mt-1"><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{t "Your library has %v NSZ compressed solid: they stay so." (num .SolidNsz)}} <a href="/compress.html#recompress">{{t "Recompress them in blocks"}}</a></p>
+									{{- end}}
 								</div>
 								<div class="col-12">
 									<div class="form-check form-switch">
