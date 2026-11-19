@@ -29,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "2.0.19"
+	SLM_WEB_VERSION        = "2.0.20"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
@@ -326,6 +326,9 @@ type AppSettings struct {
 	AutoCompressLevel string `json:"auto_compress_level"`
 	// keep the originals of automatic compressions
 	AutoCompressKeep bool `json:"auto_compress_keep"`
+	// NSZ files are compressed in blocks, which emulators read as they are, instead of solid:
+	// by the automatic compression, and chosen first on the Compress page (#193)
+	NszBlocks bool `json:"nsz_blocks,omitempty"`
 	// the threads that compress each file (0: half of the processors, at most 4) and the
 	// files compressed, decompressed or converted at the same time (0: one)
 	CompressThreads     int `json:"compress_threads,omitempty"`

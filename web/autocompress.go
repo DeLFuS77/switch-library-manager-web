@@ -81,8 +81,9 @@ func (web *Web) autoCompress(trigger string) bool {
 	return web.compressPaths(paths, trigger)
 }
 
-// compressPaths compresses files as one task, with the level and the keeping of the originals
-// of the automatic compression; files that fail are not tried again until they change.
+// compressPaths compresses files as one task, with the level, the NSZ in blocks or solid and the
+// keeping of the originals of the automatic compression; files that fail are not tried again
+// until they change.
 func (web *Web) compressPaths(paths []string, trigger string) bool {
 	appSettings := settings.ReadSettings(web.dataFolder)
 	level := appSettings.AutoCompressLevel
@@ -96,8 +97,8 @@ func (web *Web) compressPaths(paths []string, trigger string) bool {
 	web.auto.mutex.Unlock()
 	// goes on after a restart too, like a compression started by hand
 	// read twice: compressed (and hashed meanwhile), then verified
-	return web.runResumableTask(tasklog.TASK_COMPRESS, trigger, paths, 2, &tasklog.Resume{Level: level, Delete: !appSettings.AutoCompressKeep}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
-		saved, err := web.compressFile(ctx, path, level, !appSettings.AutoCompressKeep, report)
+	return web.runResumableTask(tasklog.TASK_COMPRESS, trigger, paths, 2, &tasklog.Resume{Level: level, Blocks: appSettings.NszBlocks, Delete: !appSettings.AutoCompressKeep}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		saved, err := web.compressFile(ctx, path, level, appSettings.NszBlocks, !appSettings.AutoCompressKeep, report)
 		web.noteAutoCompressFailure(path, err)
 		return saved, err
 	})

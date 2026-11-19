@@ -28,14 +28,14 @@
 								<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
 								<div class="small text-body-secondary">{{template "taskTrigger" .Trigger}} &middot; {{t "started %v" (formatDateTime .Started)}}{{with .Level}} &middot; {{template "verifyLevel" .}}{{end}}{{if gt .Workers 1}} &middot; <span class="bi bi-diagram-3 me-1" aria-hidden="true"></span>{{t "%v files at once" .Workers}}{{end}}{{if gt .Threads 0}} &middot; <span class="bi bi-cpu me-1" aria-hidden="true"></span>{{t "%v threads" .Threads}}{{end}}</div>
 							</div>
-							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}
+							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "recompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}
 							{{- if .Paused}}
 							<button type="button" class="btn btn-sm btn-primary rounded-pill admin-only" data-compress-pause="false"><span class="bi bi-play-fill me-1" aria-hidden="true"></span>{{t "Resume"}}</button>
 							{{- else}}
 							<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill admin-only" data-compress-pause="true"><span class="bi bi-pause-fill me-1" aria-hidden="true"></span>{{t "Pause"}}</button>
 							{{- end}}
 							{{- end}}
-							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}
+							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "recompress") (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}
 							<button type="button" class="btn btn-sm btn-outline-danger rounded-pill admin-only" data-compress-cancel><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Cancel"}}</button>
 							{{- end}}
 							{{- if .Paused}}
@@ -60,11 +60,11 @@
 							{{- else}}
 							<span class="text-truncate task-message">{{if .MessageArg}}{{t .Message .MessageArg}}{{else}}{{t .Message}}{{end}}</span>
 							{{- end}}
-							{{- if ge $pct 0}}<span class="text-nowrap">{{if .ByFiles}}{{.Current}} / {{.Total}}{{else if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split") (eq .Kind "upload")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{if not $stalled}}{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}{{end}}</span>{{end}}
+							{{- if ge $pct 0}}<span class="text-nowrap">{{if .ByFiles}}{{.Current}} / {{.Total}}{{else if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "recompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split") (eq .Kind "upload")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{if not $stalled}}{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}{{end}}</span>{{end}}
 						</div>
 						{{- /* a task that stopped changing, and what a paused one holds up (they share the files) */}}
 						{{- if $stalled}}
-						<div class="task-note text-warning-emphasis"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}{{t "No progress for %v. If it stays like this, cancel it and look at the disk." $stalled}}{{else}}{{t "No progress for %v. If it stays like this, restart the app and look at the disk." $stalled}}{{end}}</div>
+						<div class="task-note text-warning-emphasis"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "recompress") (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}{{t "No progress for %v. If it stays like this, cancel it and look at the disk." $stalled}}{{else}}{{t "No progress for %v. If it stays like this, restart the app and look at the disk." $stalled}}{{end}}</div>
 						{{- end}}
 						{{- with .PausedText}}
 						<div class="task-note text-warning-emphasis"><span class="bi bi-sign-stop me-1" aria-hidden="true"></span>{{t "Paused for %v." .}}{{with $.Waits.Text lang}} {{t "While it stays paused, these wait: %v." .}}{{end}}</div>
@@ -166,6 +166,7 @@
 									{{template "taskTrigger" .Trigger}} &middot; {{formatDateTime .Started}} &middot; {{t "took %v" .Duration}}
 									{{- if eq .Kind "compress"}}{{if .Files}} &middot; {{t "%v files compressed, %v saved" .Files (formatSize .Saved)}}{{with .SavedPercent}} ({{.}}){{end}}{{end}}
 									{{- else if eq .Kind "decompress"}}{{if .Files}} &middot; {{t "%v files decompressed" .Files}}{{end}}
+									{{- else if eq .Kind "recompress"}}{{if .Files}} &middot; {{t "%v files recompressed" .Files}}{{end}}
 									{{- else if and (eq .Kind "cleanup") .Saved}} &middot; {{t "%v files deleted, %v freed" .Files (formatSize .Saved)}}
 									{{- else if eq .Kind "verify"}} &middot; {{if eq .Level "signature"}}{{t "%v files checked, %v modified" .Files .Modified}}{{else if .Modified}}{{t "%v files checked, %v modified, %v corrupted" .Files .Modified .Damaged}}{{else}}{{t "%v files checked, %v corrupted" .Files .Damaged}}{{end}}
 									{{- else if eq .Kind "covers"}} &middot; {{t "%v covers downloaded" .Files}}
@@ -330,7 +331,7 @@
 
 {{define "verifyLevel"}}{{if eq . "signature"}}<span class="bi bi-patch-check me-1" aria-hidden="true"></span>{{t "Signature"}}{{else if eq . "hash"}}<span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Hash"}}{{else}}{{t "Both"}}{{end}}{{end}}
 
-{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Combine"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "nupfix"}}{{t "Fix for emulators"}}{{else if eq . "nupicon"}}{{t "Set the icon"}}{{else if eq . "undoorganize"}}{{t "Undo Organize"}}{{else if eq . "timetobeat"}}{{t "Times to beat and scores (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else if eq . "netinstall"}}{{t "Install over the network"}}{{else if eq . "net-prepare"}}{{t "Compress to send"}}{{else}}{{.}}{{end}}{{end}}
+{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "recompress"}}{{t "Recompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Combine"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "nupfix"}}{{t "Fix for emulators"}}{{else if eq . "nupicon"}}{{t "Set the icon"}}{{else if eq . "undoorganize"}}{{t "Undo Organize"}}{{else if eq . "timetobeat"}}{{t "Times to beat and scores (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else if eq . "netinstall"}}{{t "Install over the network"}}{{else if eq . "net-prepare"}}{{t "Compress to send"}}{{else}}{{.}}{{end}}{{end}}
 
 {{/* the bar of a cover at work: whole, or split in the steps of the file (hashes, work, check)
 with the one it is in written above it, as in the view by bars */}}
@@ -344,7 +345,7 @@ with the one it is in written above it, as in the view by bars */}}
 		<span class="progress task-tile-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{.Percent}}%"></span></span>
 {{- end}}
 {{- end}}
-{{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "pack"}}bi-box-seam{{else if eq . "split"}}bi-scissors{{else if eq . "nupfix"}}bi-wrench-adjustable{{else if eq . "nupicon"}}bi-image{{else if eq . "undoorganize"}}bi-arrow-counterclockwise{{else if eq . "timetobeat"}}bi-hourglass-split{{else if eq . "upload"}}bi-upload{{else if eq . "netinstall"}}bi-router{{else if eq . "net-prepare"}}bi-send{{else}}bi-gear{{end}}{{end}}
+{{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "recompress"}}bi-arrow-repeat{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "pack"}}bi-box-seam{{else if eq . "split"}}bi-scissors{{else if eq . "nupfix"}}bi-wrench-adjustable{{else if eq . "nupicon"}}bi-image{{else if eq . "undoorganize"}}bi-arrow-counterclockwise{{else if eq . "timetobeat"}}bi-hourglass-split{{else if eq . "upload"}}bi-upload{{else if eq . "netinstall"}}bi-router{{else if eq . "net-prepare"}}bi-send{{else}}bi-gear{{end}}{{end}}
 
 {{define "taskTrigger"}}{{if eq . "manual"}}{{t "Started by you"}}{{else if eq . "schedule"}}{{t "Scheduled"}}{{else if eq . "watcher"}}{{t "Files changed"}}{{else if eq . "settings"}}{{t "Settings saved"}}{{else if eq . "startup"}}{{t "App started"}}{{else if eq . "organize"}}{{t "After organizing"}}{{else if eq . "compress"}}{{t "After compressing"}}{{else if eq . "upload"}}{{t "After an upload"}}{{else if eq . "scan"}}{{t "After the scan"}}{{else if eq . "automation"}}{{t "Automations"}}{{else if eq . "resume"}}{{t "Going on after a restart"}}{{else if eq . "console"}}{{t "From the console"}}{{else}}{{.}}{{end}}{{end}}
 

@@ -51,6 +51,9 @@ type CompressCandidate struct {
 	// Base, Update or DLC
 	Kind string
 	Size int64
+	// how the file keeps its NCA files (switchfs.Storage*), as the library noted it; "" when it
+	// is not known
+	Storage string
 	// the share it will likely save, from the files compressed before (see ratioStore)
 	Estimate    int
 	HasEstimate bool
@@ -157,6 +160,9 @@ type CompressPageData struct {
 	PackCount  int
 	// the games with an update that can be optimized for install
 	OptimizeCount int
+	// the NSZ files that can be written again in blocks, and in one piece (solid)
+	RecompressSolid  int
+	RecompressBlocks int
 	// NSP and XCI files that already have a compressed copy (listed on the Space page)
 	AlreadyCompressed int
 	// files tried before that nothing could shrink, not listed
@@ -171,6 +177,8 @@ type CompressPageData struct {
 	Running bool
 	// the level chosen at first: the one of Settings, which Measure this server measures
 	Level string
+	// the NSZ files are made in blocks, for emulators: chosen first as Settings has it
+	Blocks bool
 }
 
 // settingsLevel is the compression level chosen in Settings, balanced when none is.
@@ -456,7 +464,11 @@ func (web *Web) libraryFiles(extensions ...string) []CompressCandidate {
 		if name == "" {
 			name = strings.TrimSpace(db.ParseTitleNameFromFileName(file.ExtendedInfo.FileName))
 		}
-		candidates = append(candidates, CompressCandidate{Path: path, Name: name, Kind: kind, Size: file.ExtendedInfo.Size})
+		storage := ""
+		if file.Metadata != nil {
+			storage = file.Metadata.Storage
+		}
+		candidates = append(candidates, CompressCandidate{Path: path, Name: name, Kind: kind, Size: file.ExtendedInfo.Size, Storage: storage})
 	}
 	for _, title := range localDB.TitlesMap {
 		if title.BaseExist && !title.IsSplit {
@@ -544,13 +556,15 @@ type fileJob func(ctx context.Context, path string, report func(step int64) func
 // startCompression compresses the files in the background. It returns false if a
 // compression or decompression is already running.
 func (web *Web) startCompression(paths []string, level string, deleteOriginals bool) bool {
-	return web.startCompressionBy(paths, level, deleteOriginals, tasklog.TRIGGER_MANUAL)
+	return web.startCompressionBy(paths, level, false, deleteOriginals, tasklog.TRIGGER_MANUAL)
 }
 
-func (web *Web) startCompressionBy(paths []string, level string, deleteOriginals bool, trigger string) bool {
+// startCompressionBy compresses the files at level; with blocks, the NSZ files in blocks, which
+// emulators read as they are, instead of solid.
+func (web *Web) startCompressionBy(paths []string, level string, blocks bool, deleteOriginals bool, trigger string) bool {
 	// every file is read twice: compressed (and hashed meanwhile), then verified
-	return web.runResumableTask(tasklog.TASK_COMPRESS, trigger, paths, 2, &tasklog.Resume{Level: level, Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
-		return web.compressFile(ctx, path, level, deleteOriginals, report)
+	return web.runResumableTask(tasklog.TASK_COMPRESS, trigger, paths, 2, &tasklog.Resume{Level: level, Blocks: blocks, Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		return web.compressFile(ctx, path, level, blocks, deleteOriginals, report)
 	})
 }
 
@@ -676,6 +690,11 @@ func (web *Web) resumeInterrupted() {
 		if file.target != "" {
 			os.Remove(temporaryOf(file.path, file.target))
 		}
+		// a recompression writes the new copy of a file beside it, under its own name; the
+		// files it did are written so already, and left as they are when it goes on
+		if kind == tasklog.TASK_RECOMPRESS {
+			os.Remove(temporaryOf(file.path, file.path))
+		}
 	}
 	web.compressor.mutex.Unlock()
 	paths := []string{}
@@ -695,9 +714,11 @@ func (web *Web) resumeInterrupted() {
 	started := false
 	switch kind {
 	case tasklog.TASK_COMPRESS:
-		started = web.startCompressionBy(paths, resume.Level, resume.Delete, tasklog.TRIGGER_RESUME)
+		started = web.startCompressionBy(paths, resume.Level, resume.Blocks, resume.Delete, tasklog.TRIGGER_RESUME)
 	case tasklog.TASK_DECOMPRESS:
 		started = web.startDecompressionBy(paths, resume.Delete, tasklog.TRIGGER_RESUME)
+	case tasklog.TASK_RECOMPRESS:
+		started = web.startRecompressionBy(paths, resume.Blocks, tasklog.TRIGGER_RESUME)
 	case tasklog.TASK_CONVERT:
 		started = web.startConversionBy(paths, resume.Delete, tasklog.TRIGGER_RESUME)
 	case tasklog.TASK_PACK:
@@ -735,6 +756,8 @@ func (web *Web) continued(id int64, kind string) {
 var filePhases = map[string][]string{
 	tasklog.TASK_COMPRESS:   {tasklog.PHASE_COMPRESSING, tasklog.PHASE_VERIFYING},
 	tasklog.TASK_DECOMPRESS: {tasklog.PHASE_DECOMPRESSING},
+	// written again, then the new copy checked
+	tasklog.TASK_RECOMPRESS: {tasklog.PHASE_COMPRESSING, tasklog.PHASE_VERIFYING},
 	tasklog.TASK_CONVERT:    {tasklog.PHASE_CONVERTING},
 	tasklog.TASK_PACK:       {tasklog.PHASE_PACKING},
 	tasklog.TASK_OPTIMIZE:   {tasklog.PHASE_OPTIMIZING},
@@ -1173,6 +1196,8 @@ func (r *fileTaskRun) finish() {
 		r.failure = &tasklog.Note{Text: NOTE_COMPRESS_FAILED}
 		if r.kind == tasklog.TASK_DECOMPRESS {
 			r.failure = &tasklog.Note{Text: NOTE_DECOMPRESS_FAILED}
+		} else if r.kind == tasklog.TASK_RECOMPRESS {
+			r.failure = &tasklog.Note{Text: NOTE_RECOMPRESS_FAILED}
 		} else if r.kind == tasklog.TASK_PACK {
 			r.failure = &tasklog.Note{Text: NOTE_PACK_FAILED}
 		} else if r.kind == tasklog.TASK_OPTIMIZE {
@@ -1246,6 +1271,9 @@ func compressNote(kind string, err error) string {
 	if kind == tasklog.TASK_NUP_ICON {
 		return nupIconNote(err)
 	}
+	if kind == tasklog.TASK_RECOMPRESS {
+		return recompressNote(err)
+	}
 	if kind == tasklog.TASK_SPLIT {
 		switch {
 		case errors.Is(err, errCompressSpace):
@@ -1300,8 +1328,9 @@ func compressNote(kind string, err error) string {
 
 // compressFile compresses one NSP. The NSZ is written next to it under a hidden
 // temporary name, verified, and only then renamed; the original is deleted last, if
-// asked. It returns the bytes saved.
-func (web *Web) compressFile(ctx context.Context, path string, level string, deleteOriginal bool, report func(step int64) func(int64, int64)) (int64, error) {
+// asked. With blocks the NSZ is made of blocks compressed on their own (NCZBLOCK), which
+// emulators read as they are; an XCZ always is. It returns the bytes saved.
+func (web *Web) compressFile(ctx context.Context, path string, level string, blocks bool, deleteOriginal bool, report func(step int64) func(int64, int64)) (int64, error) {
 	appSettings := settings.ReadSettings(web.dataFolder)
 	info, err := os.Stat(path)
 	if err != nil {
@@ -1323,6 +1352,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	// the original is hashed while it is compressed: it is read once, not twice
 	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
 		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: filling(info.Size(), report(0)),
+		Blocks: blocks,
 	})
 	if err != nil {
 		// a file that could not be read is not damaged
@@ -1417,7 +1447,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 // pausableKinds are the tasks on files that hold where they are while paused; the others (a
 // check, a copy to the SD card) are only cancelled.
 var pausableKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_OPTIMIZE: true,
-	tasklog.TASK_NET_PREPARE: true}
+	tasklog.TASK_NET_PREPARE: true, tasklog.TASK_RECOMPRESS: true}
 
 // pauseCompression holds the running compression (or decompression, conversion, pack) where
 // it is, in the middle of a file too, or lets it go on; a cancel still stops it while paused.
@@ -1515,7 +1545,10 @@ func (web *Web) HandleCompress() {
 		candidates := web.uncompressedCandidates()
 		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), SplitCount: len(web.splitCandidates()), PackCount: len(web.packCandidates()), OptimizeCount: len(web.optimizeCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
-		data.Level = settingsLevel(settings.ReadSettings(web.dataFolder))
+		appSettings := settings.ReadSettings(web.dataFolder)
+		data.Level = settingsLevel(appSettings)
+		data.Blocks = appSettings.NszBlocks
+		data.RecompressSolid, data.RecompressBlocks = len(web.recompressCandidates(true)), len(web.recompressCandidates(false))
 		data.Uncompressible = web.uncompressibleFiles()
 		damaged := web.verifications().damaged()
 		for _, file := range web.libraryFiles(".nsp", ".xci") {
@@ -1580,6 +1613,7 @@ func (web *Web) HandleCompress() {
 	}).Methods("GET")
 	web.handleSplit()
 	web.handlePacks()
+	web.handleRecompress(templates)
 
 	web.router.HandleFunc("/compress/start", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
@@ -1611,7 +1645,7 @@ func (web *Web) HandleCompress() {
 			level = switchfs.LevelBalanced
 		}
 		// only an administrator deletes the originals
-		web.startWriting(w, r, QueuedTask{Kind: tasklog.TASK_COMPRESS, Paths: paths, Level: level, Delete: r.FormValue("delete_originals") == "true" && isAdminRequest(r)})
+		web.startWriting(w, r, QueuedTask{Kind: tasklog.TASK_COMPRESS, Paths: paths, Level: level, Blocks: r.FormValue("blocks") == "true", Delete: r.FormValue("delete_originals") == "true" && isAdminRequest(r)})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/decompress/start", func(w http.ResponseWriter, r *http.Request) {

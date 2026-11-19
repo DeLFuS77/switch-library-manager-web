@@ -46,7 +46,7 @@ func (web *Web) startWriting(w http.ResponseWriter, r *http.Request, task Queued
 func (web *Web) spaceShort(task QueuedTask) []SpaceShort {
 	writes := []spaceWrite{}
 	switch task.Kind {
-	case tasklog.TASK_COMPRESS, tasklog.TASK_DECOMPRESS, tasklog.TASK_CONVERT, tasklog.TASK_SPLIT:
+	case tasklog.TASK_COMPRESS, tasklog.TASK_DECOMPRESS, tasklog.TASK_RECOMPRESS, tasklog.TASK_CONVERT, tasklog.TASK_SPLIT:
 		for _, path := range task.Paths {
 			info, err := os.Stat(path)
 			if err != nil || !info.Mode().IsRegular() {

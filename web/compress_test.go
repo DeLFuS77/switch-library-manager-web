@@ -621,7 +621,7 @@ func TestCompressionBarReachesItsEnd(t *testing.T) {
 	var mutex sync.Mutex
 	reached := map[int64]int64{}
 	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
-		return web.compressFile(ctx, path, switchfs.LevelFast, false, func(step int64) func(int64, int64) {
+		return web.compressFile(ctx, path, switchfs.LevelFast, false, false, func(step int64) func(int64, int64) {
 			progress := report(step)
 			return func(done int64, total int64) {
 				mutex.Lock()

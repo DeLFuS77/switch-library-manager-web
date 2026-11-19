@@ -43,6 +43,8 @@ type SettingsPageData struct {
 	SmtpSecurityChoices []string
 	// the last measure of the server, nil when there is none
 	LastMeasure *ServerMeasure
+	// the NSZ files of the library compressed solid, which Recompress can write in blocks
+	SolidNsz int
 	// the firmware the consoles of the user who looks told (see netUserFirmwares): with one, it is
 	// shown in place of the field to write it
 	ConsoleFirmwares []netConsoleFirmware
@@ -120,6 +122,7 @@ type SettingsForm struct {
 	AutoCompress          string `in:"form=auto_compress"`
 	AutoCompressLevel     string `in:"form=auto_compress_level"`
 	AutoCompressKeep      bool   `in:"form=auto_compress_keep"`
+	NszBlocks             bool   `in:"form=nsz_blocks"`
 	CompressThreads       int    `in:"form=compress_threads"`
 	CompressFilesAtOnce   int    `in:"form=compress_files_at_once"`
 	LowPriority           bool   `in:"form=low_priority"`
@@ -561,6 +564,7 @@ func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
 	appSettings.AutoCompress = form.AutoCompress
 	appSettings.AutoCompressLevel = form.AutoCompressLevel
 	appSettings.AutoCompressKeep = form.AutoCompressKeep
+	appSettings.NszBlocks = form.NszBlocks
 	appSettings.CompressThreads = form.CompressThreads
 	appSettings.CompressFilesAtOnce = form.CompressFilesAtOnce
 	appSettings.LowPriority = form.LowPriority
@@ -661,6 +665,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
 		SelfUpdatable:           selfUpdatable(),
 		LastMeasure:             web.lastMeasure(),
+		SolidNsz:                len(web.recompressCandidates(true)),
 	}
 }
 

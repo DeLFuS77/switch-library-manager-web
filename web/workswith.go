@@ -32,11 +32,11 @@ const (
 const (
 	worksUnknownHelp     = "How the file is stored could not be read: the file may be missing, or it is damaged."
 	worksPlainHelp       = "Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is."
-	worksSolidHelp       = "Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first."
+	worksSolidHelp       = "Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first, or recompressed in blocks (Compress › Recompress)."
 	worksBlocksHelp      = "Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is."
 	worksExtraHelp       = "Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress."
 	worksMergedHelp      = "The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is."
-	worksMergedSolidHelp = "The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first."
+	worksMergedSolidHelp = "The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first, or recompressed in blocks (Compress › Recompress)."
 )
 
 // FileWorks is what a file of the game page works with, for its row in Files: which installers

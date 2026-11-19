@@ -26,7 +26,7 @@ func TestCompressionWithoutSpaceKeepsTheOriginal(t *testing.T) {
 	web.compressor.mutex.Lock()
 	web.compressor.reserved = math.MaxInt64 / 2
 	web.compressor.mutex.Unlock()
-	if _, err := web.compressFile(context.Background(), path, switchfs.LevelFast, true, noSteps); !errors.Is(err, errCompressSpace) {
+	if _, err := web.compressFile(context.Background(), path, switchfs.LevelFast, false, true, noSteps); !errors.Is(err, errCompressSpace) {
 		t.Fatalf("the compression must stop for the space: %v", err)
 	}
 	if read, err := os.ReadFile(path); err != nil || !bytes.Equal(read, original) {
@@ -42,10 +42,10 @@ func TestCompressionWithoutSpaceKeepsTheOriginal(t *testing.T) {
 // deleted: the task goes on after the restart, finds the compressed file and keeps both
 func TestCompressionCutBeforeTheDeleteKeepsTheOriginal(t *testing.T) {
 	web, path := compressWeb(t)
-	if _, err := web.compressFile(context.Background(), path, switchfs.LevelFast, false, noSteps); err != nil {
+	if _, err := web.compressFile(context.Background(), path, switchfs.LevelFast, false, false, noSteps); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := web.compressFile(context.Background(), path, switchfs.LevelFast, true, noSteps); !errors.Is(err, errCompressExists) {
+	if _, err := web.compressFile(context.Background(), path, switchfs.LevelFast, false, true, noSteps); !errors.Is(err, errCompressExists) {
 		t.Fatalf("a compressed file already there must stop the task: %v", err)
 	}
 	if _, err := os.Stat(path); err != nil {
@@ -66,7 +66,7 @@ func TestCompressionCutWhileWritingLeavesNoCompressedFile(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	if _, err := web.compressFile(ctx, path, switchfs.LevelFast, true, noSteps); err == nil {
+	if _, err := web.compressFile(ctx, path, switchfs.LevelFast, false, true, noSteps); err == nil {
 		t.Fatal("a stopped compression must fail")
 	}
 	if _, err := os.Stat(switchfs.CompressedPath(path)); !os.IsNotExist(err) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.20
+
+### Improvements
+
+- Compress: NSZ files in blocks, which emulators such as Eden run as they are, chosen in Made for or in Settings › Compression, and a Recompress tab that writes the NSZ files you have in blocks or solid. Thanks to @deafening832 for the idea (#193)
+
 ## 2.0.19
 
 ### Improvements

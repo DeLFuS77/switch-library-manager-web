@@ -50,6 +50,8 @@ const (
 	QUARANTINE_COMPRESSED   = "compressed"
 	QUARANTINE_CONVERTED    = "converted"
 	QUARANTINE_DECOMPRESSED = "decompressed"
+	// an NSZ written again in blocks or solid: the old one
+	QUARANTINE_RECOMPRESSED = "recompressed"
 	QUARANTINE_SPLIT        = "split"
 	QUARANTINE_PACK         = "pack"
 	QUARANTINE_DELETED      = "deleted"
@@ -63,6 +65,7 @@ var quarantineReasons = map[string]string{
 	QUARANTINE_COMPRESSED:   "Original of a compressed file",
 	QUARANTINE_CONVERTED:    "Converted to NSP",
 	QUARANTINE_DECOMPRESSED: "Decompressed to NSP",
+	QUARANTINE_RECOMPRESSED: "Written again in blocks or solid",
 	QUARANTINE_SPLIT:        "Split into parts",
 	QUARANTINE_PACK:         "Joined in a pack",
 	QUARANTINE_DELETED:      "Deleted from the library",

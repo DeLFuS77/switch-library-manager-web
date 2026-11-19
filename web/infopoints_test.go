@@ -40,7 +40,7 @@ func TestInfoPoints(t *testing.T) {
 	}
 	// each of these is in a part of the page whose help goes into the ⓘ (on the page of a game, also
 	// what installers and emulators take each file)
-	for name, want := range map[string]int{"organize.html": 3, "compress.html": 6, "title.html": 9} {
+	for name, want := range map[string]int{"organize.html": 3, "compress.html": 7, "title.html": 9} {
 		if got := strings.Count(read(name), "data-hover-help"); got != want {
 			t.Errorf("%s: %d parts with the help in the ⓘ, not %d", name, got, want)
 		}
@@ -49,8 +49,8 @@ func TestInfoPoints(t *testing.T) {
 		t.Error("the preview first, in sight")
 	}
 	compress := read("compress.html")
-	if strings.Count(compress, `class="section-title help-name"`) != 6 {
-		t.Errorf("the levels and the five tabs of Compress in their ⓘ: %d", strings.Count(compress, `class="section-title help-name"`))
+	if strings.Count(compress, `class="section-title help-name"`) != 7 {
+		t.Errorf("the levels and the six tabs of Compress in their ⓘ: %d", strings.Count(compress, `class="section-title help-name"`))
 	}
 	// the steps to install an optimized game and the keys note are warnings and safety: in sight
 	for _, keep := range []string{`<ul class="small text-body-secondary mb-3 ps-3">`, `{{t "Compression uses your own prod.keys`} {

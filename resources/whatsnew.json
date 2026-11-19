@@ -1,4 +1,39 @@
 {
+  "2.0.20": {
+    "en": [
+      "Compress: NSZ files in blocks, which emulators such as Eden run as they are, and a Recompress tab to change the NSZ files you have."
+    ],
+    "es": [
+      "Comprimir: NSZ por bloques, que emuladores como Eden abren tal cual, y una pestaña Recomprimir para cambiar los NSZ que ya tienes."
+    ],
+    "de": [
+      "Komprimieren: NSZ in Blöcken, die Emulatoren wie Eden direkt starten, und ein Tab „Neu komprimieren“ für die NSZ, die du schon hast."
+    ],
+    "fr": [
+      "Compresser : des NSZ par blocs, que les émulateurs comme Eden lancent tels quels, et un onglet Recompresser pour changer les NSZ que vous avez."
+    ],
+    "it": [
+      "Comprimi: NSZ a blocchi, che emulatori come Eden avviano così come sono, e una scheda Ricomprimi per cambiare gli NSZ che hai già."
+    ],
+    "pt": [
+      "Comprimir: NSZ por blocos, que emuladores como o Eden abrem tal como estão, e um separador Recomprimir para mudar os NSZ que já tem."
+    ],
+    "nl": [
+      "Comprimeren: NSZ in blokken, die emulators zoals Eden zo kunnen starten, en een tab Opnieuw comprimeren voor de NSZ die je al hebt."
+    ],
+    "ru": [
+      "Сжать: NSZ блоками, которые эмуляторы вроде Eden запускают как есть, и вкладка «Пересжать» для уже имеющихся NSZ."
+    ],
+    "ja": [
+      "圧縮：Eden などのエミュレーターがそのまま起動できるブロック形式の NSZ と、手元の NSZ を変換する「再圧縮」タブを追加しました。"
+    ],
+    "ko": [
+      "압축: Eden 같은 에뮬레이터가 그대로 실행하는 블록 방식 NSZ와, 가지고 있는 NSZ를 바꾸는 다시 압축 탭이 추가되었습니다."
+    ],
+    "zh": [
+      "压缩：新增 Eden 等模拟器可直接运行的分块 NSZ，以及用于转换现有 NSZ 的“重新压缩”标签页。"
+    ]
+  },
   "2.0.19": {
     "en": [
       "Tune-up: back to its list of steps of before."
