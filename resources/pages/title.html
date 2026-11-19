@@ -30,7 +30,8 @@
 							{{- end}}
 							{{- if $t.IsSwitch2}}<span class="chip chip-muted">Switch 2</span>{{end}}
 							{{- if $t.UpdateMissing}}{{if not $t.UpdatesIgnored}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}{{end}}
-							{{- if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
+							{{- if .ShortConsoles}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Needs a newer firmware than %v" (join .ShortConsoles ", ")}}</span>
+							{{- else if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
 							{{- if gt $t.MissingDlc 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}}<span class="chip chip-muted"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
 							{{- if $t.Edited}}<span class="chip chip-muted" title="{{t "Original: %v" $t.OriginalName}}"><span class="bi bi-pencil" aria-hidden="true"></span>{{t "Edited by hand"}}<span class="visually-hidden"> ({{t "Original: %v" $t.OriginalName}})</span></span>{{end}}
 						</div>
@@ -185,6 +186,13 @@
 						<dd class="fact-value">v{{$t.LatestUpdate}}{{if not $t.LatestUpdateDate.IsZero}}<span class="fact-sub">{{$t.LatestUpdateDate | formatTime}}</span>{{end}}</dd>
 					</div>
 					{{- end}}
+					{{- /* how much the user played it on their consoles, as NXDock tells it */}}
+					{{- with .Played}}
+					<div class="fact fact-wide">
+						<dt class="fact-label"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "Played"}}</dt>
+						<dd class="fact-value fact-played">{{.Text}}{{if gt .Consoles 1}} <span class="chip chip-console">{{t "%v consoles" .Consoles}}</span>{{end}}</dd>
+					</div>
+					{{- end}}
 					{{- with $t.TimeToBeat}}{{if .Known}}
 					<div class="fact fact-wide">
 						<dt class="fact-label"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Time to beat"}}</dt>
@@ -192,6 +200,12 @@
 							{{- if .Normally}}<span><span class="time-to-beat-value">{{hours .Normally}}</span><span class="fact-sub">{{t "Story"}}</span></span>{{end}}
 							{{- if .Hastily}}<span><span class="time-to-beat-value">{{hours .Hastily}}</span><span class="fact-sub">{{t "Quick"}}</span></span>{{end}}
 							{{- if .Completely}}<span><span class="time-to-beat-value">{{hours .Completely}}</span><span class="fact-sub">{{t "100%"}}</span></span>{{end}}
+							{{- with $.Played}}{{if .Story}}
+							<span class="time-played">
+								<span class="progress time-played-bar" role="progressbar" aria-label="{{t "Played"}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100" aria-valuetext="{{.Story}}"><span class="progress-bar is-work" style="width: {{.Percent}}%"></span></span>
+								<span class="time-played-text">{{.Story}}</span>
+							</span>
+							{{- end}}{{end}}
 							<span class="time-to-beat-source">{{t "Data from IGDB"}}{{if .Count}} · {{t "%v players" .Count}}{{end}}</span>
 						</dd>
 					</div>
@@ -255,9 +269,9 @@
 				</ul>
 			</section>
 			{{- with $t.Regions}}
-			<section class="mb-4" id="regions" aria-labelledby="regionsTitle">
-				<h2 class="section-title" id="regionsTitle"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Other regions"}} <span class="badge rounded-pill text-bg-secondary">{{len .Copies}}</span></h2>
-				<p class="small text-body-secondary">{{t "You have this game from several regions: each one is a game of its own, with its own updates and DLC. The main copy is the one the library shows when each game counts once, with the flags of all, and the one Space keeps."}}</p>
+			<section class="mb-4" id="regions" aria-labelledby="regionsTitle" data-hover-help>
+				<h2 class="section-title help-name" id="regionsTitle"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Other regions"}} <span class="badge rounded-pill text-bg-secondary">{{len .Copies}}</span></h2>
+				<p class="form-text">{{t "You have this game from several regions: each one is a game of its own, with its own updates and DLC. The main copy is the one the library shows when each game counts once, with the flags of all, and the one Space keeps."}}</p>
 				<ul class="item-list mb-0">
 					{{- range .Copies}}
 					<li class="item-row{{if .Keep}} region-keep{{end}}">
@@ -287,9 +301,9 @@
 			</section>
 			{{- end}}
 			{{- with $t.Cheats}}
-			<section class="mb-4">
+			<section class="mb-4" data-hover-help>
 				<div class="section-head">
-					<h2 class="section-title mb-0"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Cheats"}}{{if .Names}} <span class="badge rounded-pill text-bg-secondary">{{len .Names}}</span>{{end}}</h2>
+					<h2 class="section-title mb-0 help-name"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Cheats"}}{{if .Names}} <span class="badge rounded-pill text-bg-secondary">{{len .Names}}</span>{{end}}</h2>
 					{{- if .BuildID}}
 					<div class="d-flex flex-wrap gap-2">
 						<div class="dropdown">
@@ -305,7 +319,7 @@
 					{{- end}}
 				</div>
 				{{- if .BuildID}}
-				<p class="small text-body-secondary">{{t "For the version you have (v%v, build %v). Unzip it at the root of the SD card: Atmosphère loads them from atmosphere/contents." .Version .BuildID}}</p>
+				<p class="form-text">{{t "For the version you have (v%v, build %v). Unzip it at the root of the SD card: Atmosphère loads them from atmosphere/contents." .Version .BuildID}}</p>
 				<ul class="cheat-list list-unstyled mb-0">
 					{{- range .Names}}
 					<li><span class="bi bi-dot" aria-hidden="true"></span>{{.}}</li>
@@ -319,8 +333,8 @@
 			{{- end}}
 			{{- end}}
 			{{- if $t.Versions}}
-			<section class="mb-4">
-				<h2 class="section-title"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Version history"}} <span class="badge rounded-pill text-bg-secondary">{{len $t.Versions}}</span></h2>
+			<section class="mb-4" data-hover-help>
+				<h2 class="section-title help-name"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Version history"}} <span class="badge rounded-pill text-bg-secondary">{{len $t.Versions}}</span></h2>
 				<ol class="version-history list-unstyled mb-0">
 					{{- range $i, $v := $t.Versions}}
 					{{- if eq $i 5}}
@@ -335,7 +349,7 @@
 				{{- if gt (len $t.Versions) 5}}
 				</details>
 				{{- end}}
-				<p class="small text-body-secondary mt-2 mb-0">{{t "The titles database only has the date of each update. The button searches the web for its notes."}}</p>
+				<p class="form-text">{{t "The titles database only has the date of each update. The button searches the web for its notes."}}</p>
 			</section>
 			{{- end}}
 			{{- if $t.Saves}}
@@ -375,6 +389,7 @@
 						<div class="item-main">
 							<div class="item-name">{{.Name}}</div>
 							<div class="item-meta">{{template "copyId" .Id}}{{if .File}}{{if .File.InGameFile}}<span>{{t "In the file of the game"}}</span>{{else}}<span>{{formatSize .File.Size}}</span>{{end}}{{end}}</div>
+							{{- with .File}}{{with .Works}}{{template "worksWith" .}}{{end}}{{end}}
 						</div>
 						<div class="item-end">
 							{{- if .Owned}}
@@ -656,6 +671,7 @@
 								<span>{{formatSize .Size}}</span>
 								{{- if .RequiredFirmware}}<span title="{{t "Required firmware"}}"><span class="bi bi-cpu me-1" aria-hidden="true"></span>{{.RequiredFirmware}}</span>{{end}}
 							</div>
+							{{- with .Works}}{{template "worksWith" .}}{{end}}
 							{{- with .GamesInFile}}
 							<div class="item-meta"><span><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</span></div>
 							{{- end}}
@@ -702,6 +718,18 @@
 						</div>
 						<a class="btn btn-sm btn-outline-secondary" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .FileName}}</span></a>
 					</li>
+{{- end}}
+{{- /* which installers and emulators a file works with: a dot in green when everything does, in
+	orange when there is a limit, never red; the case shows on hover, and stays under the line on a
+	touch screen (21-hover-help.js) */}}
+{{define "worksWith"}}
+							<div class="works-with{{if .Unknown}} is-unknown{{end}}" data-hover-help>
+								<span class="help-name">
+									{{- if .Unknown}}<span class="works-part"><span class="works-dot" aria-hidden="true"></span>{{t .Installers}}</span>
+									{{- else}}<span class="works-part {{if .InstallersOk}}is-ok{{else}}is-limit{{end}}"><span class="works-dot" aria-hidden="true"></span>{{t .Installers}}</span> · <span class="works-part {{if .EmulatorsOk}}is-ok{{else}}is-limit{{end}}"><span class="works-dot" aria-hidden="true"></span>{{t .Emulators}}</span>{{end -}}
+								</span>
+								<div class="form-text">{{t .Help}}</div>
+							</div>
 {{- end}}
 {{define "titleVersion"}}
 					<li class="version-item{{if .Installed}} is-installed{{else if .Owned}} is-owned{{end}}">

@@ -422,6 +422,19 @@ func (web *Web) quarantineSummary() quarantineSummary {
 	return summary
 }
 
+// countQuarantine gives the header what its bin shows, when the quarantine is on: the files
+// waiting, the room they take and when the oldest goes for good.
+func (web *Web) countQuarantine(counts *NavCounts) {
+	if !quarantineOn(settings.ReadSettings(web.dataFolder).Quarantine) {
+		return
+	}
+	summary := web.quarantineSummary()
+	counts.QuarantineOn = true
+	counts.QuarantineFiles = len(summary.Items)
+	counts.QuarantineSize = summary.Size
+	counts.QuarantineNext = summary.NextExpiry
+}
+
 func (web *Web) HandleQuarantine() {
 	web.router.HandleFunc("/quarantine/restore", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)

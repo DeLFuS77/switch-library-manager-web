@@ -72,6 +72,8 @@ func (y YearReview) Empty() bool {
 type YearPageData struct {
 	GlobalPageData
 	Review YearReview
+	// the time the user who looks played that year on their consoles; nil without it
+	Play *YearPlay
 }
 
 // monthLabel is the short name of a month in a language, for the bars.
@@ -272,6 +274,7 @@ func (web *Web) HandleYear() {
 		if value, err := strconv.Atoi(r.URL.Query().Get("y")); err == nil && value >= 2017 && value <= now.Year() {
 			year = value
 		}
-		web.render(w, r, templates, YearPageData{GlobalPageData: web.globalPageData("statistics"), Review: web.yearReview(year, lang)})
+		web.render(w, r, templates, YearPageData{GlobalPageData: web.globalPageData("statistics"), Review: web.yearReview(year, lang),
+			Play: web.netYearPlay(playUser(r), year, lang)})
 	}).Methods("GET")
 }

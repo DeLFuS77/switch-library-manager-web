@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.17
+  <Changes>### 2.0.18
+- Consoles paired with NXDock (page, filter, firmware, time played), Eden saves in step, CyberFoil and Sphaira find the library, which installers and emulators take each file, the tune-up as tiles, help in ⓘ, a notice of the files Organize cannot read and the bin of the quarantine in the header
+### 2.0.17
 - Settings: the messages of the automations and of the save vault can also be turned off in the list of Notifications
 ### 2.0.16
 - Library: Enter in the search works again in a library with many publishers
@@ -170,7 +172,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-18</Date>
+  <Date>2026-11-19</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
@@ -179,6 +181,7 @@
   <DonateLink>https://ko-fi.com/delfus77</DonateLink>
   <Requires>Your own prod.keys, dumped from your console, in the appdata folder.</Requires>
   <Config Name="WebUI port" Target="3000" Default="3000" Mode="tcp" Description="Port of the web interface." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="Discovery port" Target="8465" Default="8465" Mode="udp" Description="Where CyberFoil and Sphaira find the library on the local network, while Install over the network is on. Keep 8465, the port they ask on; empty it if another app, such as Ownfoil, already uses it." Type="Port" Display="always" Required="false" Mask="false">8465</Config>
   <Config Name="Appdata" Target="/usr/local/share/switch-library-manager-web" Default="/mnt/user/appdata/switch-library-manager-web" Mode="rw" Description="Settings, caches and covers. Put your prod.keys (and optionally title.keys) here." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/switch-library-manager-web</Config>
   <Config Name="Switch library" Target="/mnt/roms" Default="" Mode="rw" Description="Share with your NSP, NSZ, XCI and XCZ files, e.g. /mnt/user/switch. Read and write, to organize and compress files." Type="Path" Display="always" Required="true" Mask="false"></Config>
   <Config Name="Second Switch library" Target="/mnt/roms2" Default="" Mode="rw" Description="Optional: another share or disk with more games, e.g. /mnt/disks/usb/switch. Empty when all the games are in one place. To use it, add /mnt/roms2 to Folders to scan in Settings › Library or in the setup wizard, one folder per line." Type="Path" Display="always" Required="false" Mask="false"></Config>

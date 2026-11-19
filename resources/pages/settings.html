@@ -185,9 +185,22 @@
 							<h2 class="section-title" id="gamedataTitle"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Game data"}}</h2>
 							<div class="row g-3">
 								<div class="col-md-6">
+									{{- /* the firmware the consoles of the administrator tell (NXDock); the field to write it only without one */}}
+									{{- $told := false}}{{range .ConsoleFirmwares}}{{if .Firmware}}{{$told = true}}{{end}}{{end}}
+									{{- if $told}}
+									<input type="hidden" name="console_firmware" value="{{.Settings.ConsoleFirmware}}">
+									<span class="form-label fw-semibold d-block">{{t "Firmware of your consoles"}}</span>
+									<ul class="list-unstyled console-firmwares mb-0">
+										{{- range .ConsoleFirmwares}}{{if .Firmware}}
+										<li><span class="bi bi-nintendo-switch" aria-hidden="true"></span><span class="console-firmwares-name">{{.Name}}</span><strong>{{.Firmware}}</strong><span class="chip chip-success">{{t "told by the console"}}</span></li>
+										{{- end}}{{end}}
+									</ul>
+									<div class="form-text">{{t "Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand."}}</div>
+									{{- else}}
 									<label for="console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>
 									<input type="text" class="form-control" id="console_firmware" name="console_firmware" value="{{.Settings.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" aria-describedby="firmwareHelp">
 									<div class="form-text" id="firmwareHelp">{{t "Optional. Games and updates that need a newer firmware are marked. See it on the console in System Settings > System."}}</div>
+									{{- end}}
 								</div>
 								<div class="col-12">
 									<fieldset class="igdb-settings">
@@ -290,8 +303,8 @@
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="compression" aria-labelledby="compressionTitle">
-							<h2 class="section-title" id="compressionTitle"><span class="bi bi-file-zip" aria-hidden="true"></span>{{t "Compression"}}</h2>
-							<p class="text-body-secondary">{{t "Compress NSP and XCI files to NSZ and XCZ by themselves, with the same checks as on the Compress page. Needs your own prod.keys."}}</p>
+							<h2 class="section-title help-name" id="compressionTitle"><span class="bi bi-file-zip" aria-hidden="true"></span>{{t "Compression"}}</h2>
+							<p class="form-text">{{t "Compress NSP and XCI files to NSZ and XCZ by themselves, with the same checks as on the Compress page. Needs your own prod.keys."}}</p>
 							<div class="row g-3">
 								<div class="col-md-6">
 									<label for="auto_compress" class="form-label fw-semibold">{{t "Compress automatically"}}</label>
@@ -365,8 +378,8 @@
 						</section>
 						<section class="surface mb-4 settings-section" id="automation" aria-labelledby="automationTitle">
 							{{- $a := .Settings.Automation}}
-							<h2 class="section-title" id="automationTitle"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Automations"}}</h2>
-							<p class="text-body-secondary">{{t "The library takes care of itself: when new files appear in your folders, the steps you choose run one after the other, and each one appears on the Tasks page. Everything is off until you turn it on."}}</p>
+							<h2 class="section-title help-name" id="automationTitle"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Automations"}}</h2>
+							<p class="form-text">{{t "The library takes care of itself: when new files appear in your folders, the steps you choose run one after the other, and each one appears on the Tasks page. Everything is off until you turn it on."}}</p>
 							<div class="form-check form-switch automation-master mb-3">
 								<input class="form-check-input" type="checkbox" role="switch" id="automation_enabled" name="automation_enabled" value="true" data-automation-master{{if $a.Enabled}} checked{{end}}>
 								<label class="form-check-label fw-semibold" for="automation_enabled">{{t "Take care of new files by themselves"}}</label>
@@ -435,8 +448,8 @@
 						</section>
 						<section class="surface mb-4 settings-section" id="vault" aria-labelledby="vaultTitle">
 							{{- $v := .Settings.Vault}}
-							<h2 class="section-title" id="vaultTitle"><span class="bi bi-safe" aria-hidden="true"></span>{{t "Save vault"}}</h2>
-							<p class="text-body-secondary">{{t "Keep the backups of your saves on this server: JKSV, the save manager of the console, uploads them over WebDAV with the user and password below, also from outside your home with a VPN. Off until you turn it on."}}</p>
+							<h2 class="section-title help-name" id="vaultTitle"><span class="bi bi-safe" aria-hidden="true"></span>{{t "Save vault"}}</h2>
+							<p class="form-text">{{t "Keep the backups of your saves on this server: JKSV, the save manager of the console, uploads them over WebDAV with the user and password below, also from outside your home with a VPN. Off until you turn it on."}}</p>
 							<div class="form-check form-switch mb-3">
 								<input class="form-check-input" type="checkbox" role="switch" id="vault_enabled" name="vault_enabled" value="true" data-vault-master{{if $v.Enabled}} checked{{end}}>
 								<label class="form-check-label fw-semibold" for="vault_enabled">{{t "Turn on the save vault"}}</label>
@@ -489,8 +502,8 @@
 						</section>
 						<section class="surface mb-4 settings-section" id="netinstall" aria-labelledby="netinstallTitle" data-net-install>
 							{{- $n := .Settings.NetInstall}}
-							<h2 class="section-title" id="netinstallTitle"><span class="bi bi-router" aria-hidden="true"></span>{{t "Install over the network"}}</h2>
-							<p class="text-body-secondary">{{t "Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on."}}</p>
+							<h2 class="section-title help-name" id="netinstallTitle"><span class="bi bi-router" aria-hidden="true"></span>{{t "Install over the network"}}</h2>
+							<p class="form-text">{{t "Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on."}}</p>
 							<div class="net-install-note mb-3"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "Only for your own consoles: do not share the keys nor the address."}}</div>
 							{{- if not .NetInstallReady}}
 							<div class="net-install-note d-flex gap-2 align-items-start mb-3"><span class="bi bi-person-lock mt-1" aria-hidden="true"></span><div>{{t "Installing over the network needs a user with a password."}} <a class="fw-semibold" href="/users.html">{{t "Create one in Users"}}</a></div></div>
@@ -576,6 +589,11 @@
 												<code class="net-code flex-grow-1" data-net-line="tinfoil"></code>
 												<button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-copy="" data-net-copy="tinfoil" aria-label="{{t "Copy"}}" title="{{t "Copy"}}"><span class="bi bi-clipboard" aria-hidden="true"></span></button>
 											</div>
+											{{- /* they find the library by themselves, as they find Ownfoil (netdiscover.go) */}}
+											<div class="net-discover small mt-2">
+												<span class="net-discover-dot" aria-hidden="true"></span><span class="help-name">{{t "CyberFoil and Sphaira find it by themselves on your network"}}</span>
+												<div class="form-text">{{t "They ask on the local network and this library answers with its address; the key of the console is still needed. In Docker, the UDP port 8465 must be published."}}</div>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -592,8 +610,8 @@
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="notifications" aria-labelledby="notificationsTitle">
-							<h2 class="section-title" id="notificationsTitle"><span class="bi bi-bell" aria-hidden="true"></span>{{t "Notifications"}}</h2>
-							<p class="text-body-secondary">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>
+							<h2 class="section-title help-name" id="notificationsTitle"><span class="bi bi-bell" aria-hidden="true"></span>{{t "Notifications"}}</h2>
+							<p class="form-text">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>
 							<div class="notify-services mb-3">
 								{{- range .NotifyServices}}
 								{{template "notifyService" (dict "S" . "N" $.Settings.Notifications)}}
@@ -651,8 +669,8 @@
 						</section>
 						<section class="surface mb-4 settings-section" id="quarantine" aria-labelledby="quarantineTitle" data-quarantine>
 							{{- $q := .Settings.Quarantine}}
-							<h2 class="section-title" id="quarantineTitle"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Quarantine"}}</h2>
-							<p class="text-body-secondary">{{t "What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there."}}</p>
+							<h2 class="section-title help-name" id="quarantineTitle"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Quarantine"}}</h2>
+							<p class="form-text">{{t "What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there."}}</p>
 							<div class="row g-3">
 								<div class="col-md-6">
 									<label for="quarantine_keep" class="form-label fw-semibold">{{t "Keep what is deleted"}}</label>
@@ -725,8 +743,8 @@
 						</div>
 					</form>
 					<section class="surface mt-4 settings-section" id="mobile" aria-labelledby="mobileTitle" data-mobile-app>
-						<h2 class="section-title" id="mobileTitle"><span class="bi bi-phone" aria-hidden="true"></span>{{t "App on your phone"}}</h2>
-						<p class="text-body-secondary">{{t "Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser."}}</p>
+						<h2 class="section-title help-name" id="mobileTitle"><span class="bi bi-phone" aria-hidden="true"></span>{{t "App on your phone"}}</h2>
+						<p class="form-text">{{t "Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser."}}</p>
 						<div class="mobile-status mb-3">
 							<p class="mb-2" data-mobile-installed hidden><span class="bi bi-check-circle-fill text-success me-2" aria-hidden="true"></span>{{t "The app is installed on this device."}}</p>
 							<div data-mobile-install hidden>
@@ -785,8 +803,8 @@
 					<section class="surface mt-4 settings-section portal-section" id="portal" aria-labelledby="portalTitle">
 						{{- $p := .Portal.Options}}
 						{{- $env := .Portal.Env}}
-						<h2 class="section-title" id="portalTitle"><span class="bi bi-door-open" aria-hidden="true"></span>{{t "Sign-in portal"}}</h2>
-						<p class="text-body-secondary">{{t "If a sign-in portal already protects the app (Authelia, Authentik or Cloudflare Access) or you have a provider of OpenID Connect (PocketID, Authentik, Keycloak), the people it lets in open the app as their user, without writing its password again. Off until you turn it on. Passwords and API keys keep working."}}</p>
+						<h2 class="section-title help-name" id="portalTitle"><span class="bi bi-door-open" aria-hidden="true"></span>{{t "Sign-in portal"}}</h2>
+						<p class="form-text">{{t "If a sign-in portal already protects the app (Authelia, Authentik or Cloudflare Access) or you have a provider of OpenID Connect (PocketID, Authentik, Keycloak), the people it lets in open the app as their user, without writing its password again. Off until you turn it on. Passwords and API keys keep working."}}</p>
 						{{- with .Portal}}
 						{{- if or (not .LastOkAt.IsZero) (not .LastProblemAt.IsZero)}}
 						<div class="d-flex flex-wrap gap-2 mb-3 small">

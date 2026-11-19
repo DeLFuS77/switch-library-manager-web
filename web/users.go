@@ -28,6 +28,10 @@ const (
 	// a role of API keys only, for a console: it lists the library at /install/ and downloads
 	// from it, and opens no page (see netinstall.go)
 	ROLE_CONSOLE = "console"
+	// a role of API keys only, for a computer paired as a console is: it keeps the saves of an
+	// emulator of the computer in step with the library, at /install/saves, and nothing else
+	// (see netsaves_eden.go)
+	ROLE_PC = "pc"
 
 	USERS_FILENAME = "users.json"
 )
@@ -387,6 +391,7 @@ var roleTexts = map[string]string{
 	ROLE_ADMIN:  "Everything, also deleting files, organizing them, the settings, the users and the backups.",
 	// only for API keys (see apiKeyRoles)
 	ROLE_CONSOLE: "Only lists the library for a console to install from it over the network, and downloads from it. Opens no page.",
+	ROLE_PC:      "Only keeps the saves of an emulator of a computer in step with the saves of its user. Opens no page.",
 }
 
 func RoleChoices() []RoleChoice {

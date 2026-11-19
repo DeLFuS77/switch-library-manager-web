@@ -41,6 +41,8 @@ type TitleFile struct {
 	Parts []TitleFilePart
 	// for a NUP: whether Eglantine and Lichii open it and can start its game
 	Emulators *TitleEmulators
+	// for any other file: which installers take it and whether emulators open it as it is
+	Works *FileWorks
 }
 
 // TitleEmulators is what Eglantine and Lichii, the emulators that open NUP files, make of one,
@@ -216,6 +218,10 @@ type TitlePageData struct {
 	// how the game goes for the user, and the states to choose from
 	Play       userdata.PlayEntry
 	PlayStates []userdata.PlayState
+	// the consoles of the user whose firmware is older than the game needs, as they tell it
+	ShortConsoles []string
+	// how much the user played the game on their consoles, as they tell it; nil when never
+	Played *TitlePlayed
 }
 
 func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *TitleFile {
@@ -291,6 +297,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		detail.Regions = web.regionGroupOf(baseId, lang)
 		detail.Base = newTitleFile(local.File, strings.ToUpper(getType(local)), "/api/titles/"+baseId)
 		detail.Base.Emulators = nupEmulators(local.File, lang)
+		detail.Base.Works = fileWorks(local.File, mergedUpdate(local) > 0)
 		if local.Icon != "" {
 			detail.ImageUrl = "/i/" + local.Icon
 		}
@@ -302,6 +309,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			update := local.Updates[version]
 			file := newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version))
 			file.Emulators = nupEmulators(update, lang)
+			file.Works = fileWorks(update, false)
 			if update.ExtendedInfo == local.File.ExtendedInfo {
 				file.InGameFile = true
 				detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v", version))
@@ -431,6 +439,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 				dlc.Owned = true
 				dlc.File = newTitleFile(file, "DLC", "/api/titles/"+detail.Id+"/dlc/"+dlc.Id)
 				dlc.File.InGameFile = local.BaseExist && file.ExtendedInfo == local.File.ExtendedInfo
+				if !dlc.File.InGameFile {
+					dlc.File.Works = fileWorks(file, false)
+				}
 				if dlc.Name == "" {
 					dlc.Name = strings.TrimSpace(db.ParseTitleNameFromFileName(file.ExtendedInfo.FileName))
 				}
@@ -575,10 +586,20 @@ func (web *Web) HandleTitle() {
 			http.NotFound(w, r)
 			return
 		}
-		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail,
+		readUnknownStorage(&detail)
+		data := TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail,
 			Collections: web.collections().Of(detail.Id), AllCollections: web.collections().Names(),
 			Favorite: web.favorites().Has(detail.Id), Saga: web.sameSaga(detail.Id, detail.Name, web.requestLanguage(r)),
-			Play: web.play().Of(playUser(r), detail.Id), PlayStates: userdata.PlayStates()})
+			Play: web.play().Of(playUser(r), detail.Id), PlayStates: userdata.PlayStates()}
+		if stats, consoles := web.netTitlePlayed(playUser(r), detail.Id); consoles > 0 {
+			data.Played = titlePlayed(web.requestLanguage(r), stats, consoles, detail.TimeToBeat, time.Now())
+		}
+		// the firmware the consoles of the user tell, in place of the one of Settings
+		if required, ok := parseFirmware(detail.RequiredFirmware); ok {
+			check := web.userFirmwareCheck(playUser(r))
+			data.Title.FirmwareTooNew, data.ShortConsoles = check.tooNew(required), check.short(required)
+		}
+		web.render(w, r, templates, data)
 	}).Methods("GET")
 }
 

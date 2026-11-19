@@ -96,6 +96,10 @@
 								</ul>
 							</li>
 							{{- end}}
+							{{- /* the consoles the user paired, as NXDock tells them; in the folded menu too */}}
+							{{- if .Auth.Consoles}}
+							{{- template "navLink" (dict "Page" .Page "Id" "consoles" "Href" "/consoles.html" "Icon" "bi-nintendo-switch" "Label" (t "Consoles") "Count" 0 "Badge" "")}}
+							{{- end}}
 						</ul>
 						<div class="full-header-hide">
 							<hr>
@@ -111,11 +115,11 @@
 							<ul class="navbar-nav app-nav">
 								{{- if .Auth.IsAdmin}}
 								{{- template "navLink" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Count" 0 "Badge" "" "Dot" .Counts.TuneUp)}}
-								{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "" "Step" "3")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "" "Step" "4")}}
 								{{- end}}
-								{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "" "Step" (and .Auth.IsAdmin "5"))}}
 								{{- if .Auth.IsAdmin}}
-								{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
 								{{- if .VaultEnabled}}
 								{{- template "navLink" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Count" 0 "Badge" "")}}
@@ -148,6 +152,28 @@
 							</li>
 							{{- else}}
 							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
+							{{- end}}
+							{{- /* the quarantine, while deleted files go to it: the bin empty, or full with the files
+								waiting in it and a panel with them; a click opens it in Settings */}}
+							{{- if and .Auth.IsAdmin .Counts.QuarantineOn}}
+							<li class="nav-item nav-hint">
+								<a class="nav-link nav-quarantine{{if .Counts.QuarantineFiles}} is-full{{end}}" href="/settings.html#quarantine"{{if .Counts.QuarantineFiles}} aria-describedby="quarantineHint"{{end}} data-quarantine-files="{{.Counts.QuarantineFiles}}">
+									<span class="bi {{if .Counts.QuarantineFiles}}bi-trash3-fill{{else}}bi-trash3{{end}} nav-bin" aria-hidden="true"></span><span class="nav-label">{{t "Quarantine"}}</span>{{if .Counts.QuarantineFiles}}<span class="badge rounded-pill nav-count nav-bin-count ms-auto ms-full-0">{{num .Counts.QuarantineFiles}}</span>{{end}}
+								</a>
+								{{- if .Counts.QuarantineFiles}}
+								<div class="nav-hint-panel" id="quarantineHint" role="tooltip">
+									<div class="nav-hint-title">{{t "In the quarantine now"}}</div>
+									<ul class="list-unstyled mb-0">
+										<li class="tone-info"><span class="nav-hint-icon bi bi-files" aria-hidden="true"></span><span class="flex-grow-1">{{t "Files"}}</span><span class="nav-hint-count">{{num .Counts.QuarantineFiles}}</span></li>
+										<li class="tone-info"><span class="nav-hint-icon bi bi-hdd" aria-hidden="true"></span><span class="flex-grow-1">{{t "Room they take"}}</span><span class="nav-hint-count">{{formatSize .Counts.QuarantineSize}}</span></li>
+										{{- if not .Counts.QuarantineNext.IsZero}}
+										<li class="tone-warning"><span class="nav-hint-icon bi bi-hourglass-split" aria-hidden="true"></span><span class="flex-grow-1">{{t "The oldest is deleted for good"}}</span><span class="nav-hint-count">{{formatDateTime .Counts.QuarantineNext}}</span></li>
+										{{- end}}
+									</ul>
+									<div class="small text-body-secondary mt-2">{{t "Click to see them, put them back or empty it."}}</div>
+								</div>
+								{{- end}}
+							</li>
 							{{- end}}
 							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-fan nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger" "Running" .Counts.RunningTasks "CountLabel" (t "Failed tasks: %v" (num .Counts.FailedTasks)))}}
 						</ul>
@@ -221,8 +247,10 @@
 	<footer class="app-footer py-3">
 		<div class="container-xxl d-flex flex-column flex-sm-row gap-2 justify-content-between align-items-center">
 			{{- if .Demo}}<span class="badge rounded-pill text-bg-warning"><span class="bi bi-magic me-1" aria-hidden="true"></span>{{t "Demo mode with made-up games."}}</span>{{end}}
-			<span>Switch Library Manager Web {{.Version}}{{with .Update}} &middot; <a href="/update.html" class="update-link"><span class="bi bi-stars" aria-hidden="true"></span> {{t "%v available" .Version}}</a>{{end}} &middot; {{t "based on"}} <a href="https://github.com/giwty/switch-library-manager/releases/tag/{{.SlmVersion}}">Switch Library Manager {{.SlmVersion}}</a></span>
-			<span class="d-inline-flex align-items-center gap-3">{{if .Auth.IsAdmin}}<a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="/diagnostics.html"><span class="bi bi-heart-pulse" aria-hidden="true"></span>{{t "Diagnostics"}}</a>{{end}}<a class="d-inline-flex align-items-center gap-2 text-decoration-none text-nowrap" href="/disclaimer.html"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "Disclaimer"}}</a><a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="https://github.com/DeLFuS77/switch-library-manager-web"><span class="bi bi-github" aria-hidden="true"></span>GitHub</a><a class="d-inline-flex align-items-center gap-2 text-decoration-none footer-support" href="https://ko-fi.com/delfus77" target="_blank" rel="noopener noreferrer" title="{{t "The app is free. A tip on Ko-fi supports its development."}}"><span class="bi bi-heart-fill" aria-hidden="true"></span>{{t "Support"}}</a></span>
+			{{- /* the version, its license and what it is based on; a program not built by the workflows
+				of this repository says so (TRADEMARKS.md) */}}
+			<span class="footer-about"><span>Switch Library Manager Web {{.Version}}</span>{{if not .OfficialBuild}}{{template "unofficialBuild"}}{{end}}{{with .Update}}<span><span class="footer-sep" aria-hidden="true">&middot; </span><a href="/update.html" class="update-link"><span class="bi bi-stars" aria-hidden="true"></span> {{t "%v available" .Version}}</a></span>{{end}}<span><span class="footer-sep" aria-hidden="true">&middot; </span><a href="https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE" title="{{t "See the license"}}">AGPL-3.0</a></span><span><span class="footer-sep" aria-hidden="true">&middot; </span>{{t "based on"}} <a href="https://github.com/giwty/switch-library-manager/releases/tag/{{.SlmVersion}}">Switch Library Manager {{.SlmVersion}}</a></span></span>
+			<span class="d-inline-flex flex-wrap align-items-center justify-content-center column-gap-3 row-gap-1">{{if .Auth.IsAdmin}}<a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="/diagnostics.html"><span class="bi bi-heart-pulse" aria-hidden="true"></span>{{t "Diagnostics"}}</a>{{end}}<a class="d-inline-flex align-items-center gap-2 text-decoration-none text-nowrap" href="/disclaimer.html"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "Disclaimer"}}</a><a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="https://github.com/DeLFuS77/switch-library-manager-web"><span class="bi bi-github" aria-hidden="true"></span>GitHub</a><a class="d-inline-flex align-items-center gap-2 text-decoration-none footer-support" href="https://ko-fi.com/delfus77" target="_blank" rel="noopener noreferrer" title="{{t "The app is free. A tip on Ko-fi supports its development."}}"><span class="bi bi-heart-fill" aria-hidden="true"></span>{{t "Support"}}</a></span>
 		</div>
 	</footer>
 	<nav class="bottom-nav" aria-label="{{t "Main navigation"}}">
@@ -267,7 +295,7 @@
 {{define "navLink"}}
 							<li class="nav-item{{with .InBar}} {{.}}{{end}}">
 								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
-									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{with .Running}}<span class="badge rounded-pill nav-count nav-running ms-auto ms-full-0" title="{{t "Tasks running: %v" (num .)}}">{{num .}}<span class="visually-hidden"> {{t "Tasks running: %v" (num .)}}</span></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}}{{if not .Running}} ms-auto{{end}} ms-full-0"{{with .CountLabel}} title="{{.}}"{{end}}>{{num .Count}}{{with .CountLabel}}<span class="visually-hidden"> {{.}}</span>{{end}}</span>{{end}}
+									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{with .Step}}<span class="nav-step" title="{{t "Step %v of 5 of the tune-up" .}}">{{.}}</span>{{end}}{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{with .Running}}<span class="badge rounded-pill nav-count nav-running ms-auto ms-full-0" title="{{t "Tasks running: %v" (num .)}}">{{num .}}<span class="visually-hidden"> {{t "Tasks running: %v" (num .)}}</span></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}}{{if not .Running}} ms-auto{{end}} ms-full-0"{{with .CountLabel}} title="{{.}}"{{end}}>{{num .Count}}{{with .CountLabel}}<span class="visually-hidden"> {{.}}</span>{{end}}</span>{{end}}
 								</a>
 							</li>
 {{- end}}
@@ -279,7 +307,7 @@
 {{- end}}
 
 {{define "navMenuItem"}}
-<li><a class="dropdown-item nav-menu-item{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true"></span><span><span class="nav-menu-label">{{.Label}}{{if .Dot}}<span class="nav-dot ms-2" aria-hidden="true"></span>{{end}}</span><span class="nav-menu-text">{{.Text}}</span></span></a></li>
+<li><a class="dropdown-item nav-menu-item{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true"></span><span><span class="nav-menu-label">{{.Label}}{{with .Step}}<span class="nav-step" title="{{t "Step %v of 5 of the tune-up" .}}">{{.}}</span>{{end}}{{if .Dot}}<span class="nav-dot ms-2" aria-hidden="true"></span>{{end}}</span><span class="nav-menu-text">{{.Text}}</span></span></a></li>
 {{- end}}
 
 {{define "discoverItems"}}
@@ -292,11 +320,12 @@
 {{- if .Auth.IsAdmin}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Text" (t "Tidy up your library step by step") "Dot" .Counts.TuneUp)}}
 <li><hr class="dropdown-divider"></li>
-{{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename files and sort into folders"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename files and sort into folders") "Step" "3")}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Delete old updates and duplicates") "Step" "4")}}
 {{- end}}
-{{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space") "Step" (and .Auth.IsAdmin "5"))}}
 {{- if .Auth.IsAdmin}}
-{{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Delete old updates and duplicates"))}}
+<li><hr class="dropdown-divider"></li>
 {{- template "navMenuItem" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Text" (t "Choose what fits on your SD card"))}}
 {{- if .VaultEnabled}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Text" (t "The saves of your consoles"))}}

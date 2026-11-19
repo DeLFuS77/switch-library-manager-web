@@ -2,7 +2,7 @@
 {{define "main"}}
 			{{- $o := .Settings.OrganizeOptions}}
 			{{- template "pageHeader" (dict "Title" (t "Organize") "Count" -1 "Subtitle" (t "Every action shows a preview first, nothing changes until you confirm it."))}}
-			{{- with maintenanceStep .Page}}<a class="maintenance-hint" href="/maintenance.html"><span class="bi bi-list-check" aria-hidden="true"></span>{{t "Step %v of 5 of the tune-up" .}} <span class="text-body-secondary">&middot; {{t "See the steps in order"}}</span></a>{{end}}
+			{{- template "tuneUpCrumbs" .Page}}
 			<div class="surface d-flex align-items-center gap-3 mb-4 py-3">
 				<span class="stat-icon flex-shrink-0"><span class="bi bi-folder2-open" aria-hidden="true"></span></span>
 				<div class="min-w-0">
@@ -14,19 +14,49 @@
 					{{- end}}
 				</div>
 			</div>
+			{{- /* the files the scan could not read: Organize leaves them out, and says why and where
+					to see them; with keys too old, where to upload newer ones */}}
+			{{- with .Unreadable}}
+			<div class="alert alert-warning organize-unreadable mb-4" role="status">
+				<div class="d-flex gap-2 align-items-start">
+					<span class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1" aria-hidden="true"></span>
+					<div class="flex-grow-1 min-w-0">
+						<div class="fw-semibold">{{t "Organize leaves these files out, as it cannot read them"}}</div>
+						<ul class="list-unstyled mb-0">
+							{{- range .}}
+							<li class="organize-unreadable-row">
+								<div class="d-flex flex-wrap align-items-center gap-2">
+									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="fw-medium">{{t .Title}}</span><span class="badge rounded-pill organize-unreadable-count">{{num .Count}}</span>
+									<span class="d-flex flex-wrap gap-3 ms-auto">
+										<a class="alert-link" href="/issues.html?kind_of_issue={{.Kind}}">{{t "See the files"}}</a>
+										{{- if eq .Kind "keys"}}
+										<a class="alert-link" href="/settings.html#library">{{t "Upload newer keys"}}</a>
+										{{- end}}
+									</span>
+								</div>
+								{{- if eq .Kind "keys"}}
+								<div class="small mt-1">{{t "They need keys of a newer firmware than your prod.keys. Dump the keys of your console again, updated."}}</div>
+								{{- end}}
+							</li>
+							{{- end}}
+						</ul>
+					</div>
+				</div>
+			</div>
+			{{- end}}
 			<div class="page-tabs" role="tablist" aria-label="{{t "Organize"}}" data-page-tabs>
 				<button type="button" class="page-tab active" role="tab" id="tabActions" data-tab="actions" aria-controls="panelActions" aria-selected="true"><span class="bi bi-play-circle" aria-hidden="true"></span>{{t "Actions"}}</button>
 				<button type="button" class="page-tab" role="tab" id="tabOptions" data-tab="options" aria-controls="panelOptions" aria-selected="false" tabindex="-1"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "Options"}}</button>
 			</div>
 			<div role="tabpanel" id="panelActions" aria-labelledby="tabActions">
-				<div class="row g-3 mb-4">
+				<div class="row g-3 mb-4" data-hover-help>
 					<div class="col-md-4">
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon"><span class="bi bi-box-arrow-in-down" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Place new files"}}</h3>
-								<p class="text-body-secondary small flex-fill">{{t "Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves."}}</p>
-								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="new"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+								<h3 class="h6 fw-semibold mb-1 help-name">{{t "Organize new files"}}</h3>
+								<p class="form-text">{{t "Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves."}}</p>
+								<div class="mt-auto pt-2"><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="new"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
 						</div>
 					</div>
@@ -34,9 +64,9 @@
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon"><span class="bi bi-folder-symlink" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Organize files"}}</h3>
-								<p class="text-body-secondary small flex-fill">{{t "Move and rename games, updates and DLC according to the options."}}</p>
-								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="organize"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+								<h3 class="h6 fw-semibold mb-1 help-name">{{t "Organize all files"}}</h3>
+								<p class="form-text">{{t "Move and rename games, updates and DLC according to the options."}}</p>
+								<div class="mt-auto pt-2"><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="organize"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
 						</div>
 					</div>
@@ -44,9 +74,9 @@
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon is-cyan"><span class="bi bi-trash3" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Delete old updates"}}</h3>
-								<p class="text-body-secondary small flex-fill">{{if $o.DeleteDuplicateFiles}}{{t "Delete update and DLC files replaced by a newer version, and duplicate files."}}{{else}}{{t "Delete update and DLC files replaced by a newer version."}}{{end}}</p>
-								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="cleanup"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+								<h3 class="h6 fw-semibold mb-1 help-name">{{t "Delete old updates"}}</h3>
+								<p class="form-text">{{if $o.DeleteDuplicateFiles}}{{t "Delete update and DLC files replaced by a newer version, and duplicate files."}}{{else}}{{t "Delete update and DLC files replaced by a newer version."}}{{end}}</p>
+								<div class="mt-auto pt-2"><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="cleanup"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
 						</div>
 					</div>
@@ -81,16 +111,16 @@
 					<ul class="op-list list-unstyled mb-0" id="organizeOperations"></ul>
 				</section>
 				{{- if .UndoRuns}}
-				<section class="surface undo-runs mt-4 admin-only" aria-labelledby="undoRunsTitle">
-					<h2 class="section-title" id="undoRunsTitle"><span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span>{{t "Earlier organizes"}}</h2>
-					<p class="small text-body-secondary">{{t "You can put the files back to the name and folder they had before."}}</p>
+				<section class="surface undo-runs mt-4 admin-only" id="undo" aria-labelledby="undoRunsTitle" data-hover-help>
+					<h2 class="section-title help-name" id="undoRunsTitle"><span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span>{{t "Earlier organizes"}}</h2>
+					<p class="form-text">{{t "You can put the files back to the name and folder they had before."}}</p>
 					<ul class="list-unstyled mb-0">
 						{{- range .UndoRuns}}
 						<li class="undo-run">
 							<span class="bi {{if eq .Action "new"}}bi-box-arrow-in-down{{else}}bi-folder-symlink{{end}} fs-5" aria-hidden="true"></span>
 							<div class="flex-grow-1 min-w-0">
 								<div class="fw-semibold">{{formatDateTime .Time}}</div>
-								<div class="small text-body-secondary">{{if eq .Action "new"}}{{t "Place new files"}}{{else}}{{t "Organize files"}}{{end}} &middot; {{if .Undone}}{{t "%v files left from an undo" (num .Files)}}{{else}}{{t "%v files moved or renamed" (num .Files)}}{{end}}</div>
+								<div class="small text-body-secondary">{{if eq .Action "new"}}{{t "Organize new files"}}{{else}}{{t "Organize all files"}}{{end}} &middot; {{if .Undone}}{{t "%v files left from an undo" (num .Files)}}{{else}}{{t "%v files moved or renamed" (num .Files)}}{{end}}</div>
 							</div>
 							<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-undo-run="{{.Id}}"><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Undo…"}}</button>
 						</li>

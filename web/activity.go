@@ -151,7 +151,8 @@ var (
 	activityFilesPattern = regexp.MustCompile(`^(\d+) files`)
 	// values of the forms, shown with the name of what they do
 	activityValues = map[string]string{
-		ORGANIZE_ACTION_ORGANIZE:        "Organize files",
+		ORGANIZE_ACTION_NEW:             "Organize new files",
+		ORGANIZE_ACTION_ORGANIZE:        "Organize all files",
 		ORGANIZE_ACTION_CLEANUP:         "Delete old updates",
 		SPACE_OLD_UPDATES:               "Old updates",
 		SPACE_DUPLICATES:                "Duplicates",
@@ -168,6 +169,7 @@ var (
 		"password too short to be real": "password too short to be real",
 		"read only":                     "Read only",
 		ROLE_CONSOLE:                    "Console",
+		ROLE_PC:                         "Computer",
 		apiKeyFailDetail:                "unknown API key",
 		apiKeyBlockedDetail:             "API key",
 		portalUnknownDetail:             portalUnknownDetail,
@@ -176,7 +178,7 @@ var (
 		oidcFailedDetail:                oidcFailedDetail,
 		recoveryActivityDetail:          recoveryActivityDetail,
 	}
-	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
+	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check", netRemoveMissingPhrase}
 )
 
 // translateActivity returns the activity with its details in a language. The details are

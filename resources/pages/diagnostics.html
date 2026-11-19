@@ -13,6 +13,10 @@
 				{{- else}}
 				<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Everything is fine"}}</span>
 				{{- end}}
+				{{- /* as the report says it: a program not built by the workflows of this repository */}}
+				{{- if not .OfficialBuild}}
+				{{template "unofficialBuild"}}
+				{{- end}}
 				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-auto" data-copy="{{.Report}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-1" aria-hidden="true"></span><span data-copy-label>{{t "Copy the report"}}</span></button>
 			</div>
 			</section>
@@ -66,6 +70,43 @@
 				</section>
 				{{- end}}
 			</div>
+			{{- if .ShowReports}}
+			{{- /* the reports NXDock sends of what went wrong on a console, to attach to an issue */}}
+			<section class="surface mt-4 console-reports" aria-labelledby="consoleReportsTitle" data-console-reports>
+				<h2 class="section-title" id="consoleReportsTitle"><span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{t "Reports from the consoles"}}</h2>
+				{{- if .Reports}}
+				<div class="net-saves">
+					<table class="table net-saves-table mb-0">
+						<thead>
+							<tr>
+								<th scope="col">{{t "Console"}}</th>
+								<th scope="col">{{t "User"}}</th>
+								<th scope="col">{{t "Date"}}</th>
+								<th scope="col" class="text-end">{{t "Size"}}</th>
+								<th scope="col"><span class="visually-hidden">{{t "Actions"}}</span></th>
+							</tr>
+						</thead>
+						<tbody>
+							{{- range .Reports}}
+							{{- $path := printf "/api/install/reports/%s/%s" .KeyId .Name}}
+							<tr class="net-save" data-console-report>
+								<td class="net-save-first"><span class="bi bi-nintendo-switch me-2 text-work" aria-hidden="true"></span>{{or .Console .KeyId}}</td>
+								<td data-label="{{t "User"}}"><span>{{.Owner}}</span></td>
+								<td data-label="{{t "Date"}}"><time datetime="{{.Date.Format "2006-01-02T15:04:05Z"}}">{{formatDateTime .Date}}</time></td>
+								<td data-label="{{t "Size"}}" class="text-end text-nowrap"><span>{{formatSize .Size}}</span></td>
+								<td class="net-save-actions">
+									<a class="btn btn-link" href="{{$path}}" download>{{t "Download"}}</a><span class="net-save-dot" aria-hidden="true">&middot;</span><button type="button" class="btn btn-link net-save-delete" data-console-report-delete="{{$path}}" data-confirm="{{t "Delete the report of %v from %v? It cannot be undone." (or .Console .KeyId) (formatDateTime .Date)}}">{{t "Delete"}}</button>
+								</td>
+							</tr>
+							{{- end}}
+						</tbody>
+					</table>
+				</div>
+				{{- end}}
+				<p class="small text-body-secondary mt-3 mb-0" data-console-reports-empty{{if .Reports}} hidden{{end}}><span class="bi bi-inbox me-1" aria-hidden="true"></span>{{t "No console has sent a report yet. NXDock sends one when you ask it to, for an issue."}}</p>
+				<p class="small text-body-secondary mt-2 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The last 10 of each console are kept. Each one is noted in Activity."}}</p>
+			</section>
+			{{- end}}
 			</div>
 			</div>
 {{- end}}

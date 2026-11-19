@@ -155,9 +155,15 @@ func (web *Web) loadDemo() {
 			continue
 		}
 		size := int64(1+i%7) << 30
+		// the games compressed in blocks, most of them, or as one piece (solid), which emulators
+		// read once decompressed; their updates and DLC are not compressed
+		storage := switchfs.StorageBlocks
+		if i%3 == 1 {
+			storage = switchfs.StorageSolid
+		}
 		files := &db.SwitchGameFiles{
 			BaseExist: true,
-			File:      db.SwitchFileInfo{ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsz", game.name, id), size), Metadata: &switchfs.ContentMetaAttributes{TitleId: id, Type: "BaseGame"}},
+			File:      db.SwitchFileInfo{ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsz", game.name, id), size), Metadata: &switchfs.ContentMetaAttributes{TitleId: id, Type: "BaseGame", Storage: storage}},
 			Updates:   map[int]db.SwitchFileInfo{},
 			Dlc:       map[string]db.SwitchFileInfo{},
 			Icon:      icon,
@@ -168,7 +174,7 @@ func (web *Web) loadDemo() {
 			updateId := id[:13] + "800"
 			files.Updates[version] = db.SwitchFileInfo{
 				ExtendedInfo: file(fmt.Sprintf("%s [%s][v%d].nsp", game.name, updateId, version), 256<<20),
-				Metadata:     &switchfs.ContentMetaAttributes{TitleId: updateId, Version: version, Type: "Update"},
+				Metadata:     &switchfs.ContentMetaAttributes{TitleId: updateId, Version: version, Type: "Update", Storage: switchfs.StoragePlain},
 			}
 			files.LatestUpdate = version
 		}
@@ -180,7 +186,7 @@ func (web *Web) loadDemo() {
 			owned++
 			files.Dlc[dlcId] = db.SwitchFileInfo{
 				ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsp", dlc.Name, dlcId), 512<<20),
-				Metadata:     &switchfs.ContentMetaAttributes{TitleId: dlcId, Type: "AddOnContent"},
+				Metadata:     &switchfs.ContentMetaAttributes{TitleId: dlcId, Type: "AddOnContent", Storage: switchfs.StoragePlain},
 			}
 		}
 		localDB.TitlesMap[strings.ToLower(id[:13])] = files
@@ -193,7 +199,13 @@ func (web *Web) loadDemo() {
 		ReasonText: "old update file, newer update exist locally (" + filepath.Join(baseFolder, "Starlight Odyssey ["+demoTitleId(0)[:13]+"800][v262144].nsp") + ")"}
 	localDB.Skipped[file("Pixel Kart Rally ["+demoTitleId(1)+"][v0] (1).nsz", 3<<30)] = db.SkippedFile{ReasonCode: db.REASON_DUPLICATE,
 		ReasonText: "duplicate base file (" + filepath.Join(baseFolder, "Pixel Kart Rally ["+demoTitleId(1)+"][v0].nsz") + ")"}
-	localDB.NumFiles += 3
+	// two new games that need keys newer than the prod.keys: Organize and Issues tell it
+	for _, name := range []string{"Harbor Lights.nsp", "Cloudline Express.nsz"} {
+		localDB.Skipped[file(name, 6<<30)] = db.SkippedFile{ReasonCode: db.REASON_MALFORMED_FILE,
+			ReasonText: "failed to read Program: prod.keys has no key_area_key_application_15. The title needs keys from a newer firmware: " +
+				"update prod.keys, or add [TitleID][vVersion] to the file name"}
+	}
+	localDB.NumFiles += 5
 
 	// the favorites of the demo, which the recommendations follow
 	if data, err := json.Marshal(favorites); err == nil {

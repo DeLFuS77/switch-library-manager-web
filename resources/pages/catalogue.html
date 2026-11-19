@@ -39,9 +39,11 @@
 							{{- if eq $f.Status "update"}}<span class="catalogue-part">{{t "With an update"}}</span>{{else if eq $f.Status "dlc"}}<span class="catalogue-part">{{t "Missing some DLC"}}</span>{{else if eq $f.Status "complete"}}<span class="catalogue-part">{{t "Up to date"}}</span>{{end}}
 							{{- with $f.Keyword}}<span class="catalogue-part">{{t "Search"}}: “{{.}}”</span>{{end}}
 							{{- with $f.Collection}}<span class="catalogue-part">{{.}}</span>{{end}}
+							{{- with .OnConsole}}<span class="catalogue-part">{{.}}</span>{{end}}
 							{{- if eq $f.Kind "demo"}}<span class="catalogue-part">{{t "Demos only"}}</span>{{else if eq $f.Kind "game"}}<span class="catalogue-part">{{t "Games only"}}</span>{{end}}
 							{{- with $f.Region}}<span class="catalogue-part">{{.}}</span>{{end}}
-							{{- with $f.Format}}<span class="catalogue-part">{{.}}</span>{{end}}{{with $.Folder}}<span class="catalogue-part"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span>{{end}}
+							{{- with $f.Format}}<span class="catalogue-part">{{.}}</span>{{end}}
+							{{- with $f.Emulators}}<span class="catalogue-part">{{if eq . "as_is"}}{{t "Emulators: as it is"}}{{else}}{{t "Emulators: decompress it first"}}{{end}}</span>{{end}}{{with $.Folder}}<span class="catalogue-part"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span>{{end}}
 							{{- with $f.Genre}}<span class="catalogue-part">{{t .}}</span>{{end}}
 							{{- with $f.Players}}<span class="catalogue-part">{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}</span>{{end}}
 							{{- with $f.GameLanguage}}<span class="catalogue-part">{{t (gameLanguage .)}}</span>{{end}}

@@ -3,8 +3,10 @@
 // update: its program NCA merged with the update, its RomFS with the LZ4 layer of the NCA (the LZ4
 // HC of Nintendo at level 9, what is held again stored once, of each block the smaller of
 // Nintendo's and the new one), a CNMT made again, the control and legal information of the update,
-// and the tickets. The merge is the code of NXDock (switchfs/optimize/native), run on the
-// computer; see docs/optimize-install.md.
+// and the tickets. A game alone (merged already, or never updated) is made again the same way from
+// its own program, its sections from 0x4000 as Nintendo lays them out, so its NSZ reads in every
+// reader. The merge is the code of NXDock (switchfs/optimize/native), run on the computer; see
+// docs/optimize-install.md.
 package optimize
 
 import (
@@ -33,7 +35,7 @@ type Result struct {
 	TitleID       uint64
 	Version       uint32 // of the update, now of the one Application
 	BaseVersion   uint32
-	InputSize     int64 // the base and the update as given (NSP)
+	InputSize     int64 // the base and the update as given (NSP), and the DLC kept in it
 	OutputSize    int64 // the new NSP
 	ProgramBefore int64 // the program NCAs of the base and the update
 	ProgramAfter  int64 // the merged program NCA
@@ -44,12 +46,14 @@ type Result struct {
 	ProgramID     string // the content ID of the merged program
 	ProgramHash   string // its SHA-256
 	OnePass       bool   // the merged program written as it was packed, not packed twice
+	Alone         bool   // a game alone (merged already, or with no update) made again
+	Dlcs          int    // the DLC in the files of the game, kept in it as they were
 }
 
 // ErrNotBuilt is told by a build without cgo, which the code of NXDock needs.
 var ErrNotBuilt = errors.New("this build has no Optimize for install: it needs the C++ code built in (cgo)")
 
-// ErrNotPair is told when the files are not one game and its update.
+// ErrNotPair is told when the files are not one game (with its update, or alone) this optimizes.
 type ErrNotPair struct{ Why string }
 
 func (e ErrNotPair) Error() string { return e.Why }

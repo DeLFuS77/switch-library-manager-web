@@ -2,8 +2,6 @@ package web
 
 import (
 	"archive/zip"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -19,7 +17,6 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
-	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/gorilla/mux"
 )
 
@@ -255,22 +252,8 @@ func (web *Web) handleNetSaveEmulatorUpload(w http.ResponseWriter, r *http.Reque
 		writeGlobalError(w, http.StatusInternalServerError, lang, "the save could not be kept")
 		return
 	}
-	random := make([]byte, 8)
-	rand.Read(random)
-	save := netSave{TitleId: titleId, Id: hex.EncodeToString(random), When: time.Now().Unix(), Size: info.Size(),
-		Note: netSaveText(query.Get("note"), maxNetSaveNote), Console: emulator, Emulator: true}
-	web.netSaves.Lock()
-	defer web.netSaves.Unlock()
-	saves, err := web.readNetSaves(principal.Name)
-	if err == nil {
-		err = durable.CommitFile(temporary.Name(), web.netSavePath(principal.Name, titleId, save.Id))
-	}
-	if err == nil {
-		saves = web.pruneNetSaves(principal.Name, append(saves, save), titleId, save.Id)
-		if err = web.writeNetSaves(principal.Name, saves); err != nil {
-			os.Remove(web.netSavePath(principal.Name, titleId, save.Id))
-		}
-	}
+	save := netSave{TitleId: titleId, Size: info.Size(), Note: netSaveText(query.Get("note"), maxNetSaveNote), Console: emulator, Emulator: true}
+	save, err = web.keepNetSave(principal.Name, temporary.Name(), save)
 	if err != nil {
 		web.sugarLogger.Warnf("Saves: the save of %s from %s could not be kept: %v", titleId, emulator, err)
 		writeGlobalError(w, http.StatusInternalServerError, lang, "the save could not be kept")

@@ -40,6 +40,9 @@ type Validate func(value any, lang string) ErrorResponse
 type OnSuccess func(value any, lang string) SuccessResponse
 type PageData func() any
 
+// RequestPageData is what a page shows to the user of a request.
+type RequestPageData func(r *http.Request) any
+
 func hasErrors(errorResponse ErrorResponse) bool {
 	return errorResponse.GlobalError != GlobalError{} || len(errorResponse.FieldErrors) > 0
 }
@@ -87,13 +90,13 @@ func (web *Web) HandleFiltered(pattern string, filteredPageData FilteredPageData
 	}))
 }
 
-func (web *Web) HandleValidated(pattern string, inputStruct interface{}, pageData PageData, validate Validate, onSuccess OnSuccess, fs fs.FS, fsPatterns ...string) {
+func (web *Web) HandleValidated(pattern string, inputStruct interface{}, pageData RequestPageData, validate Validate, onSuccess OnSuccess, fs fs.FS, fsPatterns ...string) {
 	templates := web.mustParseTemplates(fs, fsPatterns...)
 
 	web.router.Handle(pattern, alice.New(httpin.NewInput(inputStruct)).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
-			web.render(w, r, templates, pageData())
+			web.render(w, r, templates, pageData(r))
 		case "POST":
 			w.Header().Set("Content-Type", "application/json")
 

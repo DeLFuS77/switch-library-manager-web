@@ -9,6 +9,22 @@
 			</div>
 {{- end}}
 
+{{- /* the line of a tool page that is a step of the tune-up: back to the tune-up, and the five
+steps, the one of the page marked */}}
+{{- define "tuneUpCrumbs"}}
+{{- with maintenanceStep .}}{{$step := .}}
+			<nav class="tune-crumbs" aria-label="{{t "Tune-up"}}">
+				<a class="tune-crumbs-back" href="/maintenance.html"><span class="bi bi-arrow-left" aria-hidden="true"></span>{{t "Tune-up"}}</a>
+				<span class="tune-crumbs-step">{{t "Step %v of 5 of the tune-up" $step}}</span>
+				<ol class="tune-crumbs-steps">
+					{{- range tuneUpSteps $}}
+					<li><a href="{{.Href}}" class="tune-crumbs-link{{if .Current}} is-current{{end}}" title="{{.Number}}. {{t .Title}}"{{if .Current}} aria-current="step"{{end}}><span aria-hidden="true">{{.Number}}</span><span class="visually-hidden">{{t "Step %v of 5 of the tune-up" .Number}}: {{t .Title}}</span></a></li>
+					{{- end}}
+				</ol>
+			</nav>
+{{- end}}
+{{- end}}
+
 {{- define "emptyState"}}
 			<div class="surface empty-state">
 				<div class="empty-icon{{if eq .Tone "success"}} is-success{{end}}"><span class="bi {{.Icon}}" aria-hidden="true"></span></div>
@@ -23,7 +39,7 @@
 {{- define "noResults"}}
 			{{- $text := t "No game matches these filters."}}
 			{{- if .Keyword}}{{$text = t "Nothing matches “%v”. Try another name or title ID." .Keyword}}{{end}}
-			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "" "kind" "" "region" "" "extra" "" "collection" "" "missing" "" "genre" "" "players" "" "languages" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
+			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "" "kind" "" "region" "" "extra" "" "collection" "" "missing" "" "genre" "" "players" "" "languages" "" "on_console" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
 {{- end}}
 
 {{- define "flash"}}
@@ -249,3 +265,8 @@
 							</div>
 						</li>
 {{- end}}
+
+{{- /* a program not built by the workflows of this repository (without the build tag "official",
+	TRADEMARKS.md) says so: an orange chip whose ⓘ tells what it means when the mouse is on it or it
+	has the focus of the keyboard (21-hover-help.js); on a touch screen the text is under it */}}
+{{- define "unofficialBuild"}}<span class="unofficial-build" data-hover-help><span class="chip chip-warning help-name">{{t "Unofficial build"}}</span><span class="form-text">{{t "This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it."}}</span></span>{{end}}

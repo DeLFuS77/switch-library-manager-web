@@ -183,11 +183,17 @@ type Web struct {
 	netQueues      netQueues
 	netSends       netSends // what the consoles are sent, as it is sent (see netprogress.go)
 	netInventories sync.Mutex
-	// the index of the saves NXDock uploads, one file per user
+	// the reports the consoles send (see netreports.go)
+	netReports netReportStore
+	// the index of the saves NXDock uploads, one file per user, and eden.json of each
 	netSaves sync.Mutex
+	// the passes of Eden on the computer the app runs on (see netsaves_edenlocal.go)
+	edenLocal edenLocalRunner
 	// the games the consoles upload as they dump them, by the file being written
-	netDumps        netDumpUploads
-	netIdOnce       sync.Once
+	netDumps  netDumpUploads
+	netIdOnce sync.Once
+	// the port the library is reached on from the local network (netport.go)
+	lanPort         netLanPortSeen
 	netId           string
 	coll            *userdata.Collections
 	collectionsOnce sync.Once
@@ -328,6 +334,9 @@ type TitleItem struct {
 	// library: the game is merged with its update (optimized for install, or by another tool):
 	// the version of that update, 0 else
 	Optimized int
+	// library: whether emulators open as they are the files of the game the library keeps
+	// (EMULATORS_AS_IS or EMULATORS_NOT_AS_IS, see gameEmulators); "" when it is not known
+	Emulators string
 	// library: how long the game takes to beat, in seconds (IGDB); 0 when not known
 	TimeToBeat int
 	// library: the score of the game on IGDB, of the critics or else of the users; 0 when none
@@ -376,6 +385,9 @@ type TitleItem struct {
 	// as it is sorted; never shown, as it tells the path
 	folder     string
 	folderName string
+	// library: the firmware the installed game needs (a system version, 0 when not known), for
+	// the consoles of the user who looks (see firmwareCheck)
+	requiredFirmware int
 }
 
 // IsSwitch2 reports whether the game is of the Nintendo Switch 2 alone: its card says so.
@@ -405,6 +417,9 @@ type GlobalPageData struct {
 	SlmVersion          string
 	Version             string
 	Counts              NavCounts
+	// built by the workflows of this repository with the tag "official": a program built from the
+	// code in any other way is an unofficial build (settings.OFFICIAL_BUILD, TRADEMARKS.md)
+	OfficialBuild bool
 	// some games have their time to beat (IGDB): the library can be sorted by it
 	TimesToBeat bool
 	// some games have a score (IGDB): the library can be sorted and filtered by it
@@ -436,6 +451,12 @@ type NavCounts struct {
 	TuneUp bool
 	// the issues by kind, for the panel of the header
 	IssueKinds []IssueKindCount
+	// the quarantine, for its bin in the header: on when deleted files wait in it, how many
+	// files wait, the room they take, and when the oldest goes for good (zero when they stay)
+	QuarantineOn    bool
+	QuarantineFiles int
+	QuarantineSize  int64
+	QuarantineNext  time.Time
 }
 
 type TitleItemsPageData struct {
@@ -502,8 +523,13 @@ type LibraryFacets struct {
 	// games with cheats for the version the library has, and for other versions only
 	Cheats      int
 	CheatsOther int
-	// games that need a newer firmware than the console has
-	FirmwareTooNew int
+	// games that need a newer firmware than the console has, and whether the consoles of the user
+	// told theirs (else the one of Settings counts)
+	FirmwareTooNew   int
+	ConsoleFirmwares bool
+	// the games whose files emulators open as they are, and those with one to decompress first
+	EmulatorsAsIs    int
+	EmulatorsNotAsIs int
 	// the games of the user by how they go, and those without a state ("none")
 	Play map[string]int
 	// games not in the library, shown in the All view
@@ -534,7 +560,13 @@ type LibraryFacets struct {
 	Score90 int
 	// the collections with their number of games, before the collection filter
 	Collections []userdata.CollectionCount
-	Regions     []string
+	// the consoles of the user told how much each game was played: the Library sorts by it
+	Played bool
+	// the consoles of the user that told what is installed on them, with the games of each choice
+	// of the filter On the console, before it; and the choice made, as its chip tells it
+	Consoles       []ConsoleChoice
+	OnConsoleLabel string
+	Regions        []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool
 }
@@ -603,11 +635,13 @@ var funcMap = template.FuncMap{
 		return template.URL("?" + values.Encode())
 	},
 	// filterUrl links to the current list with some filter values replaced: filterUrl .Filter "status" "dlc"
-	"playStates":    userdata.PlayStates,
-	"roleName":      func(role string) string { return roleNames[role] },
-	"roleChoices":   RoleChoices,
-	"cheatTargets":  func() []cheatTarget { return cheatTargets },
-	"playStateName": func(state string) string { return userdata.PlayStateLooks[state].Name },
+	"playStates": userdata.PlayStates,
+	// the orders of what is installed on a console (see consolespage.go)
+	"consoleSortChoices": consoleSortChoices,
+	"roleName":           func(role string) string { return roleNames[role] },
+	"roleChoices":        RoleChoices,
+	"cheatTargets":       func() []cheatTarget { return cheatTargets },
+	"playStateName":      func(state string) string { return userdata.PlayStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
@@ -632,6 +666,7 @@ var funcMap = template.FuncMap{
 	"thumb":           thumbUrl,
 	"fullImage":       fullImageUrl,
 	"maintenanceStep": maintenanceStepOf,
+	"tuneUpSteps":     tuneUpStepsOf,
 	"formatBytes":     func(size int) string { return i18n.FormatSize(int64(size)) },
 	"asset":           func(path string) string { return path + "?v=" + assetVersion },
 	// the app runs in a container: its log is the log of the container, not a window
@@ -726,6 +761,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		Page:                page,
 		SlmVersion:          settings.SLM_VERSION,
 		Version:             settings.SLM_WEB_VERSION,
+		OfficialBuild:       settings.OFFICIAL_BUILD,
 		Counts:              web.navCounts(),
 		Update:              web.availableUpdate(),
 		TimesToBeat:         web.timesToBeat().hasKnown(),
@@ -740,6 +776,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 // navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
 func (web *Web) navCounts() NavCounts {
 	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount(), Wished: web.wishes().Count()}
+	web.countQuarantine(&counts)
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return counts
@@ -957,19 +994,22 @@ func (web *Web) Start() {
 	web.HandleFavorites()
 	web.HandleNetInstall()
 	web.HandleNetSavesPage()
+	web.HandleConsoles()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.startTelegramBot()
 		web.StartFolderWatcher()
 		web.StartUpdateChecker()
 		web.StartNetDiscovery()
+		web.StartOwnfoilDiscovery()
+		web.StartEdenLocal()
 	}
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
 
 	http.Handle("/", web.router)
 
-	handler := web.auth.middleware(web.withActivityLog(limitHeavy(http.DefaultServeMux)))
+	handler := web.auth.middleware(web.withLanPort(web.withActivityLog(limitHeavy(http.DefaultServeMux))))
 	if isDemoMode() {
 		handler = web.demoReadOnly(handler)
 	}
@@ -1230,6 +1270,8 @@ func (web *Web) Stop() {
 		}
 	}
 	web.taskLog().Flush()
+	// NXPress may keep the saves of Eden in step at once
+	web.edenLocalStop()
 	web.sugarLogger.Info("[SLM stops]")
 }
 

@@ -70,6 +70,11 @@ func (web *Web) handleAPIKeys() {
 		if role == "" {
 			role = ROLE_VIEWER
 		}
+		// the key of a computer is made only by pairing it (see netpair.go)
+		if role == ROLE_PC {
+			writeGlobalError(w, apiKeyStatus(ErrAPIKeyRole), lang, ErrAPIKeyRole.Error())
+			return
+		}
 		secret, key, err := web.auth.users.AddAPIKey(principal.Name, r.FormValue("name"), role)
 		if err != nil {
 			writeGlobalError(w, apiKeyStatus(err), lang, err.Error())

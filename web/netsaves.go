@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/edensync"
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/gorilla/mux"
@@ -88,8 +89,24 @@ type netSave struct {
 	Console string `json:"console"`
 	Size    int64  `json:"size"`
 	Pinned  bool   `json:"pinned"`
-	// a save of an emulator, uploaded from the page Saves: Console is the emulator
+	// a save of an emulator, uploaded from the page Saves or by a computer: Console is the emulator
 	Emulator bool `json:"emulator,omitempty"`
+	// a save a computer uploaded: the UUID of the profile of its emulator, the name of the key of
+	// the computer, and whether it was uploaded by itself (see netsaves_eden.go)
+	Profile string `json:"profile,omitempty"`
+	Device  string `json:"device,omitempty"`
+	Auto    bool   `json:"auto,omitempty"`
+	// the hash of its files (edensync.HashZip), told to the computers and never kept
+	Hash string `json:"hash,omitempty"`
+}
+
+// netSaveSource is where a save comes from, for the saves kept of a game: the consoles, or each
+// emulator, so the saves an emulator uploads by itself never push out the ones of the consoles.
+func netSaveSource(save netSave) string {
+	if save.Emulator {
+		return "emulator:" + strings.ToLower(save.Console)
+	}
+	return "console"
 }
 
 // netSavesFile is the index of the saves of a user.
@@ -143,8 +160,9 @@ func (web *Web) writeNetSaves(user string, saves []netSave) error {
 		return err
 	}
 	for i := range saves {
-		// the name of the game is the one of the library when it is listed, never kept
-		saves[i].Game = ""
+		// the name of the game is the one of the library when it is listed, and the hash is
+		// read from the file: neither is kept
+		saves[i].Game, saves[i].Hash = "", ""
 	}
 	data, err := json.Marshal(netSavesFile{Saves: saves})
 	if err != nil {
@@ -192,35 +210,40 @@ func checkNetSaveZip(path string) error {
 	return nil
 }
 
-// pruneNetSaves keeps netSavesKeep saves of a game, deleting the oldest that are not pinned and
-// never the one just kept, and gives the saves left.
+// pruneNetSaves keeps netSavesKeep saves of a game of each source (the consoles, each emulator),
+// deleting the oldest that are not pinned and never the one just kept, and gives the saves left.
 func (web *Web) pruneNetSaves(user string, saves []netSave, titleId string, keep string) []netSave {
-	ofGame := []int{}
+	bySource := map[string][]int{}
 	for i, save := range saves {
 		if save.TitleId == titleId {
-			ofGame = append(ofGame, i)
+			bySource[netSaveSource(save)] = append(bySource[netSaveSource(save)], i)
 		}
 	}
-	extra := len(ofGame) - netSavesKeep
-	if extra <= 0 {
-		return saves
-	}
-	// oldest first
-	sort.SliceStable(ofGame, func(a, b int) bool { return saves[ofGame[a]].When < saves[ofGame[b]].When })
 	gone := map[int]bool{}
-	for _, i := range ofGame {
-		if extra == 0 {
-			break
-		}
-		if saves[i].Pinned || saves[i].Id == keep {
+	for _, ofSource := range bySource {
+		extra := len(ofSource) - netSavesKeep
+		if extra <= 0 {
 			continue
 		}
-		if err := os.Remove(web.netSavePath(user, titleId, saves[i].Id)); err != nil && !os.IsNotExist(err) {
-			web.sugarLogger.Warnf("NXDock saves: %s of %s could not be deleted: %v", saves[i].Id, titleId, err)
-			continue
+		// oldest first
+		sort.SliceStable(ofSource, func(a, b int) bool { return saves[ofSource[a]].When < saves[ofSource[b]].When })
+		for _, i := range ofSource {
+			if extra == 0 {
+				break
+			}
+			if saves[i].Pinned || saves[i].Id == keep {
+				continue
+			}
+			if err := os.Remove(web.netSavePath(user, titleId, saves[i].Id)); err != nil && !os.IsNotExist(err) {
+				web.sugarLogger.Warnf("NXDock saves: %s of %s could not be deleted: %v", saves[i].Id, titleId, err)
+				continue
+			}
+			gone[i] = true
+			extra--
 		}
-		gone[i] = true
-		extra--
+	}
+	if len(gone) == 0 {
+		return saves
 	}
 	kept := saves[:0]
 	for i, save := range saves {
@@ -325,12 +348,46 @@ func (web *Web) serveNetSave(w http.ResponseWriter, r *http.Request, user string
 	http.ServeContent(w, r, "", stat.ModTime(), file)
 }
 
-// handleNetSaveUpload keeps a save sent by a console, for the user who owns its key.
+// netSaveKey is the key of a request of the saves: of a console, or of a computer.
+func netSaveKey(w http.ResponseWriter, r *http.Request) (*Principal, bool) {
+	principal := principalFrom(r)
+	if principal.Source != "key" || (principal.Role != ROLE_CONSOLE && principal.Role != ROLE_PC) || !netKeyIdPattern.MatchString(principal.KeyID) {
+		http.Error(w, "only the key of a console or of a computer", http.StatusForbidden)
+		return nil, false
+	}
+	return principal, true
+}
+
+// keepNetSave keeps the ZIP of a save, a temporary file of the folder of its game, for a user:
+// with a new id and the time now, past the saves its source keeps of the game. It gives the save
+// as it is kept.
+func (web *Web) keepNetSave(user string, temporary string, save netSave) (netSave, error) {
+	random := make([]byte, 8)
+	rand.Read(random)
+	save.Id, save.When = hex.EncodeToString(random), time.Now().Unix()
+	web.netSaves.Lock()
+	defer web.netSaves.Unlock()
+	saves, err := web.readNetSaves(user)
+	if err == nil {
+		err = durable.CommitFile(temporary, web.netSavePath(user, save.TitleId, save.Id))
+	}
+	if err == nil {
+		saves = web.pruneNetSaves(user, append(saves, save), save.TitleId, save.Id)
+		if err = web.writeNetSaves(user, saves); err != nil {
+			os.Remove(web.netSavePath(user, save.TitleId, save.Id))
+		}
+	}
+	return save, err
+}
+
+// handleNetSaveUpload keeps a save sent by a console, or by a computer, for the user who owns its
+// key. A computer tells the emulator (?emulator=eden or citron), the UUID of the profile
+// (?profile=) and its name (?account=), and ?auto=1 when it uploads it by itself.
 func (web *Web) handleNetSaveUpload(w http.ResponseWriter, r *http.Request) {
 	if _, ok := web.netInstallGate(w, r); !ok {
 		return
 	}
-	key, ok := netConsoleKey(w, r)
+	key, ok := netSaveKey(w, r)
 	if !ok {
 		return
 	}
@@ -344,6 +401,28 @@ func (web *Web) handleNetSaveUpload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		version = parsed
+	}
+	save := netSave{TitleId: titleId, Version: version, Note: netSaveText(query.Get("note"), maxNetSaveNote),
+		Account: netSaveText(query.Get("account"), maxNetSaveAccount), Console: key.KeyName}
+	if key.Role == ROLE_PC {
+		emulator := edensync.Eden
+		if name := query.Get("emulator"); name != "" {
+			known, ok := edensync.ParseEmulator(name)
+			if !ok {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "the emulator is eden or citron"})
+				return
+			}
+			emulator = known
+		}
+		save.Emulator, save.Console, save.Device, save.Auto = true, emulator.Name(), key.KeyName, query.Get("auto") == "1"
+		if profile := strings.TrimSpace(query.Get("profile")); profile != "" {
+			id, err := edensync.ParseProfileID(profile)
+			if err != nil {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "the profile is the UUID of a profile of the emulator"})
+				return
+			}
+			save.Profile = id.String()
+		}
 	}
 	if r.ContentLength > netSaveMaxSize {
 		writeJSON(w, http.StatusRequestEntityTooLarge, map[string]string{"error": "a save is 1 GiB at most"})
@@ -389,45 +468,39 @@ func (web *Web) handleNetSaveUpload(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
-	random := make([]byte, 8)
-	rand.Read(random)
-	save := netSave{TitleId: titleId, Id: hex.EncodeToString(random), When: time.Now().Unix(), Version: version, Size: size,
-		Note: netSaveText(query.Get("note"), maxNetSaveNote), Account: netSaveText(query.Get("account"), maxNetSaveAccount), Console: key.KeyName}
-	web.netSaves.Lock()
-	defer web.netSaves.Unlock()
-	saves, err := web.readNetSaves(key.Name)
-	if err == nil {
-		err = durable.CommitFile(temporary.Name(), web.netSavePath(key.Name, titleId, save.Id))
-	}
-	if err == nil {
-		saves = web.pruneNetSaves(key.Name, append(saves, save), titleId, save.Id)
-		if err = web.writeNetSaves(key.Name, saves); err != nil {
-			os.Remove(web.netSavePath(key.Name, titleId, save.Id))
-		}
-	}
+	save.Size = size
+	save, err = web.keepNetSave(key.Name, temporary.Name(), save)
 	if err != nil {
 		web.sugarLogger.Warnf("NXDock saves: the save of %s from %s could not be kept: %v", titleId, key.KeyName, err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "the save could not be kept"})
 		return
 	}
+	if key.Role == ROLE_PC {
+		web.edenComputerSeen(key.Name, key.KeyID, true)
+	}
 	web.sugarLogger.Infof("NXDock saves: %s uploaded a save of %s for %s (%d bytes)", key.KeyName, titleId, key.Name, size)
 	writeJSON(w, http.StatusOK, map[string]any{"id": save.Id, "when": save.When, "size": save.Size})
 }
 
-// handleNetSaveList lists the saves of the user of the console, newest first.
+// handleNetSaveList lists the saves of the user of the console, or of the computer, newest first;
+// to a computer with the hash of the files of each.
 func (web *Web) handleNetSaveList(w http.ResponseWriter, r *http.Request) {
 	if _, ok := web.netInstallGate(w, r); !ok {
 		return
 	}
-	key, ok := netConsoleKey(w, r)
+	key, ok := netSaveKey(w, r)
 	if !ok {
 		return
 	}
-	web.writeNetSaveList(w, r, key.Name)
+	if key.Role == ROLE_PC {
+		web.edenComputerSeen(key.Name, key.KeyID, false)
+	}
+	web.writeNetSaveList(w, r, key.Name, key.Role == ROLE_PC)
 }
 
-// writeNetSaveList answers with the saves of a user, of the game of ?title= when it is given.
-func (web *Web) writeNetSaveList(w http.ResponseWriter, r *http.Request, user string) {
+// writeNetSaveList answers with the saves of a user, of the game of ?title= when it is given, with
+// the hash of their files when hashes is true.
+func (web *Web) writeNetSaveList(w http.ResponseWriter, r *http.Request, user string, hashes bool) {
 	titleId := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("title")))
 	if titleId != "" && !netTitleIdPattern.MatchString(titleId) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "the title ID is 16 hexadecimal digits"})
@@ -438,18 +511,24 @@ func (web *Web) writeNetSaveList(w http.ResponseWriter, r *http.Request, user st
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "the saves cannot be read"})
 		return
 	}
+	if hashes {
+		web.netSaveHashes(user, saves)
+	}
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, map[string]any{"saves": saves})
 }
 
-// handleNetSaveDownload gives a save back to the console.
+// handleNetSaveDownload gives a save back to the console, or to the computer.
 func (web *Web) handleNetSaveDownload(w http.ResponseWriter, r *http.Request) {
 	if _, ok := web.netInstallGate(w, r); !ok {
 		return
 	}
-	key, ok := netConsoleKey(w, r)
+	key, ok := netSaveKey(w, r)
 	if !ok {
 		return
+	}
+	if key.Role == ROLE_PC && r.Method == http.MethodGet {
+		web.edenComputerSeen(key.Name, key.KeyID, true)
 	}
 	web.serveNetSave(w, r, key.Name)
 }
@@ -469,7 +548,7 @@ func (web *Web) handleNetSavesApi(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	web.writeNetSaveList(w, r, principal.Name)
+	web.writeNetSaveList(w, r, principal.Name, false)
 }
 
 // handleNetSaveGet gives a save of the user signed in.
@@ -577,6 +656,7 @@ func (web *Web) handleNetSaves() {
 	web.router.HandleFunc(netSavesApi+saveOf, web.handleNetSaveChange).Methods(http.MethodPatch)
 	web.router.HandleFunc(netSavesApi+saveOf, web.handleNetSaveDelete).Methods(http.MethodDelete)
 	web.router.HandleFunc(netSavesApi+"/{titleId:[0-9A-Fa-f]{16}}", web.handleNetSaveEmulatorUpload).Methods(http.MethodPost)
+	web.handleEdenSaves()
 }
 
 // NetSavesPageData is the page Saves: the saves of the user signed in, by game.
@@ -590,6 +670,8 @@ type NetSavesPageData struct {
 	// saves (a user who may download), so may bring one
 	Games []NetSaveGame
 	Owner bool
+	// Eden on the computers of the user (see netsaves_eden.go)
+	Eden EdenSection
 }
 
 // NetSaveGroup is a game and its saves, newest first.
@@ -634,6 +716,7 @@ func (web *Web) HandleNetSavesPage() {
 					data.Total++
 					data.Size += save.Size
 				}
+				data.Eden = web.edenSection(principal.Name, saves)
 			}
 		}
 		web.render(w, r, templates, data)
