@@ -1285,7 +1285,14 @@
 	animation-play-state: paused !important;
 }
 
-// Tune-up: how many steps are done, a ring that fills (see _tune-up.scss for the page)
+// Tune-up: how many steps are done, the next step breathes and a done step pops its check
+.maintenance-progress {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+	margin-bottom: 1rem;
+}
+
 .maintenance-ring {
 	--pct: 0;
 	position: relative;
@@ -1314,6 +1321,16 @@
 @media (prefers-reduced-motion: no-preference) {
 	.maintenance-ring {
 		animation: slm-gauge-fill 1.1s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.maintenance-step.is-next {
+		--aura: 255, 193, 7;
+		animation: aura-breathe 3.2s ease-in-out infinite;
+	}
+
+	.maintenance-step.step-done .maintenance-number .bi {
+		display: inline-block;
+		animation: slm-mark-pop .5s cubic-bezier(.3, 1.6, .5, 1) .3s both;
 	}
 }
 

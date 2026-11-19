@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Tune-up: back to its list of steps of before; Organize, Space and Compress say again which step they are, and the Tools menu has its order of before
+
 ## 2.0.18
 
 ### Improvements
