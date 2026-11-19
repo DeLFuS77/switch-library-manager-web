@@ -27,7 +27,8 @@ func Running(emulator Emulator) (bool, error) {
 
 // IsEmulatorProcess tells whether the name of a program that runs is one of the emulator.
 func IsEmulatorProcess(emulator Emulator, name string) bool {
-	name = strings.ToLower(filepath.Base(filepath.ToSlash(strings.TrimSpace(name))))
+	// the path of a program of Windows has backslashes, which filepath splits only on Windows
+	name = strings.ToLower(filepath.Base(strings.ReplaceAll(strings.TrimSpace(name), `\`, "/")))
 	name = strings.TrimSuffix(name, ".exe")
 	name = strings.TrimSuffix(name, ".appimage")
 	base := string(emulator)

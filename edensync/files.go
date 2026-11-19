@@ -120,7 +120,7 @@ func zipFiles(archive *zip.Reader) ([]saveFile, error) {
 			continue
 		}
 		name, ok := zipName(entry.Name)
-		if !ok {
+		if !ok || !filepath.IsLocal(name) {
 			return nil, ErrBadZip
 		}
 		if Ignored(name) {
@@ -312,7 +312,11 @@ func ReplaceFromZip(dir string, reader io.ReaderAt, size int64) error {
 
 // writeSaveFile writes a file of a ZIP in a folder, by its name, which never leaves the folder.
 func writeSaveFile(folder string, file saveFile) error {
-	target := filepath.Join(folder, filepath.FromSlash(file.name))
+	name := filepath.FromSlash(file.name)
+	if !filepath.IsLocal(name) {
+		return ErrBadZip
+	}
+	target := filepath.Join(folder, name)
 	if rel, err := filepath.Rel(folder, target); err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return ErrBadZip
 	}

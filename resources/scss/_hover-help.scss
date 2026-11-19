@@ -37,14 +37,15 @@ $help-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 
 // on a touch screen, the ⓘ of a field or a button is a button of its own after its name, as a touch
 // on the name changes the field or presses the button; it can be touched in a bigger place than
-// it is drawn
+// it is drawn: the button is 24px, the size of a control, and its negative margins keep the room
+// it takes in the line as small as the mark it draws
 .help-mark {
 	position: relative;
 	display: inline-grid;
 	place-items: center;
-	width: 1.1rem;
-	height: 1.1rem;
-	margin-left: .35rem;
+	width: 1.5rem;
+	height: 1.5rem;
+	margin: -.2rem -.2rem -.2rem .15rem;
 	padding: 0;
 	border: 0;
 	border-radius: 50%;
