@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -103,5 +104,114 @@ func TestExtractIconFromGameFiles(t *testing.T) {
 
 	if _, err := ExtractIcon(filepath.Join(t.TempDir(), "missing.nsp")); err == nil {
 		t.Fatal("a missing file is an error")
+	}
+}
+
+// packTitle is a game or an update of a pack written by writePackWithIcons, with its icon (none
+// when nil).
+type packTitle struct {
+	kind    byte
+	version uint32
+	icon    []byte
+}
+
+// writePackWithIcons writes one NSP that holds the titles given, each with its meta and its
+// control content, in their order.
+func writePackWithIcons(t *testing.T, titles []packTitle) string {
+	t.Helper()
+	names, contents := []string{}, [][]byte{}
+	for i, title := range titles {
+		nacp := make([]byte, 0x3080)
+		copy(nacp, "Pack Game")
+		files, data := []string{"control.nacp"}, [][]byte{nacp}
+		if title.icon != nil {
+			files, data = append(files, "icon_AmericanEnglish.dat"), append(data, title.icon)
+		}
+		control := makeSyntheticNCA(t, makeRomfsWithFiles(t, files, data), 0)
+		controlId := [16]byte{0xc0, 0x17, byte(i), 0x17, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+		cnmt := make([]byte, 0x20+0x38)
+		id, metaName := uint64(0x0100000000010000), "Application.cnmt"
+		if title.kind == ContentMetaType_Patch {
+			id, metaName = 0x0100000000010800, "Patch.cnmt"
+		}
+		binary.LittleEndian.PutUint64(cnmt[0:8], id)
+		binary.LittleEndian.PutUint32(cnmt[8:12], title.version)
+		cnmt[0xC] = title.kind
+		binary.LittleEndian.PutUint16(cnmt[0x10:0x12], 1)
+		copy(cnmt[0x20+0x20:0x20+0x30], controlId[:])
+		cnmt[0x20+0x36] = 3 // control
+		meta := makeSyntheticNCA(t, pad512(makePFS0(pfs0Magic, []string{metaName}, [][]byte{cnmt})), 1)
+		names = append(names, fmt.Sprintf("meta%d.cnmt.nca", i), hex.EncodeToString(controlId[:])+".nca")
+		contents = append(contents, meta, control)
+	}
+	path := filepath.Join(t.TempDir(), "Pack Game [0100000000010000][v131072].nsp")
+	if err := os.WriteFile(path, makePFS0(pfs0Magic, names, contents), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// shadeJpeg is a small JPEG image, of one shade of red.
+func shadeJpeg(t *testing.T, shade uint8) []byte {
+	t.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, 8, 8))
+	for x := 0; x < 8; x++ {
+		img.Set(x, x, color.RGBA{shade, 0, 0, 255})
+	}
+	var encoded bytes.Buffer
+	jpeg.Encode(&encoded, img, nil)
+	return encoded.Bytes()
+}
+
+// A pack of a game and its updates gives the icon of the game, or of its newest update when asked:
+// the one the console shows once the update is installed.
+func TestExtractUpdateIcon(t *testing.T) {
+	game, older, newer := shadeJpeg(t, 10), shadeJpeg(t, 120), shadeJpeg(t, 240)
+	// the newest update before the older one, as a pack may hold them
+	pack := writePackWithIcons(t, []packTitle{
+		{kind: ContentMetaType_Application, icon: game},
+		{kind: ContentMetaType_Patch, version: 131072, icon: newer},
+		{kind: ContentMetaType_Patch, version: 65536, icon: older},
+	})
+	if got, err := ExtractIcon(pack); err != nil || !bytes.Equal(got, game) {
+		t.Fatalf("the icon of the game: %v", err)
+	}
+	if got, err := ExtractUpdateIcon(pack); err != nil || !bytes.Equal(got, newer) {
+		t.Fatalf("the icon of the newest update: %v", err)
+	}
+	// the updates in the other order: still the newest
+	pack = writePackWithIcons(t, []packTitle{
+		{kind: ContentMetaType_Patch, version: 65536, icon: older},
+		{kind: ContentMetaType_Application, icon: game},
+		{kind: ContentMetaType_Patch, version: 131072, icon: newer},
+	})
+	if got, err := ExtractUpdateIcon(pack); err != nil || !bytes.Equal(got, newer) {
+		t.Fatalf("the newest update, wherever it is: %v", err)
+	}
+	if got, err := ExtractIcon(pack); err != nil || !bytes.Equal(got, game) {
+		t.Fatalf("the game first, wherever it is: %v", err)
+	}
+
+	// an update without an icon gives the one of the game
+	pack = writePackWithIcons(t, []packTitle{
+		{kind: ContentMetaType_Application, icon: game},
+		{kind: ContentMetaType_Patch, version: 65536},
+	})
+	if got, err := ExtractUpdateIcon(pack); err != nil || !bytes.Equal(got, game) {
+		t.Fatalf("the game, as its update has none: %v", err)
+	}
+	// and a game alone its own
+	if got, err := ExtractUpdateIcon(writeNspWithIcon(t, game)); err != nil || !bytes.Equal(got, game) {
+		t.Fatalf("a game alone: %v", err)
+	}
+}
+
+func TestIconOrder(t *testing.T) {
+	controls := []controlContent{{id: "u1", update: true, version: 65536}, {id: "g1"}, {id: "u2", update: true, version: 131072}, {id: "g2"}}
+	if got := strings.Join(iconOrder(controls, false), " "); got != "g2 g1 u1 u2" {
+		t.Errorf("the games first, as before: %s", got)
+	}
+	if got := strings.Join(iconOrder(controls, true), " "); got != "u2 u1 g2 g1" {
+		t.Errorf("the newest update first: %s", got)
 	}
 }

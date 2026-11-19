@@ -18,8 +18,22 @@ var preferredIcons = []string{"icon_AmericanEnglish.dat", "icon_BritishEnglish.d
 
 // ExtractIcon returns the official icon (a JPEG image) stored in a game file: NSP, NSZ,
 // XCI or XCZ. It needs the keys of the console, like reading the names of the game. A NUP
-// needs no keys: its icon is the one it carries, when it was packed with one.
+// needs no keys: its icon is the one it carries, when it was packed with one. The icon of the
+// game comes first; the one of its update only when the file holds no game, or a game without
+// one.
 func ExtractIcon(path string) ([]byte, error) {
+	return extractIcon(path, false)
+}
+
+// ExtractUpdateIcon is ExtractIcon with the icon of the newest update of the file first, the one
+// the console shows once the update is installed: a file that holds a game and its update, as a
+// pack of both, gives the icon of the update, and the one of the game when it holds no update or
+// its update has none. A NUP gives the icon it carries, as with ExtractIcon.
+func ExtractUpdateIcon(path string) ([]byte, error) {
+	return extractIcon(path, true)
+}
+
+func extractIcon(path string, newestUpdate bool) ([]byte, error) {
 	if IsNupFile(path) {
 		container, err := ReadNup(path)
 		if err != nil {
@@ -36,11 +50,45 @@ func ExtractIcon(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return extractPackageIcon(file, pkg)
+	return extractPackageIcon(file, pkg, newestUpdate)
 }
 
-func extractPackageIcon(file io.ReaderAt, pkg *gamePackage) ([]byte, error) {
-	controlIds := []string{}
+// controlContent is the control content of a game or an update of a file, which holds its icons.
+type controlContent struct {
+	id      string
+	update  bool
+	version int
+}
+
+// iconOrder is the order the control contents of a file are tried in for its icon: the games
+// first (the last one first, in a file that holds several), then the updates as they come; with
+// newestUpdate, the updates first, the newest first, then the games.
+func iconOrder(controls []controlContent, newestUpdate bool) []string {
+	games, updates := []string{}, []controlContent{}
+	for _, control := range controls {
+		if control.update {
+			updates = append(updates, control)
+		} else {
+			games = append([]string{control.id}, games...)
+		}
+	}
+	ids := []string{}
+	if newestUpdate {
+		sort.SliceStable(updates, func(i, j int) bool { return updates[i].version > updates[j].version })
+	} else {
+		ids = append(ids, games...)
+	}
+	for _, update := range updates {
+		ids = append(ids, update.id)
+	}
+	if newestUpdate {
+		ids = append(ids, games...)
+	}
+	return ids
+}
+
+func extractPackageIcon(file io.ReaderAt, pkg *gamePackage, newestUpdate bool) ([]byte, error) {
+	controls := []controlContent{}
 	for _, packed := range pkg.files {
 		if !strings.HasSuffix(strings.ToLower(packed.name), ".cnmt.nca") {
 			continue
@@ -57,21 +105,17 @@ func extractPackageIcon(file io.ReaderAt, pkg *gamePackage) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		// DLC have no icon of their own; the game comes first, then its update
+		// DLC have no icon of their own
 		if control, ok := cnmt.Contents["Control"]; ok && cnmt.Type != "DLC" {
-			if cnmt.Type == "BASE" {
-				controlIds = append([]string{control.ID}, controlIds...)
-			} else {
-				controlIds = append(controlIds, control.ID)
-			}
+			controls = append(controls, controlContent{id: control.ID, update: cnmt.Type != "BASE", version: cnmt.Version})
 		}
 	}
-	if len(controlIds) == 0 {
+	if len(controls) == 0 {
 		return nil, errors.New("no control content in the file")
 	}
 
 	var lastErr error
-	for _, id := range controlIds {
+	for _, id := range iconOrder(controls, newestUpdate) {
 		for _, packed := range pkg.files {
 			if !strings.Contains(strings.ToLower(packed.name), strings.ToLower(id)) {
 				continue
