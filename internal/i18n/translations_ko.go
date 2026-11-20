@@ -2647,5 +2647,6 @@ func init() {
 		"You keep this version: it is not deleted.":               "이 버전을 유지하고 있어요. 삭제되지 않아요.",
 		"Kept: no cleanup deletes this version":                   "유지됨: 어떤 정리도 이 버전을 삭제하지 않아요",
 		"Older than v%v: Delete old updates and Space delete it.": "v%v보다 오래된 버전이에요. 오래된 업데이트 삭제와 공간에서 삭제돼요.",
+		"Comes out on %v": "%v 출시",
 	}
 }

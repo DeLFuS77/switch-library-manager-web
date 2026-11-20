@@ -9,6 +9,7 @@
 ### Fixes
 
 - The list of Recompress is shown only to those who use Compress, as its other lists
+- A DLC that is not out yet is no longer counted as missing: the page of its game tells the day it comes out, and it counts from that day on
 
 ## 2.0.20
 

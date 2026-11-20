@@ -2647,5 +2647,6 @@ func init() {
 		"You keep this version: it is not deleted.":               "このバージョンを残しています。削除されません。",
 		"Kept: no cleanup deletes this version":                   "残す設定：どの整理でもこのバージョンは削除されません",
 		"Older than v%v: Delete old updates and Space delete it.": "v%vより古いバージョンです。「古い更新データを削除」と「容量」で削除されます。",
+		"Comes out on %v": "%v 発売",
 	}
 }

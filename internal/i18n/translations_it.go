@@ -1447,6 +1447,7 @@ func init() {
 		"Not enough free space to compress the file.":         "Spazio libero insufficiente per comprimere il file.",
 		"Not in your library":                                 "Non nella tua libreria",
 		"Not owned":                                           "Non posseduto",
+		"Comes out on %v":                                     "Esce il %v",
 		"Nothing in the file can be compressed.":              "Nel file non c'è nulla che si possa comprimere.",
 		"Nothing matches “%v”. Try another name or title ID.": "Nessun risultato per “%v”. Prova con un altro nome o Title ID.",
 		"Nothing to compress":                                 "Niente da comprimere",

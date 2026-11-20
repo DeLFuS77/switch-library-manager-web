@@ -3,6 +3,7 @@ package web
 import (
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
@@ -20,18 +21,23 @@ type derivedCache struct {
 	// changed by invalidateDerived: values computed before are not kept
 	generation uint64
 	values     map[string]any
+	// the day the values were computed: the DLC out and the upcoming games change with it
+	day string
 }
+
+// derivedDay is the day the cached values are for (2026-11-20).
+var derivedDay = func() string { return time.Now().Format(time.DateOnly) }
 
 // derived returns the cached value of name, computing it if the library or the settings
 // changed since it was computed. Cached values are shared: callers must not modify them.
 func (web *Web) derived(name string, compute func() any) any {
-	stateVersion, settingsVersion := web.state.Version(), settings.Version()
+	stateVersion, settingsVersion, day := web.state.Version(), settings.Version(), derivedDay()
 
 	cache := &web.cache
 	cache.mutex.Lock()
-	if cache.values == nil || cache.stateVersion != stateVersion || cache.settingsVersion != settingsVersion {
+	if cache.values == nil || cache.stateVersion != stateVersion || cache.settingsVersion != settingsVersion || cache.day != day {
 		cache.values = map[string]any{}
-		cache.stateVersion, cache.settingsVersion = stateVersion, settingsVersion
+		cache.stateVersion, cache.settingsVersion, cache.day = stateVersion, settingsVersion, day
 	}
 	if value, ok := cache.values[name]; ok {
 		cache.mutex.Unlock()
@@ -45,7 +51,7 @@ func (web *Web) derived(name string, compute func() any) any {
 
 	cache.mutex.Lock()
 	// a value computed while the library or the settings changed may be outdated
-	if cache.values != nil && cache.generation == generation &&
+	if cache.values != nil && cache.generation == generation && cache.day == day &&
 		cache.stateVersion == stateVersion && cache.settingsVersion == settingsVersion &&
 		web.state.Version() == stateVersion && settings.Version() == settingsVersion {
 		cache.values[name] = value
@@ -93,7 +99,7 @@ func (web *Web) derivedCached(name string) (any, bool) {
 	stateVersion, settingsVersion := web.state.Version(), settings.Version()
 	web.cache.mutex.Lock()
 	defer web.cache.mutex.Unlock()
-	if web.cache.values == nil || web.cache.stateVersion != stateVersion || web.cache.settingsVersion != settingsVersion {
+	if web.cache.values == nil || web.cache.stateVersion != stateVersion || web.cache.settingsVersion != settingsVersion || web.cache.day != derivedDay() {
 		return nil, false
 	}
 	value, ok := web.cache.values[name]
