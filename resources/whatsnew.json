@@ -1,4 +1,50 @@
 {
+  "2.0.21": {
+    "en": [
+      "Keep this update: an older update kept on purpose is never deleted as old, and Compress offers it.",
+      "A DLC that is not out yet is no longer counted as missing: its game tells the day it comes out."
+    ],
+    "es": [
+      "Conservar esta actualización: una actualización antigua que guardas a propósito ya no se borra como antigua, y Comprimir te la ofrece.",
+      "Un DLC que aún no ha salido ya no cuenta como que falta: su juego dice el día que sale."
+    ],
+    "de": [
+      "Dieses Update behalten: Ein älteres Update, das du bewusst behältst, wird nicht mehr als alt gelöscht, und Komprimieren bietet es an.",
+      "Ein DLC, das noch nicht erschienen ist, zählt nicht mehr als fehlend: Sein Spiel zeigt den Erscheinungstag."
+    ],
+    "fr": [
+      "Garder cette mise à jour : une ancienne mise à jour gardée exprès n'est plus supprimée comme ancienne, et Compresser la propose.",
+      "Un DLC pas encore sorti ne compte plus comme manquant : son jeu indique le jour de sa sortie."
+    ],
+    "it": [
+      "Tieni questo aggiornamento: un aggiornamento vecchio tenuto apposta non viene più eliminato come vecchio, e Comprimi lo propone.",
+      "Un DLC non ancora uscito non conta più come mancante: il suo gioco indica il giorno in cui esce."
+    ],
+    "pt": [
+      "Manter esta atualização: uma atualização antiga guardada de propósito já não é apagada como antiga, e Comprimir propõe-na.",
+      "Um DLC que ainda não saiu já não conta como em falta: o seu jogo diz o dia em que sai."
+    ],
+    "nl": [
+      "Deze update bewaren: een oudere update die je bewust bewaart, wordt niet meer als oud verwijderd, en Comprimeren biedt hem aan.",
+      "Een DLC die nog niet uit is, telt niet meer als ontbrekend: de game zegt op welke dag hij uitkomt."
+    ],
+    "ru": [
+      "Сохранить это обновление: старое обновление, оставленное намеренно, больше не удаляется как устаревшее, и «Сжать» предлагает его.",
+      "DLC, который ещё не вышел, больше не считается недостающим: у игры указан день его выхода."
+    ],
+    "ja": [
+      "この更新データを残す：意図して残した古い更新データは古いものとして削除されなくなり、圧縮の対象にも表示されます。",
+      "まだ発売されていない DLC は不足として数えなくなりました。ゲームのページに発売日が表示されます。"
+    ],
+    "ko": [
+      "이 업데이트 유지: 일부러 남겨 둔 예전 업데이트는 더 이상 오래된 것으로 삭제되지 않으며, 압축 대상으로도 표시됩니다.",
+      "아직 출시되지 않은 DLC는 더 이상 누락으로 세지 않으며, 게임 페이지에 출시일이 표시됩니다."
+    ],
+    "zh": [
+      "保留此更新：特意保留的旧更新不再被当作旧版本删除，压缩也会列出它。",
+      "尚未发售的 DLC 不再算作缺失，游戏页面会显示其发售日期。"
+    ]
+  },
   "2.0.20": {
     "en": [
       "Compress: NSZ files in blocks, which emulators such as Eden run as they are, and a Recompress tab to change the NSZ files you have."
