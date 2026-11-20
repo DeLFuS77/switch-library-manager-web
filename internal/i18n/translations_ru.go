@@ -2640,5 +2640,13 @@ func init() {
 		"The file could not be written again, the NSZ is kept as it was.":               "Не удалось записать файл заново, NSZ остаётся как был.",
 		"The new copy could not be checked whole, so the NSZ is kept as it was.":        "Новую копию не удалось проверить целиком, поэтому NSZ остаётся как был.",
 		"Made with the extra compression of NXPress: decompress it with NXPress first.": "Сделан с дополнительным сжатием NXPress: сначала распакуйте его в NXPress.",
+
+		// older updates kept on purpose (#193)
+		"Keep this update": "Сохранить это обновление",
+		"Stop keeping":     "Больше не сохранять",
+		"You keep this version: it is not deleted.":               "Вы сохраняете эту версию: она не удаляется.",
+		"Kept: no cleanup deletes this version":                   "Сохранено: никакая очистка не удалит эту версию",
+		"Older than v%v: Delete old updates and Space delete it.": "Старше v%v: «Удалить старые обновления» и «Место» удаляют его.",
+		"Comes out on %v": "Выходит %v",
 	}
 }

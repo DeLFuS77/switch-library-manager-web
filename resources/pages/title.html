@@ -398,12 +398,14 @@
 							<span class="chip chip-muted">{{t "Not owned"}}</span>
 							{{- else if .Ignored}}
 							<span class="chip chip-muted"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored"}}</span>
+							{{- else if .ComesOut}}
+							<span class="chip chip-muted"><span class="bi bi-calendar3" aria-hidden="true"></span>{{t "Comes out on %v" (releaseDate .ComesOut)}}</span>
 							{{- else}}
 							<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "Missing"}}</span>
 							{{- end}}
 							{{- if .File}}
 							<a class="btn btn-sm btn-outline-secondary" href="{{.File.DownloadUrl}}" title="{{t "Download %v" .File.FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .File.FileName}}</span></a>
-							{{- else if not $t.Owned}}
+							{{- else if or (not $t.Owned) .ComesOut}}
 							{{- else if .Ignored}}
 							<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
 							{{- else}}
@@ -661,6 +663,7 @@
 				</div>
 			</div>
 {{- end}}
+{{define "keepUpdate"}}<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-update-keep="{{.Path}}" data-keep="{{if .Kept}}false{{else}}true{{end}}"><span class="bi {{if .Kept}}bi-pin{{else}}bi-pin-angle{{end}} me-1" aria-hidden="true"></span>{{if .Kept}}{{t "Stop keeping"}}{{else}}{{t "Keep this update"}}{{end}}</button>{{end}}
 {{define "titleFile"}}
 					<li class="item-row">
 						<span class="chip chip-muted item-type">{{.Type}}</span>
@@ -714,6 +717,15 @@
 							{{- end}}
 							{{- with .AlsoHolds}}
 							<div class="item-meta"><span><span class="bi bi-box-seam me-1" aria-hidden="true"></span>{{t "Also in this file: %v" (join . ", ")}}</span></div>
+							{{- end}}
+							{{- if .OldUpdate}}
+							{{- /* an old update: what the cleanup does with it, and the choice to keep it, by an administrator (#193) */}}
+							{{- if .KeptUpdate}}
+							<span class="chip chip-info mt-1"><span class="bi bi-pin-angle-fill" aria-hidden="true"></span>{{t "Kept: no cleanup deletes this version"}}</span>
+							{{- else if .Deleted}}
+							<div class="item-meta"><span><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "Older than v%v: Delete old updates and Space delete it." .Newer}}</span></div>
+							{{- end}}
+							<div class="mt-2 admin-only">{{template "keepUpdate" (dict "Path" .Path "Kept" .KeptUpdate)}}</div>
 							{{- end}}
 						</div>
 						<a class="btn btn-sm btn-outline-secondary" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .FileName}}</span></a>

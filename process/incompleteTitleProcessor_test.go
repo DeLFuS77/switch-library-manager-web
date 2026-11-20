@@ -129,16 +129,27 @@ func TestScanForMissingDLC(t *testing.T) {
 		"missing-base":  {BaseExist: false},
 		"not-remote":    {BaseExist: true},
 	}
-	result := ScanForMissingDLC(local, remote, map[string]struct{}{ignoredID: {}})
+	result := ScanForMissingDLC(local, remote, map[string]struct{}{ignoredID: {}}, 20261120)
 	game, ok := result[baseID]
 	if !ok || len(game.MissingDLC) != 1 || game.MissingDLC[0] != "Expansion ["+missingID+"]" {
 		t.Fatalf("missing DLC result = %#v, present = %v", game, ok)
 	}
-	if got := ScanForMissingDLC(local, remote, map[string]struct{}{missingID: {}, ignoredID: {}}); len(got) != 0 {
+	if got := ScanForMissingDLC(local, remote, map[string]struct{}{missingID: {}, ignoredID: {}}, 20261120); len(got) != 0 {
 		t.Fatalf("fully ignored result = %#v", got)
 	}
-	if got := ScanForMissingDLC(map[string]*db.SwitchGameFiles{}, remote, nil); len(got) != 0 {
+	if got := ScanForMissingDLC(map[string]*db.SwitchGameFiles{}, remote, nil, 20261120); len(got) != 0 {
 		t.Fatalf("empty local result = %#v", got)
+	}
+
+	// a DLC that comes out later is not missing until its day; one without a day is
+	comingID := "0100abcd00001a03"
+	remote["0100abcd00001"].Dlc[comingID] = db.TitleAttributes{Name: "Coming", Id: comingID, ReleaseDate: 20261203}
+	remote["0100abcd00001"].Dlc[missingID] = db.TitleAttributes{Name: "Expansion", Id: missingID, ReleaseDate: 20250204}
+	if game := ScanForMissingDLC(local, remote, map[string]struct{}{ignoredID: {}}, 20261120)[baseID]; len(game.MissingDLC) != 1 || game.MissingDLC[0] != "Expansion ["+missingID+"]" {
+		t.Errorf("before its day: %#v", game.MissingDLC)
+	}
+	if game := ScanForMissingDLC(local, remote, map[string]struct{}{ignoredID: {}}, 20261203)[baseID]; len(game.MissingDLC) != 2 {
+		t.Errorf("on its day: %#v", game.MissingDLC)
 	}
 }
 

@@ -1,5 +1,6 @@
 # Generates titles.json from blawar/titledb, versions.json from the versions of blawar/titledb
-# and other sources, and titles.switch2.json from the title list of switchbrew, and publishes them
+# and other sources, titles.dlc.json with the DLC of each game, and titles.switch2.json from the
+# title list of switchbrew, and publishes them
 # as assets of the rolling "data" release, which is the
 # default source of the app (settings.DATA_RELEASE_URL). Each file is published compressed too,
 # which the app downloads first, and only when it changed.
@@ -110,6 +111,11 @@ jobs:
         run: |
           python .github/scripts/build_cover_fallbacks.py generated-data/titles.json nut/titledb generated-data/titles.covers.json
 
+      # the DLC of each game, for the programs that do not read titles.json whole (NXPress tells
+      # with it the DLC missing from its list)
+      - name: Generate the DLC of each game
+        run: python .github/scripts/build_dlc_titles.py generated-data/titles.json generated-data/titles.dlc.json
+
       # the series of the games, from Wikidata; when Wikidata does not answer, the published
       # file of the last run stays
       - name: Generate series
@@ -133,7 +139,7 @@ jobs:
           import json
           from pathlib import Path
 
-          for filename in ("titles.json", "versions.json", "titles.es.json", "titles.fr.json", "titles.de.json", "titles.it.json", "titles.pt.json", "titles.covers.json",
+          for filename in ("titles.json", "versions.json", "titles.es.json", "titles.fr.json", "titles.de.json", "titles.it.json", "titles.pt.json", "titles.covers.json", "titles.dlc.json",
                            "titles.nl.json", "titles.ru.json", "titles.ja.json", "titles.ko.json", "titles.zh.json"):
               path = Path("generated-data") / filename
               # the last languages are optional: titledb may not have their store
@@ -212,7 +218,8 @@ jobs:
             `versions.json`, with the versions of blawar/titledb, borntohonk/titledb and 16BitWonder/nx-versions;
             `titles.<lang>.json` with names and descriptions in Spanish, French, German, Italian, Portuguese,
             Dutch, Russian, Japanese, Korean and Chinese; and `titles.switch2.json`, the games of the
-            Nintendo Switch 2 from the title list of switchbrew, with their game on IGDB and release date from Wikidata. Every file is also published compressed with zstd
+            Nintendo Switch 2 from the title list of switchbrew, with their game on IGDB and release date from Wikidata; and `titles.dlc.json`,
+            the DLC of each game from `titles.json`, with their name and release date. Every file is also published compressed with zstd
             (`.json.zst`), and `data.sha256` has the SHA-256 of each one.
         run: |
           if ! gh release view data >/dev/null 2>&1; then

@@ -131,8 +131,10 @@ func ScanForMissingUpdates(localDB map[string]*db.SwitchGameFiles,
 	return result
 }
 
+// ScanForMissingDLC lists the games of the library with DLC that are not in it: the DLC out on the
+// day given (20261120, see db.TitleAttributes.OutBy), not the ones that come out later.
 func ScanForMissingDLC(localDB map[string]*db.SwitchGameFiles,
-	switchDB map[string]*db.SwitchTitle, ignoreTitleIds map[string]struct{}) map[string]IncompleteTitle {
+	switchDB map[string]*db.SwitchTitle, ignoreTitleIds map[string]struct{}, day int) map[string]IncompleteTitle {
 	result := map[string]IncompleteTitle{}
 
 	//iterate over local files, and compare to remote versions
@@ -155,6 +157,9 @@ func ScanForMissingDLC(localDB map[string]*db.SwitchGameFiles,
 					continue
 				}
 				if _, ok := ignoreTitleIds[k]; ok {
+					continue
+				}
+				if !v.OutBy(day) {
 					continue
 				}
 

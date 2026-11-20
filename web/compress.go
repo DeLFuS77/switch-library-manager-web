@@ -54,6 +54,8 @@ type CompressCandidate struct {
 	// how the file keeps its NCA files (switchfs.Storage*), as the library noted it; "" when it
 	// is not known
 	Storage string
+	// an old update kept on purpose (Keep this update)
+	KeptUpdate bool
 	// the share it will likely save, from the files compressed before (see ratioStore)
 	Estimate    int
 	HasEstimate bool
@@ -259,6 +261,8 @@ func (web *Web) compressCandidates() []CompressCandidate {
 	return web.derived("compressCandidates", func() any {
 		_, localDB := web.state.get()
 		old := map[string]bool{}
+		// the old updates kept on purpose, told on their row
+		kept := map[string]bool{}
 		// a game or an update stored with the LZ4 of its NCA, rebuilt to stay small once
 		// installed, is compressed already
 		lz4 := map[string]bool{}
@@ -266,8 +270,15 @@ func (web *Web) compressCandidates() []CompressCandidate {
 			inUse := process.FilesInUse(localDB)
 			for file, skipped := range localDB.Skipped {
 				path := filepath.Join(file.BaseFolder, file.FileName)
-				if skipped.ReasonCode == db.REASON_OLD_UPDATE && !inUse[path] {
+				if skipped.ReasonCode != db.REASON_OLD_UPDATE || inUse[path] {
+					continue
+				}
+				// only the ones the cleanup deletes: an update kept on purpose, for its cheats or
+				// while the newer copy is damaged is offered as any file (#193)
+				if web.cleanupRefusal(file, skipped) == "" {
 					old[path] = true
+				} else if web.keptByChoice(file) {
+					kept[path] = true
 				}
 			}
 			for _, title := range localDB.TitlesMap {
@@ -291,6 +302,7 @@ func (web *Web) compressCandidates() []CompressCandidate {
 		candidates := []CompressCandidate{}
 		for _, candidate := range web.libraryFiles(".nsp", ".xci") {
 			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !lz4[candidate.Path] && !uncompressible && noKey[candidate.Path] == "" && damaged[candidate.Path] == "" {
+				candidate.KeptUpdate = kept[candidate.Path]
 				candidates = append(candidates, candidate)
 			}
 		}

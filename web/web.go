@@ -1489,7 +1489,8 @@ func withoutDemos(titles map[string]process.IncompleteTitle, switchDB *db.Switch
 	return titles
 }
 
-// missingDLC are the games with missing DLC, respecting the ignore list.
+// missingDLC are the games with missing DLC, respecting the ignore list: the ones out today, not
+// the ones that come out later.
 func (web *Web) missingDLC() map[string]process.IncompleteTitle {
 	return web.derived("missingDLC", func() any {
 		switchDB, localDB := web.state.get()
@@ -1497,7 +1498,7 @@ func (web *Web) missingDLC() map[string]process.IncompleteTitle {
 			return map[string]process.IncompleteTitle{}
 		}
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
+		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds), dateNumber(time.Now()))
 		return withoutDemos(missing, switchDB, settingsObj.HideDemoGames)
 	}).(map[string]process.IncompleteTitle)
 }

@@ -2640,5 +2640,13 @@ func init() {
 		"The file could not be written again, the NSZ is kept as it was.":               "ファイルを書き直せませんでした。NSZは元のままです。",
 		"The new copy could not be checked whole, so the NSZ is kept as it was.":        "新しいコピーを最後まで検証できなかったため、NSZは元のままです。",
 		"Made with the extra compression of NXPress: decompress it with NXPress first.": "NXPressの追加圧縮で作られています。先にNXPressで展開してください。",
+
+		// older updates kept on purpose (#193)
+		"Keep this update": "この更新データを残す",
+		"Stop keeping":     "残すのをやめる",
+		"You keep this version: it is not deleted.":               "このバージョンを残しています。削除されません。",
+		"Kept: no cleanup deletes this version":                   "残す設定：どの整理でもこのバージョンは削除されません",
+		"Older than v%v: Delete old updates and Space delete it.": "v%vより古いバージョンです。「古い更新データを削除」と「容量」で削除されます。",
+		"Comes out on %v": "%v 発売",
 	}
 }

@@ -2640,5 +2640,13 @@ func init() {
 		"The file could not be written again, the NSZ is kept as it was.":               "파일을 다시 쓸 수 없어 NSZ를 그대로 유지해요.",
 		"The new copy could not be checked whole, so the NSZ is kept as it was.":        "새 사본을 끝까지 검사할 수 없어 NSZ를 그대로 유지해요.",
 		"Made with the extra compression of NXPress: decompress it with NXPress first.": "NXPress의 추가 압축으로 만들었어요. 먼저 NXPress로 압축을 푸세요.",
+
+		// older updates kept on purpose (#193)
+		"Keep this update": "이 업데이트 유지",
+		"Stop keeping":     "유지 해제",
+		"You keep this version: it is not deleted.":               "이 버전을 유지하고 있어요. 삭제되지 않아요.",
+		"Kept: no cleanup deletes this version":                   "유지됨: 어떤 정리도 이 버전을 삭제하지 않아요",
+		"Older than v%v: Delete old updates and Space delete it.": "v%v보다 오래된 버전이에요. 오래된 업데이트 삭제와 공간에서 삭제돼요.",
+		"Comes out on %v": "%v 출시",
 	}
 }

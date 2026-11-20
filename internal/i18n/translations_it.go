@@ -1447,6 +1447,7 @@ func init() {
 		"Not enough free space to compress the file.":         "Spazio libero insufficiente per comprimere il file.",
 		"Not in your library":                                 "Non nella tua libreria",
 		"Not owned":                                           "Non posseduto",
+		"Comes out on %v":                                     "Esce il %v",
 		"Nothing in the file can be compressed.":              "Nel file non c'è nulla che si possa comprimere.",
 		"Nothing matches “%v”. Try another name or title ID.": "Nessun risultato per “%v”. Prova con un altro nome o Title ID.",
 		"Nothing to compress":                                 "Niente da comprimere",
@@ -2640,5 +2641,12 @@ func init() {
 		"The file could not be written again, the NSZ is kept as it was.":               "Impossibile riscrivere il file, l'NSZ resta com'era.",
 		"The new copy could not be checked whole, so the NSZ is kept as it was.":        "Non è stato possibile verificare per intero la nuova copia, quindi l'NSZ resta com'era.",
 		"Made with the extra compression of NXPress: decompress it with NXPress first.": "Fatto con la compressione extra di NXPress: decomprimilo prima con NXPress.",
+
+		// older updates kept on purpose (#193)
+		"Keep this update": "Tieni questo aggiornamento",
+		"Stop keeping":     "Non tenerlo più",
+		"You keep this version: it is not deleted.":               "Tieni questa versione: non viene eliminata.",
+		"Kept: no cleanup deletes this version":                   "Tenuta: nessuna pulizia elimina questa versione",
+		"Older than v%v: Delete old updates and Space delete it.": "Più vecchia della v%v: Elimina vecchi aggiornamenti e Spazio la eliminano.",
 	}
 }

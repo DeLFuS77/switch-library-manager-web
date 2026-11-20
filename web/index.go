@@ -677,13 +677,14 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 					}
 				}
 			}
-			for id := range title.Dlc {
+			day := dateNumber(time.Now())
+			for id, dlc := range title.Dlc {
 				_, owned := v.Dlc[id]
 				_, ignored := ignoredDlc[id]
 				if owned {
 					item.DlcOwned++
 					item.DlcTotal++
-				} else if !ignored {
+				} else if !ignored && dlc.OutBy(day) {
 					item.MissingDlcCount++
 					item.DlcTotal++
 				}

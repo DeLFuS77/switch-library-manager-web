@@ -330,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initHistoryCharts();
 	initIssueDelete();
 	initIssueKeep();
+	initUpdateKeep();
 	initPlay();
 	initSmartCollections();
 	initActivityFilter();

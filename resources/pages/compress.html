@@ -140,6 +140,7 @@
 								<span class="file-row-meta">
 									<span class="file-kind"><span class="bi {{if eq $c.KindKey "game"}}bi-controller{{else if eq $c.KindKey "update"}}bi-arrow-up-circle{{else}}bi-puzzle{{end}}" aria-hidden="true"></span>{{if eq $c.KindKey "game"}}{{t "Game"}}{{else if eq $c.KindKey "update"}}{{t "Update"}}{{else}}DLC{{end}}</span>
 									<span class="file-format">{{$c.Format}}</span>
+									{{- if $c.KeptUpdate}}<span class="chip chip-info"><span class="bi bi-pin-angle-fill" aria-hidden="true"></span>{{t "Kept"}}</span>{{end}}
 									<span class="file-row-file" title="{{$c.Path}}">{{fileBase $c.Path}}</span>
 								</span>
 							</label>

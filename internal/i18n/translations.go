@@ -1701,6 +1701,7 @@ var Translations = map[string]map[string]string{
 		"Actions":                                      "Acciones",
 		"Owned":                                        "Lo tienes",
 		"Not owned":                                    "No lo tienes",
+		"Comes out on %v":                              "Sale el %v",
 		"Missing":                                      "Falta",
 		"Ignored":                                      "Ignorado",
 		"Restore":                                      "Restaurar",
@@ -2667,6 +2668,13 @@ var Translations = map[string]map[string]string{
 		"The file could not be written again, the NSZ is kept as it was.":               "No se ha podido escribir otra vez el archivo; el NSZ se queda como estaba.",
 		"The new copy could not be checked whole, so the NSZ is kept as it was.":        "La copia nueva no se ha podido comprobar entera, así que el NSZ se queda como estaba.",
 		"Made with the extra compression of NXPress: decompress it with NXPress first.": "Hecho con la compresión extra de NXPress: descomprímelo antes con NXPress.",
+
+		// older updates kept on purpose (#193)
+		"Keep this update": "Conservar esta actualización",
+		"Stop keeping":     "Dejar de conservar",
+		"You keep this version: it is not deleted.":               "Conservas esta versión: no se borra.",
+		"Kept: no cleanup deletes this version":                   "Conservada: ninguna limpieza borra esta versión",
+		"Older than v%v: Delete old updates and Space delete it.": "Más antigua que la v%v: Borrar actualizaciones antiguas y Espacio la borran.",
 	},
 }
 

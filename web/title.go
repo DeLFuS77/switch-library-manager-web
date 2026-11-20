@@ -12,6 +12,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs/optimize"
@@ -43,6 +44,12 @@ type TitleFile struct {
 	Emulators *TitleEmulators
 	// for any other file: which installers take it and whether emulators open it as it is
 	Works *FileWorks
+	// an update older than the newest one (Newer) that the cleanup can take: kept on purpose
+	// (Keep this update), or deleted by Delete old updates, the automations and Space (Deleted)
+	OldUpdate  bool
+	KeptUpdate bool
+	Deleted    bool
+	Newer      int
 }
 
 // TitleEmulators is what Eglantine and Lichii, the emulators that open NUP files, make of one,
@@ -132,6 +139,9 @@ type TitleDlc struct {
 	File            *TitleFile
 	LatestVersion   int
 	UpdateAvailable bool
+	// the day a DLC not in the library comes out (20261203), when it is not out yet: it is not
+	// missing until then
+	ComesOut int
 }
 
 type TitleDetail struct {
@@ -305,6 +315,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			detail.BannerUrl = "/i/" + local.Banner
 		}
 
+		inUse := process.FilesInUse(localDB)
 		for _, version := range sortedVersions(local.Updates) {
 			update := local.Updates[version]
 			file := newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version))
@@ -313,6 +324,13 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			if update.ExtendedInfo == local.File.ExtendedInfo {
 				file.InGameFile = true
 				detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v", version))
+			}
+			// an old update the cleanup can take, as Space lists it (#193)
+			if skipped, ok := localDB.Skipped[update.ExtendedInfo]; ok && skipped.ReasonCode == db.REASON_OLD_UPDATE && !file.InGameFile &&
+				!inUse[filepath.Join(update.ExtendedInfo.BaseFolder, update.ExtendedInfo.FileName)] && updateKeyOf(update.ExtendedInfo) != "" {
+				file.OldUpdate, file.Newer = true, local.LatestUpdate
+				file.KeptUpdate = web.keptByChoice(update.ExtendedInfo)
+				file.Deleted = !file.KeptUpdate && web.cleanupRefusal(update.ExtendedInfo, skipped) == ""
 			}
 			detail.Updates = append(detail.Updates, *file)
 		}
@@ -410,6 +428,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	}
 
 	// All DLC known to the titles database or present in the library
+	day := dateNumber(time.Now())
 	dlcIds := map[string]struct{}{}
 	if title != nil {
 		for id := range title.Dlc {
@@ -428,6 +447,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		if title != nil {
 			if attributes, ok := title.Dlc[id]; ok {
 				dlc.Name = attributes.Name
+				if !attributes.OutBy(day) {
+					dlc.ComesOut = attributes.ReleaseDate
+				}
 				if latest, err := attributes.Version.Int64(); err == nil {
 					dlc.LatestVersion = int(latest)
 				}
@@ -454,14 +476,17 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			dlc.Name = dlc.Id
 		}
 		dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
-		// DLC of a game that is not in the library are not "missing"
-		if detail.Owned && !dlc.Owned && !dlc.Ignored {
+		if dlc.Owned {
+			dlc.ComesOut = 0
+		}
+		// DLC of a game that is not in the library are not "missing", nor the ones not out yet
+		if detail.Owned && !dlc.Owned && !dlc.Ignored && dlc.ComesOut == 0 {
 			detail.MissingDlc++
 		}
 		if dlc.Owned {
 			detail.DlcOwned++
 			detail.DlcTotal++
-		} else if !dlc.Ignored {
+		} else if !dlc.Ignored && dlc.ComesOut == 0 {
 			detail.DlcTotal++
 		}
 		detail.Dlc = append(detail.Dlc, dlc)

@@ -31,6 +31,8 @@ type Issue struct {
 	// one cartridge), and whether the copy can be chosen to be kept (a duplicate)
 	GamesInFile []string
 	CanKeep     bool
+	// on the shown page only: an old update, which can be kept on purpose (Keep this update)
+	CanKeepUpdate bool
 	// on the shown page only: the file can be deleted on its own (see fileDeletableIssueKinds)
 	CanDelete bool
 	// the scan could not read the file as it ends before its contents do (see db.CutShort)
@@ -130,6 +132,9 @@ func (web *Web) HandleIssues() {
 			shown[i].Cause = issueCause(shown[i].kind(), shown[i].Reason, lang)
 			shown[i].GamesInFile = gamesInFiles[shown[i].File]
 			shown[i].CanKeep = shown[i].kind() == ISSUE_DUPLICATE
+			if shown[i].kind() == ISSUE_OLD && !shown[i].Kept {
+				shown[i].CanKeepUpdate = updateKeyOf(db.ExtendedFileInfo{FileName: filepath.Base(shown[i].File), BaseFolder: filepath.Dir(shown[i].File)}) != ""
+			}
 			shown[i].CanDelete = fileDeletableIssueKinds[shown[i].kind()] && !shown[i].Kept && shown[i].Size >= 0
 		}
 		return IssuesPageData{
@@ -208,6 +213,8 @@ func (web *Web) HandleIssues() {
 		web.Rescan(tasklog.TRIGGER_MANUAL)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
 	}).Methods("POST")
+
+	web.handleKeepUpdates()
 
 	// keep this copy of a duplicate: the other one becomes the duplicate, and the library is
 	// scanned again
@@ -441,7 +448,7 @@ func (web *Web) buildIssues() []Issue {
 	inUse := process.FilesInUse(localDB)
 	for k, v := range localDB.Skipped {
 		path := filepath.Join(k.BaseFolder, k.FileName)
-		if v.ReasonCode == db.REASON_OLD_UPDATE && inUse[path] {
+		if v.ReasonCode == db.REASON_OLD_UPDATE && (inUse[path] || web.keptByChoice(k)) {
 			continue
 		}
 		// the same game in the other format (a NUP and an NSP or XCI) is a file the user keeps,

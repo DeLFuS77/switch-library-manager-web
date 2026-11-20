@@ -29,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "2.0.20"
+	SLM_WEB_VERSION        = "2.0.21"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
@@ -119,6 +119,10 @@ type OrganizeOptions struct {
 	DeleteUpdatesWithCheats bool `json:"delete_updates_with_cheats,omitempty"`
 	// the copies of duplicates chosen one by one to be kept, by path: they win over KeepDuplicate
 	KeepFiles []string `json:"keep_files,omitempty"`
+	// the versions of updates kept on purpose, never deleted as old: "0100ABCD00010800:65536",
+	// the ID of the update and its number, so they stay kept when a file is moved, renamed or
+	// compressed (#193)
+	KeepUpdates []string `json:"keep_updates,omitempty"`
 	// a file whose name has its title ID in brackets keeps its name: it is only moved
 	KeepNamesWithId bool `json:"keep_names_with_id,omitempty"`
 	// the subfolder of the game file, inside the game folder as the ones of updates and DLC

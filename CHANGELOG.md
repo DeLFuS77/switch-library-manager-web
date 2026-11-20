@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.21
+
+### Improvements
+
+- Keep this update, on the page of a game, in Issues and in Space: an older update kept on purpose is never deleted as old, and Compress offers it, as it now offers the older updates kept for their cheats. Thanks to @deafening832 for reporting it (#193)
+
+### Fixes
+
+- The list of Recompress is shown only to those who use Compress, as its other lists
+- A DLC that is not out yet is no longer counted as missing: the page of its game tells the day it comes out, and it counts from that day on
+
 ## 2.0.20
 
 ### Improvements
