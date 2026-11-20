@@ -66,7 +66,9 @@ func TestLanguageToLanguageTag(t *testing.T) {
 		Language(13):         "zh-Hant",
 		Language(14):         "zh-Hans",
 		Language(15):         "pt-BR",
-		Language(16):         "und",
+		Polish:               "pl",
+		Thai:                 "th",
+		Language(18):         "und",
 		Language(-1):         "und",
 	}
 	for language, want := range tests {

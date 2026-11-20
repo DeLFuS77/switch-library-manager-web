@@ -1365,6 +1365,28 @@ func (ldb *LocalSwitchDBManager) needsAttributes(metadata map[string]*switchfs.C
 	return false
 }
 
+// needsNames tells cached data whose names may have been read wrongly: older versions read the
+// names of control data that keeps them compressed shifted, in other languages and always
+// without a publisher. Only data without any publisher can be such: it is read again, once.
+func needsNames(metadata map[string]*switchfs.ContentMetaAttributes) bool {
+	for _, meta := range metadata {
+		if meta != nil && meta.Ncap != nil && !meta.Ncap.CompressedNamesRead && !hasPublisher(meta.Ncap) {
+			return true
+		}
+	}
+	return false
+}
+
+// hasPublisher tells whether control data names its publisher in any language.
+func hasPublisher(nacp *switchfs.Nacp) bool {
+	for _, title := range nacp.TitleName {
+		if strings.TrimSpace(title.Publisher) != "" {
+			return true
+		}
+	}
+	return false
+}
+
 // needsNacp tells cached data of a game or an update read without its NACP (its names and its
 // version) with keys of an older generation than the ones loaded, or cached before that was
 // noted: the keys may have lacked its generation, so it is read again, once per generation.
@@ -1488,7 +1510,7 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
 			zap.S().Warnf("%v", err)
 		}
-		if metadata != nil && !ldb.needsAttributes(metadata) && !needsNacp(metadata, generation) && !needsNcaLz4(file.FileName, metadata) {
+		if metadata != nil && !ldb.needsAttributes(metadata) && !needsNacp(metadata, generation) && !needsNcaLz4(file.FileName, metadata) && !needsNames(metadata) {
 			result.metadata = metadata
 			// data cached before the storage was noted: only the headers of the NCZ are read,
 			// and the data is cached again with it

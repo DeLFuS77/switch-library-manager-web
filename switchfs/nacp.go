@@ -27,6 +27,20 @@ const (
 	Taiwanese
 	Chinese
 	BrazilianPortuguese
+	// the languages only control data that keeps its names compressed can have
+	Polish
+	Thai
+)
+
+const (
+	// legacyLanguages are the names of control data, each of 0x300 bytes: a name of 0x200
+	// and a publisher of 0x100
+	legacyLanguages = 16
+	// compressedLanguages are the names of control data that keeps them compressed: 32
+	// entries of the same size, the first 16 in the same languages
+	compressedLanguages = 32
+	// knownLanguages are the languages of those entries the app knows
+	knownLanguages = Thai + 1
 )
 
 type NacpTitle struct {
@@ -50,6 +64,9 @@ type Nacp struct {
 	NamesRead bool `json:"names_read,omitempty"`
 	// the publishers were read with the names; data read by older versions does not have them
 	PublishersRead bool `json:"publishers_read,omitempty"`
+	// the names were read as 32 entries when the control data keeps them compressed: older
+	// versions read them shifted, in other languages and without their publishers
+	CompressedNamesRead bool `json:"compressed_names_read,omitempty"`
 }
 
 func (l Language) String() string {
@@ -69,7 +86,9 @@ func (l Language) String() string {
 		"Korean",
 		"Taiwanese",
 		"Chinese",
-		"BrazilianPortuguese"}
+		"BrazilianPortuguese",
+		"Polish",
+		"Thai"}
 	if l < 0 || int(l) >= len(names) {
 		return "Unknown"
 	}
@@ -93,7 +112,9 @@ func (l Language) ToLanguageTag() string {
 		"ko",
 		"zh-Hant",
 		"zh-Hans",
-		"pt-BR"}
+		"pt-BR",
+		"pl",
+		"th"}
 	if l < 0 || int(l) >= len(tags) {
 		return "und"
 	}
@@ -136,6 +157,41 @@ func ExtractNacp(cnmt *ContentMetaAttributes, file io.ReaderAt, securePartition 
 	return nil, errors.New("no control.nacp found")
 }
 
+// NacpTitleEntries are the names of a NACP, as entries of 0x300 bytes (a name of 0x200, then a
+// publisher of 0x100), and how many there are. Control data keeps 16 of them in its first
+// 0x3000 bytes; when its byte 0x3215 is 1 it keeps them compressed there instead: the size, as a
+// u16, then deflate without a header, which gives 32 entries (16 is Polish, 17 Thai).
+func NacpTitleEntries(nacp []byte) ([]byte, int, error) {
+	if len(nacp) < 0x3000 {
+		return nil, 0, errors.New("NACP file is too small")
+	}
+	titleData := nacp[:0x3000]
+	if len(nacp) <= 0x3215 || nacp[0x3215] != 1 {
+		return titleData, legacyLanguages, nil
+	}
+	const size = compressedLanguages * 0x300
+	compressedSize := binary.LittleEndian.Uint16(titleData[:2])
+	if compressedSize == 0 || int(compressedSize) > len(titleData)-2 {
+		return nil, 0, errors.New("compressed NACP title data is invalid")
+	}
+	reader := flate.NewReader(bytes.NewReader(titleData[2 : 2+int(compressedSize)]))
+	decompressed, err := io.ReadAll(io.LimitReader(reader, size+1))
+	closeErr := reader.Close()
+	if err != nil {
+		return nil, 0, errors.New("failed to decompress NACP title data: " + err.Error())
+	}
+	if closeErr != nil {
+		return nil, 0, errors.New("failed to close NACP title data: " + closeErr.Error())
+	}
+	if len(decompressed) < size {
+		return nil, 0, errors.New("decompressed NACP title data is too small")
+	}
+	if len(decompressed) > size {
+		return nil, 0, errors.New("decompressed NACP title data is too large")
+	}
+	return decompressed, compressedLanguages, nil
+}
+
 /*https://switchbrew.org/wiki/NACP_Format*/
 func readNacp(data []byte, romFsHeader RomfsHeader, fileEntry RomfsFileEntry) (Nacp, error) {
 	if romFsHeader.DataOffset > uint64(len(data)) || fileEntry.offset > uint64(len(data))-romFsHeader.DataOffset {
@@ -148,41 +204,15 @@ func readNacp(data []byte, romFsHeader RomfsHeader, fileEntry RomfsFileEntry) (N
 	if fileEntry.size > uint64(len(data))-offset || uint64(0x3080) > fileEntry.size {
 		return Nacp{}, errors.New("NACP file is truncated")
 	}
-	titleData := data[offset : offset+0x3000]
-	titleStride := uint64(0x300)
-	if fileEntry.size >= 0x3216 && data[offset+0x3215] == 1 {
-		compressedSize := binary.LittleEndian.Uint16(titleData[:2])
-		if compressedSize == 0 || uint64(compressedSize) > uint64(len(titleData)-2) {
-			return Nacp{}, errors.New("compressed NACP title data is invalid")
-		}
-		reader := flate.NewReader(bytes.NewReader(titleData[2 : 2+compressedSize]))
-		decompressed, err := io.ReadAll(io.LimitReader(reader, 0x6001))
-		closeErr := reader.Close()
-		if err != nil {
-			return Nacp{}, errors.New("failed to decompress NACP title data: " + err.Error())
-		}
-		if closeErr != nil {
-			return Nacp{}, errors.New("failed to close NACP title data: " + closeErr.Error())
-		}
-		if len(decompressed) < 0x6000 {
-			return Nacp{}, errors.New("decompressed NACP title data is too small")
-		}
-		if len(decompressed) > 0x6000 {
-			return Nacp{}, errors.New("decompressed NACP title data is too large")
-		}
-		titleData = decompressed[:0x6000]
-		titleStride = 0x600
+	titleData, entries, err := NacpTitleEntries(data[offset : offset+fileEntry.size])
+	if err != nil {
+		return Nacp{}, err
 	}
 	titles := map[string]NacpTitle{}
-	for i := 0; i < 16; i++ {
-		//lang := i
-		appTitleOffset := uint64(i) * titleStride
-		// each entry is the name, then the publisher, in the same proportions when the entries
-		// are the larger ones of the compressed titles
-		nameSize := titleStride * 2 / 3
-		appTitleBytes := titleData[appTitleOffset : appTitleOffset+0x200]
-		nameBytes := readBytesUntilZero(appTitleBytes)
-		publisherBytes := readBytesUntilZero(titleData[appTitleOffset+nameSize : appTitleOffset+titleStride])
+	for i := 0; i < entries && i < int(knownLanguages); i++ {
+		entry := titleData[i*0x300 : (i+1)*0x300]
+		nameBytes := readBytesUntilZero(entry[:0x200])
+		publisherBytes := readBytesUntilZero(entry[0x200:])
 		titles[Language(i).String()] = NacpTitle{Language: Language(i), Title: string(nameBytes), Publisher: string(publisherBytes)}
 	}
 
@@ -192,7 +222,7 @@ func readNacp(data []byte, romFsHeader RomfsHeader, fileEntry RomfsFileEntry) (N
 	attributes := binary.LittleEndian.Uint32(data[offset+0x3028 : offset+0x3028+0x4])
 
 	return Nacp{TitleName: titles, Isbn: string(isbn), DisplayVersion: string(displayVersion), SupportedLanguageFlag: supportedLanguageFlag,
-		Demo: attributes&1 != 0, AttributesRead: true, NamesRead: true, PublishersRead: true}, nil
+		Demo: attributes&1 != 0, AttributesRead: true, NamesRead: true, PublishersRead: true, CompressedNamesRead: true}, nil
 	/*
 
 
