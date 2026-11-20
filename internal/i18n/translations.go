@@ -1701,6 +1701,7 @@ var Translations = map[string]map[string]string{
 		"Actions":                                      "Acciones",
 		"Owned":                                        "Lo tienes",
 		"Not owned":                                    "No lo tienes",
+		"Comes out on %v":                              "Sale el %v",
 		"Missing":                                      "Falta",
 		"Ignored":                                      "Ignorado",
 		"Restore":                                      "Restaurar",

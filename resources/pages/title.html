@@ -398,12 +398,14 @@
 							<span class="chip chip-muted">{{t "Not owned"}}</span>
 							{{- else if .Ignored}}
 							<span class="chip chip-muted"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored"}}</span>
+							{{- else if .ComesOut}}
+							<span class="chip chip-muted"><span class="bi bi-calendar3" aria-hidden="true"></span>{{t "Comes out on %v" (releaseDate .ComesOut)}}</span>
 							{{- else}}
 							<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "Missing"}}</span>
 							{{- end}}
 							{{- if .File}}
 							<a class="btn btn-sm btn-outline-secondary" href="{{.File.DownloadUrl}}" title="{{t "Download %v" .File.FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .File.FileName}}</span></a>
-							{{- else if not $t.Owned}}
+							{{- else if or (not $t.Owned) .ComesOut}}
 							{{- else if .Ignored}}
 							<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
 							{{- else}}

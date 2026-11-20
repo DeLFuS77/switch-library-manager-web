@@ -50,6 +50,25 @@ func TestDerivedValuesFollowTheLibraryAndTheSettings(t *testing.T) {
 	if value != "stale" || web.derived("y", func() any { return "fresh" }) != "fresh" {
 		t.Fatal("a value computed before an invalidation is not kept")
 	}
+
+	// a new day computes the values again: the DLC out and the upcoming games change with it
+	old := derivedDay
+	defer func() { derivedDay = old }()
+	derivedDay = func() string { return "2026-11-20" }
+	first := web.derived("z", compute)
+	if web.derived("z", compute) != first {
+		t.Fatal("the same day keeps the value")
+	}
+	if _, ok := web.derivedCached("z"); !ok {
+		t.Fatal("the value of the day is cached")
+	}
+	derivedDay = func() string { return "2026-11-21" }
+	if _, ok := web.derivedCached("z"); ok {
+		t.Fatal("the value of the day before is still cached")
+	}
+	if web.derived("z", compute) == first {
+		t.Fatal("a new day must compute the value again")
+	}
 }
 
 func TestIgnoringUpdatesRefreshesTheCachedPages(t *testing.T) {

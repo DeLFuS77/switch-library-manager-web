@@ -2647,5 +2647,6 @@ func init() {
 		"You keep this version: it is not deleted.":               "Je bewaart deze versie: hij wordt niet verwijderd.",
 		"Kept: no cleanup deletes this version":                   "Bewaard: geen opschoning verwijdert deze versie",
 		"Older than v%v: Delete old updates and Space delete it.": "Ouder dan v%v: Oude updates verwijderen en Ruimte verwijderen hem.",
+		"Comes out on %v": "Verschijnt op %v",
 	}
 }

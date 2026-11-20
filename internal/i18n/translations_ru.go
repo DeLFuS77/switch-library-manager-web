@@ -2647,5 +2647,6 @@ func init() {
 		"You keep this version: it is not deleted.":               "Вы сохраняете эту версию: она не удаляется.",
 		"Kept: no cleanup deletes this version":                   "Сохранено: никакая очистка не удалит эту версию",
 		"Older than v%v: Delete old updates and Space delete it.": "Старше v%v: «Удалить старые обновления» и «Место» удаляют его.",
+		"Comes out on %v": "Выходит %v",
 	}
 }

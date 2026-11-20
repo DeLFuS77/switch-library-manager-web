@@ -2647,5 +2647,6 @@ func init() {
 		"You keep this version: it is not deleted.":               "你保留了此版本：它不会被删除。",
 		"Kept: no cleanup deletes this version":                   "已保留：任何清理都不会删除此版本",
 		"Older than v%v: Delete old updates and Space delete it.": "比 v%v 旧：“删除旧更新”和“空间”会删除它。",
+		"Comes out on %v": "%v 发售",
 	}
 }

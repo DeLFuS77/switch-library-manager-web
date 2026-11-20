@@ -35,6 +35,12 @@ type TitleAttributes struct {
 	Intro string `json:"intro,omitempty"`
 }
 
+// OutBy reports whether a title is out on a day (20261120, as ReleaseDate): one without a release
+// date is, as it is in the store.
+func (a TitleAttributes) OutBy(day int) bool {
+	return a.ReleaseDate == 0 || a.ReleaseDate <= day
+}
+
 type SwitchTitle struct {
 	Attributes TitleAttributes
 	Updates    map[int]string

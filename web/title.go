@@ -139,6 +139,9 @@ type TitleDlc struct {
 	File            *TitleFile
 	LatestVersion   int
 	UpdateAvailable bool
+	// the day a DLC not in the library comes out (20261203), when it is not out yet: it is not
+	// missing until then
+	ComesOut int
 }
 
 type TitleDetail struct {
@@ -425,6 +428,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	}
 
 	// All DLC known to the titles database or present in the library
+	day := dateNumber(time.Now())
 	dlcIds := map[string]struct{}{}
 	if title != nil {
 		for id := range title.Dlc {
@@ -443,6 +447,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		if title != nil {
 			if attributes, ok := title.Dlc[id]; ok {
 				dlc.Name = attributes.Name
+				if !attributes.OutBy(day) {
+					dlc.ComesOut = attributes.ReleaseDate
+				}
 				if latest, err := attributes.Version.Int64(); err == nil {
 					dlc.LatestVersion = int(latest)
 				}
@@ -469,14 +476,17 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			dlc.Name = dlc.Id
 		}
 		dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
-		// DLC of a game that is not in the library are not "missing"
-		if detail.Owned && !dlc.Owned && !dlc.Ignored {
+		if dlc.Owned {
+			dlc.ComesOut = 0
+		}
+		// DLC of a game that is not in the library are not "missing", nor the ones not out yet
+		if detail.Owned && !dlc.Owned && !dlc.Ignored && dlc.ComesOut == 0 {
 			detail.MissingDlc++
 		}
 		if dlc.Owned {
 			detail.DlcOwned++
 			detail.DlcTotal++
-		} else if !dlc.Ignored {
+		} else if !dlc.Ignored && dlc.ComesOut == 0 {
 			detail.DlcTotal++
 		}
 		detail.Dlc = append(detail.Dlc, dlc)
