@@ -37,6 +37,8 @@ func TestRoles(t *testing.T) {
 		{"POST", "/api/tasks/7/dismiss", false, false, true, true},
 		{"POST", "/space/clean", false, false, false, true},
 		{"POST", "/issues/delete-file", false, false, false, true},
+		{"POST", "/issues/delete-non-game", false, false, false, true},
+		{"GET", "/api/wishlist", true, true, true, true},
 		{"POST", "/organize/run", false, false, false, true},
 		{"GET", "/settings.html", false, false, false, true},
 		{"POST", "/users/create", false, false, false, true},

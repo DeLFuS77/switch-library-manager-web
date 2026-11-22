@@ -3,6 +3,29 @@ package i18n
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	Translations["pt"] = map[string]string{
+		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
+		"1 file":                                "1 ficheiro",
+		"1 file, %v":                            "1 ficheiro, %v",
+		"Delete 1 file":                         "Apagar 1 ficheiro",
+		"Games you want and do not have yet.":   "Jogos que queres e ainda não tens.",
+		"The wishlist as JSON, for other tools": "A lista de desejos em JSON, para outras ferramentas",
+		"Choose files to delete…":               "Escolher ficheiros para apagar…",
+		"Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.": "Mover «%v» (%v) para a quarentena? Podes devolvê-lo em Definições, Quarentena.",
+		"Part of a game, a mod or a dump of a console: not deleted from here":              "Parte de um jogo, de um mod ou de um dump de uma consola: não é apagado daqui",
+		"Changed a moment ago, maybe still being copied: not deleted for now":              "Alterado há um momento, talvez ainda a ser copiado: não é apagado por agora",
+		"A link, or in the folders of the app: not deleted from here":                      "Uma ligação, ou nas pastas da app: não é apagado daqui",
+		"Choose the files to delete": "Escolhe os ficheiros a apagar",
+		"What is never offered":      "O que nunca é oferecido",
+		"Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left.": "Partes de um jogo ou de um mod (NCA, tickets, pastas romfs e exefs), chaves, homebrew, gravações, ficheiros alterados nos últimos 10 minutos, ligações e as pastas da app. Nada dentro de um arquivo comprimido é listado: um arquivo é um só ficheiro. Cada ficheiro é verificado de novo antes de sair, e o que outro programa tiver aberto fica.",
+		"Nothing is ticked: tick the files you do not want.":                            "Nada está marcado: marca os ficheiros que não queres.",
+		"They go to the quarantine, where they can be put back.":                        "Vão para a quarentena, de onde podem ser devolvidos.",
+		"They cannot be recovered.":                                                     "Não podem ser recuperados.",
+		"%v other files are not offered.":                                               "Outros %v ficheiros não são oferecidos.",
+		"Nothing chosen":                                                                "Nada escolhido",
+		"None of these files can be deleted now: they changed, are in use or are gone.": "Nenhum destes ficheiros pode ser apagado agora: mudaram, estão em uso ou já não existem.",
+		"%v files, %v":                          "%v ficheiros, %v",
+		"Delete %v files":                       "Apagar %v ficheiros",
+		"No file can be deleted from here now.": "Agora não se pode apagar nenhum ficheiro daqui.",
 		// the menus
 		"In seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified.":                               "Em segundos, verifica-se que o cabeçalho de cada NCA tem a assinatura da Nintendo, sem ler os dados. Um arquivo sem ela fica como “Modificado”.",
 		"Every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted.": "Cada arquivo é lido inteiro e cada NCA é verificada com seus hashes, o que encontra qualquer byte danificado; leva o tempo de ler os arquivos. Um arquivo danificado fica como “Corrompido”.",

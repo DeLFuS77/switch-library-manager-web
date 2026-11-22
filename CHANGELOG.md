@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.22
+
+### Improvements
+
+- Wishlist: a view of its own in the Library, next to Missing ones, and `/api/wishlist` to read it as JSON with the API keys. Thanks to @TerrorSource for the idea (#196)
+- Issues: files that are not games can be deleted one by one or chosen in a window, always after a confirmation; parts of games and mods, keys, saves, links and files still being copied are never offered. A link opens the ignored file types in Settings. Thanks to @TerrorSource for the idea (#197)
+
 ## 2.0.21
 
 ### Improvements

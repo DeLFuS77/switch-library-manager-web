@@ -1,6 +1,10 @@
-{{define "title"}}{{t "Library"}} &middot; {{t "Missing ones"}}{{end}}
+{{define "title"}}{{t "Library"}} &middot; {{if eq .Filter.Status "wanted"}}{{t "Wishlist"}}{{else}}{{t "Missing ones"}}{{end}}{{end}}
 {{define "main"}}
+			{{- if eq .Filter.Status "wanted"}}
+			{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "Games you want and do not have yet."))}}
+			{{- else}}
 			{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "Games of the Nintendo eShop that are not in your library."))}}
+			{{- end}}
 			{{- template "libraryViews" .Views}}
 			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword .Filter.Status .Filter.SecondaryCount}}
 			{{- template "filter" .}}
@@ -10,6 +14,7 @@
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "" "Label" (t "All") "Icon" "" "Count" -1)}}
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "wanted" "Label" (t "Wishlist") "Icon" "bi-heart" "Count" .WishedCount)}}
 				</ul>
+				{{- if eq .Filter.Status "wanted"}}<a class="btn btn-sm btn-outline-secondary rounded-pill" href="/api/wishlist" target="_blank" rel="noopener" title="{{t "The wishlist as JSON, for other tools"}}"><span class="bi bi-filetype-json me-1" aria-hidden="true"></span>JSON</a>{{end}}
 				<a class="btn btn-sm btn-outline-secondary rounded-pill" href="/upcoming.html"><span class="bi bi-calendar-event me-1" aria-hidden="true"></span>{{t "Upcoming releases"}}</a>
 			</div>
 			{{- template "activeFilters" (dict "Filter" .Filter "Library" false)}}

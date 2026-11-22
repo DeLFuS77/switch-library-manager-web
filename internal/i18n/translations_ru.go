@@ -3,6 +3,29 @@ package i18n
 // Russian interface translations; see translations.go.
 func init() {
 	Translations["ru"] = map[string]string{
+		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
+		"1 file":                                "1 файл",
+		"1 file, %v":                            "1 файл, %v",
+		"Delete 1 file":                         "Удалить 1 файл",
+		"Games you want and do not have yet.":   "Игры, которые вы хотите, но которых ещё нет.",
+		"The wishlist as JSON, for other tools": "Список желаемого в JSON для других программ",
+		"Choose files to delete…":               "Выбрать файлы для удаления…",
+		"Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.": "Переместить «%v» (%v) в карантин? Его можно вернуть в Настройки, Карантин.",
+		"Part of a game, a mod or a dump of a console: not deleted from here":              "Часть игры, мода или дампа консоли: отсюда не удаляется",
+		"Changed a moment ago, maybe still being copied: not deleted for now":              "Изменён только что, возможно, ещё копируется: пока не удаляется",
+		"A link, or in the folders of the app: not deleted from here":                      "Ссылка или файл в папках приложения: отсюда не удаляется",
+		"Choose the files to delete": "Выберите файлы для удаления",
+		"What is never offered":      "Что никогда не предлагается",
+		"Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left.": "Части игры или мода (NCA, тикеты, папки romfs и exefs), ключи, homebrew, сохранения, файлы, изменённые за последние 10 минут, ссылки и папки приложения. Содержимое архивов не показывается: архив — это один файл. Перед удалением каждый файл проверяется ещё раз, а файл, открытый другой программой, остаётся.",
+		"Nothing is ticked: tick the files you do not want.":                            "Ничего не отмечено: отметьте ненужные файлы.",
+		"They go to the quarantine, where they can be put back.":                        "Они попадут в карантин, откуда их можно вернуть.",
+		"They cannot be recovered.":                                                     "Восстановить их будет нельзя.",
+		"%v other files are not offered.":                                               "Ещё файлов не предлагается: %v.",
+		"Nothing chosen":                                                                "Ничего не выбрано",
+		"None of these files can be deleted now: they changed, are in use or are gone.": "Ни один из этих файлов сейчас нельзя удалить: они изменились, используются или исчезли.",
+		"%v files, %v":                          "Файлов: %v, %v",
+		"Delete %v files":                       "Удалить файлы (%v)",
+		"No file can be deleted from here now.": "Сейчас отсюда нельзя удалить ни одного файла.",
 		// the menus
 		"In seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified.":                               "За секунды проверяется, что заголовок каждого NCA подписан Nintendo, без чтения данных. Файл без подписи получает статус «Изменён».",
 		"Every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted.": "Каждый файл читается целиком, и каждый NCA сверяется со своими хешами, что находит любой повреждённый байт; это занимает столько же, сколько чтение файлов. Повреждённый файл получает статус «Повреждён».",

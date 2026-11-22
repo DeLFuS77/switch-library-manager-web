@@ -3,6 +3,29 @@ package i18n
 // German interface translations; see translations.go.
 func init() {
 	Translations["de"] = map[string]string{
+		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
+		"1 file":                                "1 Datei",
+		"1 file, %v":                            "1 Datei, %v",
+		"Delete 1 file":                         "1 Datei löschen",
+		"Games you want and do not have yet.":   "Spiele, die du willst und noch nicht hast.",
+		"The wishlist as JSON, for other tools": "Die Wunschliste als JSON, für andere Werkzeuge",
+		"Choose files to delete…":               "Dateien zum Löschen auswählen…",
+		"Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.": "„%v“ (%v) in die Quarantäne verschieben? Du kannst sie unter Einstellungen, Quarantäne zurücklegen.",
+		"Part of a game, a mod or a dump of a console: not deleted from here":              "Teil eines Spiels, einer Mod oder eines Konsolen-Dumps: wird hier nicht gelöscht",
+		"Changed a moment ago, maybe still being copied: not deleted for now":              "Gerade eben geändert, wird vielleicht noch kopiert: wird vorerst nicht gelöscht",
+		"A link, or in the folders of the app: not deleted from here":                      "Eine Verknüpfung oder in den Ordnern der App: wird hier nicht gelöscht",
+		"Choose the files to delete": "Wähle die Dateien zum Löschen",
+		"What is never offered":      "Was nie angeboten wird",
+		"Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left.": "Teile eines Spiels oder einer Mod (NCA, Tickets, romfs- und exefs-Ordner), Schlüssel, Homebrew, Spielstände, in den letzten 10 Minuten geänderte Dateien, Verknüpfungen und die Ordner der App. Nichts aus einem Archiv wird aufgelistet: Ein Archiv ist eine Datei. Jede Datei wird vor dem Löschen noch einmal geprüft, und eine, die ein anderes Programm geöffnet hat, bleibt.",
+		"Nothing is ticked: tick the files you do not want.":                            "Nichts ist angehakt: Hake die Dateien an, die du nicht willst.",
+		"They go to the quarantine, where they can be put back.":                        "Sie kommen in die Quarantäne, aus der sie zurückgelegt werden können.",
+		"They cannot be recovered.":                                                     "Sie lassen sich nicht wiederherstellen.",
+		"%v other files are not offered.":                                               "%v weitere Dateien werden nicht angeboten.",
+		"Nothing chosen":                                                                "Nichts ausgewählt",
+		"None of these files can be deleted now: they changed, are in use or are gone.": "Keine dieser Dateien kann jetzt gelöscht werden: Sie haben sich geändert, sind in Gebrauch oder sind weg.",
+		"%v files, %v":                          "%v Dateien, %v",
+		"Delete %v files":                       "%v Dateien löschen",
+		"No file can be deleted from here now.": "Hier kann gerade keine Datei gelöscht werden.",
 		// the menus
 		"In seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified.":                               "In Sekunden wird geprüft, ob der Header jeder NCA die Signatur von Nintendo trägt, ohne die Daten zu lesen. Eine Datei ohne sie ist „Verändert“.",
 		"Every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted.": "Jede Datei wird ganz gelesen und jede NCA mit ihren Hashes verglichen, was jedes beschädigte Byte findet; das dauert so lange wie das Lesen der Dateien. Eine beschädigte Datei ist „Beschädigt“.",
