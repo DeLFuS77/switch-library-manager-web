@@ -5,6 +5,9 @@
 				<a class="library-view{{if eq .Current "all"}} active{{end}}" href="/index.html"{{if eq .Current "all"}} aria-current="page"{{end}}>{{if eq .Current "all"}}<span class="view-indicator" aria-hidden="true"></span>{{end}}<span class="bi bi-grid-3x3-gap" aria-hidden="true"></span>{{t "All"}}<span class="library-view-count">{{template "viewCount" .All}}</span></a>
 				<a class="library-view{{if eq .Current "mine"}} active{{end}}" href="/index.html?missing=0"{{if eq .Current "mine"}} aria-current="page"{{end}}>{{if eq .Current "mine"}}<span class="view-indicator" aria-hidden="true"></span>{{end}}<span class="bi bi-collection" aria-hidden="true"></span>{{t "My games"}}<span class="library-view-count">{{template "viewCount" .Mine}}</span></a>
 				<a class="library-view{{if eq .Current "missing"}} active{{end}}" href="/missing.html"{{if eq .Current "missing"}} aria-current="page"{{end}}>{{if eq .Current "missing"}}<span class="view-indicator" aria-hidden="true"></span>{{end}}<span class="bi bi-search-heart" aria-hidden="true"></span>{{t "Missing ones"}}<span class="library-view-count">{{template "viewCount" .Missing}}</span></a>
+				{{- if or .Wished (eq .Current "wanted")}}
+				<a class="library-view{{if eq .Current "wanted"}} active{{end}}" href="/missing.html?status=wanted"{{if eq .Current "wanted"}} aria-current="page"{{end}}>{{if eq .Current "wanted"}}<span class="view-indicator" aria-hidden="true"></span>{{end}}<span class="bi bi-heart" aria-hidden="true"></span>{{t "Wishlist"}}<span class="library-view-count">{{template "viewCount" .Wished}}</span></a>
+				{{- end}}
 			</nav>
 			{{- if .ShowConsole}}
 			{{- /* the console of the games shown, with each view; remembered for the next ones */}}

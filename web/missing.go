@@ -22,13 +22,18 @@ func (web *Web) HandleMissing() {
 
 	web.HandleFiltered("/missing.html", func(filter *TitleItemFilter, lang string) any {
 		items, p, facets := web.getMissingGamesWithFacets(filter, lang)
+		// the wishlist is a view of its own, beside Missing ones
+		view := "missing"
+		if filter.Status == userdata.STATUS_WANTED {
+			view = userdata.STATUS_WANTED
+		}
 		data := MissingPageData{TitleItemsPageData: TitleItemsPageData{
 			GlobalPageData: web.globalPageData("missing"),
 			WishedCount:    web.wishes().Count(),
 			TitleItems:     items,
 			Filter:         filter,
 			Pagination:     p,
-			Views:          web.libraryViews("missing", lang, filter.Console).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
+			Views:          web.libraryViews(view, lang, filter.Console).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
 		}, Facets: facets}
 		if filter.Plain() {
 			data.Recommendations = web.recommendations(lang)

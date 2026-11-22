@@ -3,6 +3,29 @@ package i18n
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	Translations["zh"] = map[string]string{
+		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
+		"1 file":                                "1 个文件",
+		"1 file, %v":                            "1 个文件，%v",
+		"Delete 1 file":                         "删除 1 个文件",
+		"Games you want and do not have yet.":   "你想要但还没有的游戏。",
+		"The wishlist as JSON, for other tools": "愿望单的 JSON，供其他工具使用",
+		"Choose files to delete…":               "选择要删除的文件…",
+		"Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.": "将“%v”(%v)移到隔离区？可在设置的隔离区中放回。",
+		"Part of a game, a mod or a dump of a console: not deleted from here":              "游戏、模组或主机转储的一部分：不会在这里删除",
+		"Changed a moment ago, maybe still being copied: not deleted for now":              "刚刚被修改，可能仍在复制：暂不删除",
+		"A link, or in the folders of the app: not deleted from here":                      "链接，或位于应用的文件夹中：不会在这里删除",
+		"Choose the files to delete": "选择要删除的文件",
+		"What is never offered":      "从不列出的内容",
+		"Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left.": "游戏或模组的组成部分（NCA、票据、romfs 和 exefs 文件夹）、密钥、自制软件、存档、最近 10 分钟内修改过的文件、链接以及应用的文件夹。压缩包内的内容不会列出：压缩包是一个文件。每个文件在删除前都会再检查一次，被其他程序打开的文件会保留。",
+		"Nothing is ticked: tick the files you do not want.":                            "未勾选任何文件：勾选你不需要的文件。",
+		"They go to the quarantine, where they can be put back.":                        "它们会移到隔离区，可从那里放回。",
+		"They cannot be recovered.":                                                     "删除后无法恢复。",
+		"%v other files are not offered.":                                               "另有 %v 个文件未列出。",
+		"Nothing chosen":                                                                "未选择",
+		"None of these files can be deleted now: they changed, are in use or are gone.": "这些文件现在都无法删除：它们已更改、正在使用或已不存在。",
+		"%v files, %v":                          "%v 个文件，%v",
+		"Delete %v files":                       "删除 %v 个文件",
+		"No file can be deleted from here now.": "现在没有可从这里删除的文件。",
 		// the menus
 		"In seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified.":                               "几秒钟内检查每个 NCA 的文件头是否有 Nintendo 的签名，不读取数据。没有签名的文件为“已修改”。",
 		"Every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted.": "完整读取每个文件，并用哈希核对每个 NCA，可以找出任何损坏的字节；所需时间与读取文件相同。损坏的文件为“已损坏”。",

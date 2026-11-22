@@ -387,6 +387,142 @@ function initIssueDeleteFile() {
 	}));
 }
 
+// Issues: choose files that are not games to delete, in a window with nothing ticked; a
+// confirmation says how many and how much before they go, and the library is scanned again (#197)
+function initNonGameChoose() {
+	const element = document.getElementById('nonGameChoose');
+	const open = document.querySelector('[data-non-game-choose]');
+	if (!element || !open) {
+		return;
+	}
+	const list = element.querySelector('[data-non-game-list]');
+	const total = element.querySelector('[data-non-game-total]');
+	const remove = element.querySelector('[data-non-game-delete]');
+	const removeLabel = element.querySelector('[data-non-game-delete-label]');
+	const left = element.querySelector('[data-non-game-left]');
+	const chosen = () => [...list.querySelectorAll('input[data-path]:checked')];
+	const update = () => {
+		const files = chosen();
+		const size = files.reduce((sum, box) => sum + Number(box.dataset.size), 0);
+		const one = files.length === 1;
+		total.textContent = files.length ? (one ? t('1 file, %v', formatSize(size)) : t('%v files, %v', files.length, formatSize(size))) : t('Nothing chosen');
+		removeLabel.textContent = files.length ? (one ? t('Delete 1 file') : t('Delete %v files', files.length)) : t('Delete');
+		remove.disabled = !files.length;
+		list.querySelectorAll('input[data-type-all]').forEach(all => {
+			const boxes = [...list.querySelectorAll(`input[data-type="${all.dataset.typeAll}"]`)];
+			const ticked = boxes.filter(box => box.checked).length;
+			all.checked = ticked === boxes.length;
+			all.indeterminate = ticked > 0 && ticked < boxes.length;
+		});
+	};
+	const show = data => {
+		list.replaceChildren();
+		(data.types || []).forEach((group, g) => {
+			const head = document.createElement('label');
+			head.className = 'non-game-type';
+			const all = document.createElement('input');
+			all.type = 'checkbox';
+			all.className = 'form-check-input';
+			all.dataset.typeAll = String(g);
+			const name = document.createElement('span');
+			name.className = 'fw-semibold';
+			name.textContent = group.type;
+			const count = document.createElement('span');
+			count.className = 'text-body-secondary';
+			count.textContent = group.files.length === 1 ? t('1 file') : t('%v files', group.files.length);
+			const size = document.createElement('span');
+			size.className = 'non-game-size';
+			size.textContent = formatSize(group.size);
+			head.append(all, name, count, size);
+			all.addEventListener('change', () => {
+				list.querySelectorAll(`input[data-type="${g}"]`).forEach(box => {
+					box.checked = all.checked;
+				});
+				update();
+			});
+			list.append(head);
+			group.files.forEach(file => {
+				const row = document.createElement('label');
+				row.className = 'non-game-file';
+				const box = document.createElement('input');
+				box.type = 'checkbox';
+				box.className = 'form-check-input';
+				box.dataset.path = file.path;
+				box.dataset.size = String(file.size);
+				box.dataset.type = String(g);
+				box.addEventListener('change', update);
+				// the name, and its folder after it, cut short: the whole path in its title
+				const path = document.createElement('span');
+				path.className = 'non-game-path';
+				path.title = file.path;
+				const fileName = document.createElement('span');
+				fileName.textContent = file.name;
+				const folder = document.createElement('span');
+				folder.className = 'non-game-folder';
+				folder.textContent = file.path.slice(0, Math.max(0, file.path.length - file.name.length - 1));
+				path.append(fileName, folder);
+				const fileSize = document.createElement('span');
+				fileSize.className = 'non-game-size';
+				fileSize.textContent = formatSize(file.size);
+				row.append(box, path, fileSize);
+				list.append(row);
+			});
+		});
+		if (!list.children.length) {
+			const none = document.createElement('div');
+			none.className = 'text-body-secondary small py-3';
+			none.textContent = t('No file can be deleted from here now.');
+			list.append(none);
+		}
+		left.hidden = !data.leftOut;
+		left.textContent = t(left.dataset.text, data.leftOut || 0);
+		update();
+	};
+	open.addEventListener('click', () => {
+		Modal.getOrCreateInstance(element).show();
+		apiFetch('/issues/non-game-files').then(response => readJSON(response).then(json => {
+			if (!response.ok) {
+				throw new Error((json.globalError && json.globalError.message) || t('Unexpected server response (%v).', response.status));
+			}
+			show(json);
+		})).catch(error => {
+			list.replaceChildren();
+			insertAlert(list, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		});
+	});
+	remove.addEventListener('click', () => {
+		const files = chosen();
+		if (!files.length) {
+			return;
+		}
+		const size = formatSize(files.reduce((sum, box) => sum + Number(box.dataset.size), 0));
+		const name = files[0].closest('.non-game-file').querySelector('.non-game-path > span').textContent;
+		const quarantine = element.dataset.nonGameQuarantine === 'true';
+		let question;
+		if (files.length === 1) {
+			question = quarantine
+				? t('Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.', name, size)
+				: t('Delete “%v” (%v)? It cannot be recovered.', name, size);
+		} else {
+			question = quarantine
+				? t('Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.', files.length, size)
+				: t('Delete %v files (%v)? This cannot be undone.', files.length, size);
+		}
+		if (!window.confirm(question)) {
+			return;
+		}
+		remove.disabled = true;
+		const params = new URLSearchParams();
+		files.forEach(box => params.append('path', box.dataset.path));
+		runAsTask(() => postForm('/issues/delete-non-game', params))
+			.then(() => Modal.getOrCreateInstance(element).hide())
+			.catch(error => {
+				remove.disabled = false;
+				insertAlert(list, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+	});
+}
+
 // Issues: keep this copy of a duplicate, the library is scanned again
 function initIssueKeep() {
 	document.querySelectorAll('[data-issue-keep]').forEach(button => button.addEventListener('click', () => {

@@ -472,12 +472,14 @@ type TitleItemsPageData struct {
 	Views LibraryViews
 }
 
-// LibraryViews are the numbers of the three views of the Library, and the one shown: "mine",
-// "missing" (the page that was Missing Games) or "all" (both, the missing ones greyed out).
+// LibraryViews are the numbers of the views of the Library, and the one shown: "mine",
+// "missing" (the page that was Missing Games), "all" (both, the missing ones greyed out) or
+// "wanted" (the games of the wishlist, shown once it has any).
 type LibraryViews struct {
 	Current string
 	Mine    int
 	Missing int
+	Wished  int
 	// the console of the games shown ("" both), and how many of the view are of each, beside the
 	// views when there are games of the Switch 2 to choose from (see withConsole)
 	Console     string

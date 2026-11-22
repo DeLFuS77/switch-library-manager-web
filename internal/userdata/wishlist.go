@@ -63,6 +63,29 @@ func (w *Wishlist) Ids() []string {
 	return ids
 }
 
+// Wish is a game of the wishlist and when it was added.
+type Wish struct {
+	Id    string
+	Added time.Time
+}
+
+// Wishes are the games of the wishlist, the first added first (by ID when added at once).
+func (w *Wishlist) Wishes() []Wish {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	wishes := make([]Wish, 0, len(w.games))
+	for id, added := range w.games {
+		wishes = append(wishes, Wish{Id: id, Added: added})
+	}
+	sort.Slice(wishes, func(i, j int) bool {
+		if !wishes[i].Added.Equal(wishes[j].Added) {
+			return wishes[i].Added.Before(wishes[j].Added)
+		}
+		return wishes[i].Id < wishes[j].Id
+	})
+	return wishes
+}
+
 // Count is the number of games on the wishlist.
 func (w *Wishlist) Count() int {
 	w.mutex.Lock()

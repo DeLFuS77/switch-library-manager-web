@@ -543,7 +543,7 @@ func (web *Web) libraryViews(current string, lang string, console string) Librar
 		}
 		return counts
 	}).(consoleCounts)
-	return LibraryViews{Current: current, Mine: mine.of(console), Missing: web.missingGamesCounts().of(console)}
+	return LibraryViews{Current: current, Mine: mine.of(console), Missing: web.missingGamesCounts().of(console), Wished: web.wishes().Count()}
 }
 
 // buildLibraryWithMissing lists the games of the library and, greyed out, the games of the

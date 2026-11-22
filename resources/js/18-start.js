@@ -335,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initSmartCollections();
 	initActivityFilter();
 	initIssueDeleteFile();
+	initNonGameChoose();
 	initGameUpload();
 	initSearchClear();
 	initCopyButtons();

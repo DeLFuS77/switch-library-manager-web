@@ -3,6 +3,29 @@ package i18n
 // Japanese interface translations; see translations.go.
 func init() {
 	Translations["ja"] = map[string]string{
+		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
+		"1 file":                                "1 個のファイル",
+		"1 file, %v":                            "1 個のファイル、%v",
+		"Delete 1 file":                         "1 個のファイルを削除",
+		"Games you want and do not have yet.":   "欲しいけれどまだ持っていないゲームです。",
+		"The wishlist as JSON, for other tools": "ウィッシュリストの JSON（ほかのツール用）",
+		"Choose files to delete…":               "削除するファイルを選ぶ…",
+		"Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.": "「%v」(%v)を隔離に移動しますか？ 設定の「隔離」から戻せます。",
+		"Part of a game, a mod or a dump of a console: not deleted from here":              "ゲーム・MOD・本体ダンプの一部です。ここからは削除しません",
+		"Changed a moment ago, maybe still being copied: not deleted for now":              "変更されたばかりで、まだコピー中かもしれません。今は削除しません",
+		"A link, or in the folders of the app: not deleted from here":                      "リンク、またはアプリのフォルダー内です。ここからは削除しません",
+		"Choose the files to delete": "削除するファイルを選んでください",
+		"What is never offered":      "表示されないもの",
+		"Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left.": "ゲームや MOD の一部（NCA、チケット、romfs・exefs フォルダー）、キー、自作ソフト、セーブデータ、直近 10 分以内に変更されたファイル、リンク、アプリのフォルダー。アーカイブの中身は一覧に出ません。アーカイブは 1 つのファイルです。各ファイルは削除の前にもう一度確認し、ほかのプログラムが開いているものは残します。",
+		"Nothing is ticked: tick the files you do not want.":                            "何もチェックされていません。不要なファイルにチェックを入れてください。",
+		"They go to the quarantine, where they can be put back.":                        "隔離に移動され、そこから戻せます。",
+		"They cannot be recovered.":                                                     "元に戻せません。",
+		"%v other files are not offered.":                                               "ほかの %v 個のファイルは表示されません。",
+		"Nothing chosen":                                                                "未選択",
+		"None of these files can be deleted now: they changed, are in use or are gone.": "今はどのファイルも削除できません。変更されたか、使用中か、なくなっています。",
+		"%v files, %v":                          "%v 個のファイル、%v",
+		"Delete %v files":                       "%v 個のファイルを削除",
+		"No file can be deleted from here now.": "今はここから削除できるファイルはありません。",
 		// the menus
 		"In seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified.":                               "数秒で、各 NCA のヘッダーに Nintendo の署名があるかを確認します。データは読みません。署名のないファイルは「変更あり」になります。",
 		"Every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted.": "各ファイルを丸ごと読み、各 NCA をハッシュと照合します。破損したバイトをすべて見つけますが、ファイルを読むのと同じ時間がかかります。破損したファイルは「破損」になります。",
