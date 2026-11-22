@@ -472,6 +472,30 @@
         }
       }
     },
+    "/api/wishlist": {
+      "get": {
+        "summary": "Wishlist",
+        "description": "The games of the wishlist, the first wished first: read only (games are added and removed with the heart in the app). A game the titles database does not know keeps its ID, without a name or dates.",
+        "tags": [
+          "Library"
+        ],
+        "responses": {
+          "200": {
+            "description": "The wished games",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Wish"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/statistics": {
       "get": {
         "summary": "Library statistics",
@@ -1648,6 +1672,48 @@
             }
           }
         ]
+      },
+      "Wish": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "addedAt",
+          "released"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Title ID of the game",
+            "example": "0100ABCD12340000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name in the titles database; empty when it does not know the game"
+          },
+          "region": {
+            "type": "string",
+            "example": "US"
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was added to the wishlist"
+          },
+          "releaseDate": {
+            "type": "string",
+            "description": "Release date as the store gives it: a day (2026-03-14), or only the month (2026-03) or the year (2026)",
+            "example": "2026-03-14"
+          },
+          "released": {
+            "type": "boolean",
+            "description": "Whether it is out today"
+          },
+          "iconUrl": {
+            "type": "string",
+            "description": "Cover of the game"
+          }
+        }
       },
       "TitleOverride": {
         "type": "object",

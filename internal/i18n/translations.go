@@ -4,6 +4,29 @@ package i18n
 // Translate() calls and in web.js; "%v" placeholders are kept in the translation.
 var Translations = map[string]map[string]string{
 	"es": {
+		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
+		"1 file":                                "1 archivo",
+		"1 file, %v":                            "1 archivo, %v",
+		"Delete 1 file":                         "Borrar 1 archivo",
+		"Games you want and do not have yet.":   "Juegos que quieres y aún no tienes.",
+		"The wishlist as JSON, for other tools": "La lista de deseos en JSON, para otras herramientas",
+		"Choose files to delete…":               "Elegir archivos para borrar…",
+		"Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.": "¿Mover «%v» (%v) a la cuarentena? Puedes devolverlo desde Ajustes, Cuarentena.",
+		"Part of a game, a mod or a dump of a console: not deleted from here":              "Parte de un juego, un mod o un volcado de una consola: no se borra desde aquí",
+		"Changed a moment ago, maybe still being copied: not deleted for now":              "Cambiado hace un momento, puede que aún se esté copiando: no se borra por ahora",
+		"A link, or in the folders of the app: not deleted from here":                      "Un enlace, o en las carpetas de la app: no se borra desde aquí",
+		"Choose the files to delete": "Elige los archivos que quieres borrar",
+		"What is never offered":      "Lo que nunca se ofrece",
+		"Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left.": "Partes de un juego o de un mod (NCA, tickets, carpetas romfs y exefs), claves, homebrew, partidas guardadas, archivos cambiados en los últimos 10 minutos, enlaces y las carpetas de la app. No se lista nada de dentro de un comprimido: un comprimido es un solo archivo. Cada archivo se vuelve a mirar antes de borrarlo, y el que tenga abierto otro programa se deja.",
+		"Nothing is ticked: tick the files you do not want.":                            "No hay nada marcado: marca los archivos que no quieres.",
+		"They go to the quarantine, where they can be put back.":                        "Van a la cuarentena, desde donde se pueden devolver.",
+		"They cannot be recovered.":                                                     "No se pueden recuperar.",
+		"%v other files are not offered.":                                               "Otros %v archivos no se ofrecen.",
+		"Nothing chosen":                                                                "Nada elegido",
+		"None of these files can be deleted now: they changed, are in use or are gone.": "Ninguno de estos archivos se puede borrar ahora: han cambiado, están en uso o ya no están.",
+		"%v files, %v":                          "%v archivos, %v",
+		"Delete %v files":                       "Borrar %v archivos",
+		"No file can be deleted from here now.": "Ahora no se puede borrar ningún archivo desde aquí.",
 		// the menus
 		"In seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified.":                               "En segundos se comprueba que la cabecera de cada NCA lleva la firma de Nintendo, sin leer los datos. Un archivo sin ella sale como Modificado.",
 		"Every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted.": "Cada archivo se lee entero y cada NCA se comprueba con sus hashes, lo que encuentra cualquier byte dañado; tarda lo que se tarda en leer los archivos. Un archivo dañado sale como Corrupto.",
@@ -2680,6 +2703,8 @@ var Translations = map[string]map[string]string{
 
 // texts used by web.js, sent to the browser in the page language
 var JSTexts = []string{
+	"1 file", "1 file, %v", "Delete 1 file", "Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.", "Delete “%v” (%v)? It cannot be recovered.",
+	"Nothing chosen", "%v files, %v", "Delete %v files", "%v files", "No file can be deleted from here now.", "Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.", "Delete %v files (%v)? This cannot be undone.",
 	"Help about %v",
 	"Updating", "The update was cancelled.", "Downloading the new version...", "Checking the new version...", "Going back to the version of before...", "You have the latest version.", "Installed: the app starts again...", "The app does not answer: start it again by hand.",
 	"Deleting empty folders...", "Tasks running: %v", "Failed tasks: %v",

@@ -33,8 +33,10 @@ type Issue struct {
 	CanKeep     bool
 	// on the shown page only: an old update, which can be kept on purpose (Keep this update)
 	CanKeepUpdate bool
-	// on the shown page only: the file can be deleted on its own (see fileDeletableIssueKinds)
-	CanDelete bool
+	// on the shown page only: the file can be deleted on its own (see fileDeletableIssueKinds),
+	// or why a file that is not a game is not offered (see nonGameRefusal)
+	CanDelete  bool
+	NotDeleted string
 	// the scan could not read the file as it ends before its contents do (see db.CutShort)
 	CutShort bool
 }
@@ -68,6 +70,8 @@ type IssuesPageData struct {
 	// the issues by kind, and the kind the list shows
 	Summaries []IssueSummary
 	Kind      string
+	// a file deleted goes to the quarantine first
+	Quarantine bool
 }
 
 // unsupportedTypes counts the files of the issues that are of a type the app does not read,
@@ -136,9 +140,14 @@ func (web *Web) HandleIssues() {
 				shown[i].CanKeepUpdate = updateKeyOf(db.ExtendedFileInfo{FileName: filepath.Base(shown[i].File), BaseFolder: filepath.Dir(shown[i].File)}) != ""
 			}
 			shown[i].CanDelete = fileDeletableIssueKinds[shown[i].kind()] && !shown[i].Kept && shown[i].Size >= 0
+			if shown[i].kind() == ISSUE_UNSUPPORTED && shown[i].Size >= 0 {
+				shown[i].NotDeleted = web.nonGameRefusal(shown[i].File, time.Now())
+				shown[i].CanDelete = shown[i].NotDeleted == ""
+			}
 		}
 		return IssuesPageData{
 			GlobalPageData:   web.globalPageData("issues"),
+			Quarantine:       quarantineOn(settings.ReadSettings(web.dataFolder).Quarantine),
 			Issues:           shown,
 			Total:            len(all),
 			Filter:           filter,
@@ -200,6 +209,10 @@ func (web *Web) HandleIssues() {
 		}
 		kind := found.kind()
 		files := issueFiles([]Issue{*found}, kind)
+		if kind == ISSUE_UNSUPPORTED {
+			// a file of the user: looked at again, as the window to choose them does
+			files = web.deletableNonGameFiles([]string{found.File}, time.Now())
+		}
 		if len(files) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
@@ -215,6 +228,7 @@ func (web *Web) HandleIssues() {
 	}).Methods("POST")
 
 	web.handleKeepUpdates()
+	web.handleNonGameFiles()
 
 	// keep this copy of a duplicate: the other one becomes the duplicate, and the library is
 	// scanned again

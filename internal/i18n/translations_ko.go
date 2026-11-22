@@ -3,6 +3,29 @@ package i18n
 // Korean interface translations; see translations.go.
 func init() {
 	Translations["ko"] = map[string]string{
+		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
+		"1 file":                                "파일 1개",
+		"1 file, %v":                            "파일 1개, %v",
+		"Delete 1 file":                         "파일 1개 삭제",
+		"Games you want and do not have yet.":   "원하지만 아직 없는 게임입니다.",
+		"The wishlist as JSON, for other tools": "다른 도구용 위시리스트 JSON",
+		"Choose files to delete…":               "삭제할 파일 고르기…",
+		"Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.": "“%v”(%v)을(를) 격리함으로 옮길까요? 설정의 격리함에서 되돌릴 수 있습니다.",
+		"Part of a game, a mod or a dump of a console: not deleted from here":              "게임, 모드 또는 콘솔 덤프의 일부: 여기서 삭제하지 않아요",
+		"Changed a moment ago, maybe still being copied: not deleted for now":              "방금 바뀌어 아직 복사 중일 수 있어요: 지금은 삭제하지 않아요",
+		"A link, or in the folders of the app: not deleted from here":                      "링크이거나 앱 폴더 안에 있어요: 여기서 삭제하지 않아요",
+		"Choose the files to delete": "삭제할 파일을 고르세요",
+		"What is never offered":      "절대 표시하지 않는 것",
+		"Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left.": "게임이나 모드의 일부(NCA, 티켓, romfs·exefs 폴더), 키, 홈브루, 세이브, 최근 10분 안에 바뀐 파일, 링크와 앱 폴더. 압축 파일 안의 내용은 나오지 않아요: 압축 파일은 하나의 파일이에요. 각 파일은 지우기 전에 다시 확인하고, 다른 프로그램이 연 파일은 남겨 둬요.",
+		"Nothing is ticked: tick the files you do not want.":                            "아무것도 체크되지 않았어요: 필요 없는 파일을 체크하세요.",
+		"They go to the quarantine, where they can be put back.":                        "격리함으로 옮겨지며 거기서 되돌릴 수 있어요.",
+		"They cannot be recovered.":                                                     "복구할 수 없어요.",
+		"%v other files are not offered.":                                               "다른 파일 %v개는 표시하지 않아요.",
+		"Nothing chosen":                                                                "선택 없음",
+		"None of these files can be deleted now: they changed, are in use or are gone.": "지금은 이 파일들을 삭제할 수 없어요: 바뀌었거나, 사용 중이거나, 없어졌어요.",
+		"%v files, %v":                          "파일 %v개, %v",
+		"Delete %v files":                       "파일 %v개 삭제",
+		"No file can be deleted from here now.": "지금은 여기서 삭제할 수 있는 파일이 없어요.",
 		// the menus
 		"In seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified.":                               "몇 초 만에 각 NCA의 헤더에 Nintendo 서명이 있는지 검사하며 데이터는 읽지 않습니다. 서명이 없는 파일은 '수정됨'이 됩니다.",
 		"Every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted.": "각 파일을 통째로 읽고 각 NCA를 해시와 대조하여 손상된 바이트를 모두 찾습니다. 파일을 읽는 만큼 시간이 걸립니다. 손상된 파일은 '손상됨'가 됩니다.",

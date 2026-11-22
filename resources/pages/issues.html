@@ -73,6 +73,8 @@
 					<footer class="issue-kind-actions">
 						<a class="btn btn-sm rounded-pill issue-kind-filter" href="{{if eq $.Kind .Kind}}{{filterUrl $.Filter "kind_of_issue" ""}}{{else}}{{filterUrl $.Filter "kind_of_issue" .Kind}}{{end}}" aria-pressed="{{if eq $.Kind .Kind}}true{{else}}false{{end}}">{{if eq $.Kind .Kind}}<span class="bi bi-funnel-fill me-1" aria-hidden="true"></span>{{t "Showing them"}} &middot; {{t "show all"}}{{else}}<span class="bi bi-funnel me-1" aria-hidden="true"></span>{{t "See the files"}}{{end}}</a>
 						{{- if .Href}}<a class="btn btn-sm btn-glass rounded-pill" href="{{.Href}}">{{.Action}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>{{end}}
+						{{- if .SettingsHref}}<a class="btn btn-sm btn-glass rounded-pill admin-only" href="{{.SettingsHref}}"><span class="bi bi-sliders me-1" aria-hidden="true"></span>{{.SettingsAction}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>{{end}}
+						{{- if .Choose}}<button type="button" class="btn btn-sm btn-outline-danger rounded-pill ms-auto admin-only" data-non-game-choose><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Choose files to delete…"}}</button>{{end}}
 						{{- if .Deletable}}<button type="button" class="btn btn-sm btn-outline-danger rounded-pill ms-auto admin-only" data-issue-delete="{{.Kind}}" data-confirm="{{t "Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards." (num .Count) .Title (formatSize .Size)}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete them"}}</button>{{end}}
 					</footer>
 				</article>
@@ -93,6 +95,7 @@
 				{{- range .UnsupportedTypes}}
 				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-ignore-type="{{.Name}}">{{.Name}} <span class="filter-count">{{num .Count}}</span></button>
 				{{- end}}
+				<a class="btn btn-sm btn-glass rounded-pill" href="/settings.html#ignored"><span class="bi bi-sliders me-1" aria-hidden="true"></span>{{t "Ignored file types"}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>
 			</div>
 			{{- end}}
 			{{- if gt .Total 0}}
@@ -127,7 +130,9 @@
 						{{- with .GamesInFile}}<div class="small text-body-secondary mt-1"><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</div>{{end}}
 						{{- if .Kept}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted."}}</span>{{end}}
 						{{- if .CanDelete}}
-						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-issue-delete-file="{{.File}}" data-confirm="{{t "Delete “%v” (%v)? It cannot be recovered." (fileBase .File) (formatSize .Size)}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete"}}</button></div>
+						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-issue-delete-file="{{.File}}" data-confirm="{{if and $.Quarantine (eq .Reason "file type is not supported")}}{{t "Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine." (fileBase .File) (formatSize .Size)}}{{else}}{{t "Delete “%v” (%v)? It cannot be recovered." (fileBase .File) (formatSize .Size)}}{{end}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete"}}</button></div>
+						{{- else if .NotDeleted}}
+						<span class="chip chip-info mt-1 admin-only"><span class="bi bi-shield-lock" aria-hidden="true"></span>{{t .NotDeleted}}</span>
 						{{- end}}
 						{{- if .CanKeep}}
 						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-issue-keep="{{.File}}" title="{{t "Keep this copy: the other one becomes the duplicate."}}"><span class="bi bi-pin-angle me-1" aria-hidden="true"></span>{{t "Keep this one"}}</button></div>
@@ -144,5 +149,29 @@
 			{{- template "noResults" .Filter}}
 			{{- else}}
 			{{- template "emptyState" (dict "Icon" "bi-shield-check" "Tone" "success" "Title" (t "No issues") "Text" (t "Every file in your folders was recognized.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- end}}
+			{{- if .UnsupportedTypes}}
+			<div class="modal fade admin-only" id="nonGameChoose" tabindex="-1" aria-labelledby="nonGameChooseTitle" aria-hidden="true" data-non-game-quarantine="{{.Quarantine}}">
+				<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5 flex-grow-1" id="nonGameChooseTitle"><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Choose the files to delete"}}</h2>
+							<button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body" data-hover-help>
+							<div class="small fw-semibold help-name d-inline-block mb-1">{{t "What is never offered"}}</div>
+							<p class="form-text">{{t "Parts of a game or a mod (NCA, tickets, romfs and exefs folders), keys, homebrew, saves, files changed in the last 10 minutes, links and the folders of the app. Nothing inside an archive is listed: an archive is one file. Each file is looked at again before it goes, and one that another program has open is left."}}</p>
+							<p class="small text-body-secondary mb-2">{{t "Nothing is ticked: tick the files you do not want."}} {{if .Quarantine}}{{t "They go to the quarantine, where they can be put back."}}{{else}}{{t "They cannot be recovered."}}{{end}}</p>
+							<div data-non-game-list><div class="text-body-secondary small py-3">{{t "Loading..."}}</div></div>
+							<p class="small text-body-secondary mt-2 mb-0" data-non-game-left hidden data-text="{{t "%v other files are not offered."}}"></p>
+						</div>
+						<div class="modal-footer">
+							<span class="small text-body-secondary me-auto" data-non-game-total>{{t "Nothing chosen"}}</span>
+							<button type="button" class="btn btn-glass rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="button" class="btn btn-danger rounded-pill px-4" data-non-game-delete disabled><span class="bi bi-trash3 me-1" aria-hidden="true"></span><span data-non-game-delete-label>{{t "Delete"}}</span></button>
+						</div>
+					</div>
+				</div>
+			</div>
 			{{- end}}
 {{- end}}

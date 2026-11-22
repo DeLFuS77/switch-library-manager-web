@@ -155,6 +155,10 @@ type IssueSummary struct {
 	// its files are of no use and can be deleted from the summary, with their size
 	Deletable bool
 	Size      int64
+	// its files can be chosen to be deleted, in a window (the files that are not games)
+	Choose bool
+	// where its settings are, for administrators
+	SettingsHref, SettingsAction string
 }
 
 // deletableIssueKinds are the kinds whose files are of no use as they are and can go at
@@ -175,8 +179,10 @@ func deletableIssueKind(requested string) (string, bool) {
 }
 
 // fileDeletableIssueKinds are the kinds whose files can be deleted one by one, each after a
-// confirmation: the ones that cannot be read are too, once the user knows what they are.
-var fileDeletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_TRUNCATED: true, ISSUE_UNREADABLE: true}
+// confirmation: the ones that cannot be read are too, once the user knows what they are, and
+// the files that are not games, but for the ones that may belong to something else (#197, see
+// nonGameRefusal).
+var fileDeletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_TRUNCATED: true, ISSUE_UNREADABLE: true, ISSUE_UNSUPPORTED: true}
 
 // issueFiles lists the files of the issues of a kind as they are now on the disk; files
 // gone or no longer files are left out.
@@ -274,6 +280,8 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 			summary.Text = t("The app could not read them inside and trusts their file name. With your prod.keys they are read whole.")
 		case ISSUE_UNSUPPORTED:
 			summary.Text = t("Images, notes, archives... in your folders. Ignore their types below to stop listing them.")
+			summary.Choose = true
+			summary.SettingsHref, summary.SettingsAction = "/settings.html#ignored", t("Ignored file types")
 		}
 		summaries = append(summaries, summary)
 	}
