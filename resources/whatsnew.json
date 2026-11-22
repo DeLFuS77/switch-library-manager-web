@@ -1,4 +1,50 @@
 {
+  "2.0.22": {
+    "en": [
+      "Wishlist: a view of its own in the Library, next to Missing ones, and /api/wishlist to read it as JSON.",
+      "Issues: files that are not games can be deleted, always after a confirmation."
+    ],
+    "es": [
+      "Lista de deseos: una vista propia en la Biblioteca, junto a Me faltan, y /api/wishlist para leerla en JSON.",
+      "Problemas: los archivos que no son juegos se pueden borrar, siempre tras confirmarlo."
+    ],
+    "de": [
+      "Wunschliste: eine eigene Ansicht in der Bibliothek, neben Fehlende, und /api/wishlist, um sie als JSON zu lesen.",
+      "Probleme: Dateien, die keine Spiele sind, können gelöscht werden, immer nach einer Bestätigung."
+    ],
+    "fr": [
+      "Liste de souhaits : une vue à part dans la Bibliothèque, à côté de Manquants, et /api/wishlist pour la lire en JSON.",
+      "Problèmes : les fichiers qui ne sont pas des jeux peuvent être supprimés, toujours après confirmation."
+    ],
+    "it": [
+      "Lista dei desideri: una vista a sé nella Libreria, accanto a Mancanti, e /api/wishlist per leggerla in JSON.",
+      "Problemi: i file che non sono giochi si possono eliminare, sempre dopo una conferma."
+    ],
+    "pt": [
+      "Lista de desejos: uma vista própria na Biblioteca, ao lado de Em falta, e /api/wishlist para a ler em JSON.",
+      "Problemas: os ficheiros que não são jogos podem ser apagados, sempre depois de uma confirmação."
+    ],
+    "nl": [
+      "Verlanglijst: een eigen weergave in de Bibliotheek, naast Ontbrekend, en /api/wishlist om hem als JSON te lezen.",
+      "Problemen: bestanden die geen games zijn, kunnen worden verwijderd, altijd na een bevestiging."
+    ],
+    "ru": [
+      "Список желаемого: отдельный вид в Библиотеке рядом с «Недостающие» и /api/wishlist, чтобы читать его в JSON.",
+      "Проблемы: файлы, которые не являются играми, можно удалить, всегда после подтверждения."
+    ],
+    "ja": [
+      "ウィッシュリスト：ライブラリの「持っていないゲーム」の隣に専用の表示ができ、/api/wishlist で JSON として読めます。",
+      "問題：ゲームではないファイルを削除できます。削除の前に必ず確認があります。"
+    ],
+    "ko": [
+      "위시리스트: 라이브러리의 '없는 게임' 옆에 전용 보기가 생겼고, /api/wishlist로 JSON으로 읽을 수 있습니다.",
+      "문제: 게임이 아닌 파일을 삭제할 수 있으며, 항상 확인 후에 삭제됩니다."
+    ],
+    "zh": [
+      "愿望单：在库中“缺少的”旁边有了单独的视图，并可通过 /api/wishlist 以 JSON 读取。",
+      "问题：不是游戏的文件可以删除，删除前总会先确认。"
+    ]
+  },
   "2.0.21": {
     "en": [
       "Keep this update: an older update kept on purpose is never deleted as old, and Compress offers it.",
