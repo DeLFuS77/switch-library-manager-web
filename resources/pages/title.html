@@ -398,6 +398,8 @@
 							<span class="chip chip-muted">{{t "Not owned"}}</span>
 							{{- else if .Ignored}}
 							<span class="chip chip-muted"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored"}}</span>
+							{{- else if .LanguageHidden}}
+							<span class="chip chip-muted"><span class="bi bi-translate" aria-hidden="true"></span>{{t "Other language"}}</span>
 							{{- else if .ComesOut}}
 							<span class="chip chip-muted"><span class="bi bi-calendar3" aria-hidden="true"></span>{{t "Comes out on %v" (releaseDate .ComesOut)}}</span>
 							{{- else}}
@@ -408,6 +410,8 @@
 							{{- else if or (not $t.Owned) .ComesOut}}
 							{{- else if .Ignored}}
 							<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
+							{{- else if .LanguageHidden}}
+							<a class="btn btn-sm btn-outline-secondary" href="/settings.html#dlcLanguages" title="{{t "Choose the languages"}}"><span class="bi bi-translate" aria-hidden="true"></span><span class="visually-hidden">{{t "Choose the languages"}}</span></a>
 							{{- else}}
 							<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
 							{{- end}}

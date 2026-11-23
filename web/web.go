@@ -309,11 +309,13 @@ type TitleItem struct {
 	LocalUpdate      int
 	MissingDLC       []string
 	MissingDLCItems  []db.TitleAttributes
-	Name             string
-	Region           string
-	ReleaseDate      time.Time
-	Type             string
-	Version          string
+	// the missing DLC that are language packs in a language not chosen in Settings (#200)
+	LanguageHidden []db.TitleAttributes
+	Name           string
+	Region         string
+	ReleaseDate    time.Time
+	Type           string
+	Version        string
 	// library status, shown on the cards
 	UpdateAvailable bool
 	MissingDlcCount int
@@ -1500,7 +1502,7 @@ func (web *Web) missingDLC() map[string]process.IncompleteTitle {
 			return map[string]process.IncompleteTitle{}
 		}
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds), dateNumber(time.Now()))
+		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, web.ignoredDLC(settingsObj), dateNumber(time.Now()))
 		return withoutDemos(missing, switchDB, settingsObj.HideDemoGames)
 	}).(map[string]process.IncompleteTitle)
 }

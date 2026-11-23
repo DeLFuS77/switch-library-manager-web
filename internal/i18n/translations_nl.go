@@ -3,6 +3,20 @@ package i18n
 // Dutch interface translations; see translations.go.
 func init() {
 	Translations["nl"] = map[string]string{
+		// the language packs of the languages not chosen (#200)
+		"Language packs and commentary": "Taalpakketten en commentaar",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "Vink de talen aan die je wilt: taalpakketten en commentaar van een game in andere talen worden niet als ontbrekende DLC getoond. Zonder vinkje worden ze allemaal getoond.",
+		"%v language packs in other languages are not counted.": "%v taalpakketten in andere talen worden niet geteld.",
+		"See them":                "Bekijken",
+		"Choose the languages":    "Talen kiezen",
+		"Other language":          "Andere taal",
+		"Spanish (Spain)":         "Spaans (Spanje)",
+		"Spanish (Latin America)": "Spaans (Latijns-Amerika)",
+		"Portuguese (Brazil)":     "Portugees (Brazilië)",
+		"Turkish":                 "Turks",
+		"Arabic":                  "Arabisch",
+		"Simplified Chinese":      "Vereenvoudigd Chinees",
+		"Traditional Chinese":     "Traditioneel Chinees",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 bestand",
 		"1 file, %v":                            "1 bestand, %v",

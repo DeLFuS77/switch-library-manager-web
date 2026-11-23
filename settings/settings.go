@@ -303,10 +303,12 @@ type AppSettings struct {
 	Debug                  bool              `json:"debug"`
 	OrganizeOptions        OrganizeOptions   `json:"organize_options"`
 	IgnoreDLCTitleIds      []string          `json:"ignore_dlc_title_ids"`
-	IgnoreUpdateTitleIds   []string          `json:"ignore_update_title_ids"`
-	IgnoreDLCUpdates       bool              `json:"ignore_dlc_updates"`
-	IgnoreFileTypes        []string          `json:"ignore_file_types"`
-	HideDemoGames          bool              `json:"hide_demo_games"`
+	// the languages whose language packs and commentary are listed as DLC; none: all of them (#200)
+	DLCLanguages         []string `json:"dlc_languages"`
+	IgnoreUpdateTitleIds []string `json:"ignore_update_title_ids"`
+	IgnoreDLCUpdates     bool     `json:"ignore_dlc_updates"`
+	IgnoreFileTypes      []string `json:"ignore_file_types"`
+	HideDemoGames        bool     `json:"hide_demo_games"`
 	// the folders below the library folders the scan leaves out, with everything in them, by
 	// the start, the end or a part of their names (see FolderSkip); none by default
 	ExcludeFolders []string `json:"exclude_folders,omitempty"`

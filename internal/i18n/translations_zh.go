@@ -3,6 +3,20 @@ package i18n
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	Translations["zh"] = map[string]string{
+		// the language packs of the languages not chosen (#200)
+		"Language packs and commentary": "语言包和解说",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "勾选需要的语言：其他语言的语言包和解说不会列为缺少的 DLC。都不勾选时全部列出。",
+		"%v language packs in other languages are not counted.": "未计入其他语言的 %v 个语言包。",
+		"See them":                "查看",
+		"Choose the languages":    "选择语言",
+		"Other language":          "其他语言",
+		"Spanish (Spain)":         "西班牙语（西班牙）",
+		"Spanish (Latin America)": "西班牙语（拉丁美洲）",
+		"Portuguese (Brazil)":     "葡萄牙语（巴西）",
+		"Turkish":                 "土耳其语",
+		"Arabic":                  "阿拉伯语",
+		"Simplified Chinese":      "简体中文",
+		"Traditional Chinese":     "繁體中文",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 个文件",
 		"1 file, %v":                            "1 个文件，%v",

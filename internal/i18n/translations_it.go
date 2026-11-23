@@ -3,6 +3,20 @@ package i18n
 // Italian interface translations; see translations.go.
 func init() {
 	Translations["it"] = map[string]string{
+		// the language packs of the languages not chosen (#200)
+		"Language packs and commentary": "Pacchetti lingua e telecronache",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "Spunta le lingue che vuoi: i pacchetti lingua e le telecronache di un gioco in altre lingue non compaiono tra i DLC mancanti. Se non ne spunti nessuna, compaiono tutti.",
+		"%v language packs in other languages are not counted.": "%v pacchetti lingua in altre lingue non vengono contati.",
+		"See them":                "Mostrali",
+		"Choose the languages":    "Scegli le lingue",
+		"Other language":          "Altra lingua",
+		"Spanish (Spain)":         "Spagnolo (Spagna)",
+		"Spanish (Latin America)": "Spagnolo (America Latina)",
+		"Portuguese (Brazil)":     "Portoghese (Brasile)",
+		"Turkish":                 "Turco",
+		"Arabic":                  "Arabo",
+		"Simplified Chinese":      "Cinese semplificato",
+		"Traditional Chinese":     "Cinese tradizionale",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 file",
 		"1 file, %v":                            "1 file, %v",

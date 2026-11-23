@@ -3,6 +3,20 @@ package i18n
 // Korean interface translations; see translations.go.
 func init() {
 	Translations["ko"] = map[string]string{
+		// the language packs of the languages not chosen (#200)
+		"Language packs and commentary": "언어 팩과 해설",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "원하는 언어를 선택하세요. 다른 언어의 언어 팩과 해설은 없는 DLC로 표시되지 않아요. 아무것도 선택하지 않으면 모두 표시돼요.",
+		"%v language packs in other languages are not counted.": "다른 언어의 언어 팩 %v개는 세지 않아요.",
+		"See them":                "보기",
+		"Choose the languages":    "언어 선택",
+		"Other language":          "다른 언어",
+		"Spanish (Spain)":         "스페인어(스페인)",
+		"Spanish (Latin America)": "스페인어(중남미)",
+		"Portuguese (Brazil)":     "포르투갈어(브라질)",
+		"Turkish":                 "튀르키예어",
+		"Arabic":                  "아랍어",
+		"Simplified Chinese":      "중국어 간체",
+		"Traditional Chinese":     "중국어 번체",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "파일 1개",
 		"1 file, %v":                            "파일 1개, %v",

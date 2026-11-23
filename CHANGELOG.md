@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Settings › What is shown: choose the languages of the language packs and the in-game commentary; the ones in other languages are not listed as missing DLC, and the DLC page can still show them. Thanks to @TerrorSource for the idea (#200)
+
 ### Fixes
 
 - A disk that fills up while a file is written says there is not enough free space, and Optimize for install counts the room other files being written take

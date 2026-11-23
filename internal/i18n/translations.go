@@ -4,6 +4,20 @@ package i18n
 // Translate() calls and in web.js; "%v" placeholders are kept in the translation.
 var Translations = map[string]map[string]string{
 	"es": {
+		// the language packs of the languages not chosen (#200)
+		"Language packs and commentary": "Paquetes de idioma y comentarios",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "Marca los idiomas que quieres: los paquetes de idioma y los comentarios de un juego en otros idiomas no salen como DLC que faltan. Sin ninguno marcado, salen todos.",
+		"%v language packs in other languages are not counted.": "No se cuentan %v paquetes de idioma en otros idiomas.",
+		"See them":                "Verlos",
+		"Choose the languages":    "Elegir los idiomas",
+		"Other language":          "Otro idioma",
+		"Spanish (Spain)":         "Español (España)",
+		"Spanish (Latin America)": "Español (Latinoamérica)",
+		"Portuguese (Brazil)":     "Portugués (Brasil)",
+		"Turkish":                 "Turco",
+		"Arabic":                  "Árabe",
+		"Simplified Chinese":      "Chino simplificado",
+		"Traditional Chinese":     "Chino tradicional",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 archivo",
 		"1 file, %v":                            "1 archivo, %v",

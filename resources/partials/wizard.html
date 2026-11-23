@@ -722,6 +722,10 @@
 					<div hidden>
 						<textarea name="ignore_dlc_title_ids">{{range $s.IgnoreDLCTitleIds}}{{.}}
 {{end}}</textarea>
+						<input type="hidden" name="dlc_languages" value="">
+						{{- range $s.DLCLanguages}}
+						<input type="checkbox" name="dlc_languages" value="{{.}}" checked>
+						{{- end}}
 						<textarea name="ignore_update_title_ids">{{range $s.IgnoreUpdateTitleIds}}{{.}}
 {{end}}</textarea>
 						<input type="text" name="ignore_file_types" value="{{range $i, $e := $s.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}">

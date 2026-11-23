@@ -3,6 +3,20 @@ package i18n
 // Japanese interface translations; see translations.go.
 func init() {
 	Translations["ja"] = map[string]string{
+		// the language packs of the languages not chosen (#200)
+		"Language packs and commentary": "言語パックと実況",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "必要な言語にチェックを入れてください。ほかの言語の言語パックや実況は、足りない DLC に表示されません。何もチェックしなければ、すべて表示されます。",
+		"%v language packs in other languages are not counted.": "ほかの言語の言語パック %v 個は数えていません。",
+		"See them":                "表示",
+		"Choose the languages":    "言語を選ぶ",
+		"Other language":          "ほかの言語",
+		"Spanish (Spain)":         "スペイン語（スペイン）",
+		"Spanish (Latin America)": "スペイン語（中南米）",
+		"Portuguese (Brazil)":     "ポルトガル語（ブラジル）",
+		"Turkish":                 "トルコ語",
+		"Arabic":                  "アラビア語",
+		"Simplified Chinese":      "簡体字中国語",
+		"Traditional Chinese":     "繁体字中国語",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 個のファイル",
 		"1 file, %v":                            "1 個のファイル、%v",
