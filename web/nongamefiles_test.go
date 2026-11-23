@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // The files that are not games are deleted from Issues only when nothing else may need them
@@ -153,6 +154,36 @@ func TestWishlistAndNonGameTextsAreTranslated(t *testing.T) {
 			if _, ok := i18n.Translations[lang][text]; !ok && lang != i18n.DEFAULT_LANGUAGE {
 				t.Errorf("no %s translation for %q", lang, text)
 			}
+		}
+	}
+}
+
+// A library kept in a folder named like one of a mod or an SD card (D:\Switch\Games) still has
+// its files that are not games offered: only the folders inside the library count (#197).
+func TestNonGameRefusalLibraryFolderName(t *testing.T) {
+	web := newTestWeb(t)
+	library := filepath.Join(t.TempDir(), "Switch", "Contents", "Games")
+	old := time.Now().Add(-time.Hour)
+	write := func(path string) string {
+		t.Helper()
+		full := filepath.Join(library, path)
+		os.MkdirAll(filepath.Dir(full), 0o755)
+		if err := os.WriteFile(full, []byte("data"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		os.Chtimes(full, old, old)
+		return full
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Folder = library })
+	cases := map[string]string{
+		write("cover.jpg"):             "",
+		write("Game/notes.txt"):        "",
+		write("sd/atmosphere/x/a.txt"): NON_GAME_PART_OF_GAME,
+		write("mods/x/romfs/data.arc"): NON_GAME_PART_OF_GAME,
+	}
+	for path, want := range cases {
+		if got := web.nonGameRefusal(path, time.Now()); got != want {
+			t.Errorf("%s: %q, want %q", path, got, want)
 		}
 	}
 }

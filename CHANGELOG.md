@@ -5,6 +5,7 @@
 ### Fixes
 
 - A disk that fills up while a file is written says there is not enough free space, and Optimize for install counts the room other files being written take
+- Files that are not games can be deleted from Issues when the library is in a folder named like one of an SD card, such as `Switch`. Thanks to @TerrorSource for reporting it (#197)
 
 ## 2.0.23
 
