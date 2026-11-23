@@ -83,8 +83,9 @@ const (
 // NupReaderVersion is raised when what the reader tells of a NUP changes (a name cleaned up, a
 // record read), so the library reads its NUP files again instead of keeping what it cached.
 // Version 5 tells whether Eglantine and Lichii open it, and a NUP whose metadata types are
-// counted from 0. Version 6 tells a NUP that carries no icon.
-const NupReaderVersion = 6
+// counted from 0. Version 6 tells a NUP that carries no icon. Version 7 reads the names of a NACP
+// that keeps them compressed in their own languages, with their publisher.
+const NupReaderVersion = 7
 
 // NupPackage is one package of a NUP: the game, one of its updates or one of its DLC.
 type NupPackage struct {
@@ -587,7 +588,7 @@ func parseNupLocalized(payload []byte) (map[string][]byte, error) {
 
 // nupLanguages are the BCP-47 tags of the NUP format for each language of a NACP, in its order.
 var nupLanguages = [...]string{"en-us", "en-gb", "ja", "fr", "de", "es-419", "es", "it", "nl", "fr-ca", "pt", "ru", "ko",
-	"zh-hant", "zh-hans", "pt-br"}
+	"zh-hant", "zh-hans", "pt-br", "pl", "th"}
 
 // nupLanguage is the language of a NACP for a tag: the exact one, else the one of its first part
 // ("en" is American English, "zh" Simplified Chinese).
@@ -664,7 +665,7 @@ func (pkg *NupPackage) nacp() *Nacp {
 	}
 	publisher := nupText(pkg.Meta[nupTlvPublisher], 0x100)
 	result := &Nacp{TitleName: map[string]NacpTitle{}, DisplayVersion: nupText(pkg.Meta[nupTlvDisplayVersion], 0x0F),
-		AttributesRead: true, NamesRead: true, PublishersRead: true}
+		AttributesRead: true, NamesRead: true, PublishersRead: true, CompressedNamesRead: true}
 	for i := range nupLanguages {
 		language := Language(i)
 		name, ok := names[language]

@@ -81,3 +81,26 @@ func TestNeedsNcaLz4(t *testing.T) {
 		t.Fatal("a DLC is not looked at")
 	}
 }
+
+// Data cached before the names of control data that keeps them compressed were read as 32
+// entries is read again, once, when it names no publisher: those were always read without one.
+func TestNeedsNames(t *testing.T) {
+	game := func(publisher string, read bool) map[string]*switchfs.ContentMetaAttributes {
+		return map[string]*switchfs.ContentMetaAttributes{"0100000000010000": {TitleId: "0100000000010000", Type: "BASE",
+			Ncap: &switchfs.Nacp{TitleName: map[string]switchfs.NacpTitle{"AmericanEnglish": {Title: "Game", Publisher: publisher}},
+				NamesRead: true, PublishersRead: true, CompressedNamesRead: read}}}
+	}
+	if !needsNames(game("", false)) {
+		t.Fatal("cached without any publisher: read again")
+	}
+	if needsNames(game("Publisher", false)) {
+		t.Fatal("a publisher was read: the names were not compressed")
+	}
+	if needsNames(game("", true)) {
+		t.Fatal("read once")
+	}
+	dlc := map[string]*switchfs.ContentMetaAttributes{"0100000000011001": {TitleId: "0100000000011001", Type: "DLC"}}
+	if needsNames(dlc) {
+		t.Fatal("a DLC has no control data")
+	}
+}
