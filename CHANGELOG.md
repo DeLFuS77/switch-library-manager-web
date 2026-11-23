@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Games that keep their names compressed in the control data show the name in the right language and their publisher
+
 ## 2.0.22
 
 ### Improvements
