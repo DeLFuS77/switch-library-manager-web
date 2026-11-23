@@ -573,7 +573,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
-	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
+	ignoredDlc := web.ignoredDLC(settingsObj)
 	added := web.history().addedTimes()
 	collections := web.collections().Snapshot()
 	favorites := web.favorites().Snapshot()

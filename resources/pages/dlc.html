@@ -48,6 +48,17 @@
 						</li>
 						{{- end}}
 					</ul>
+					{{- with .LanguageHidden}}
+					<details class="small text-body-secondary mt-3 dlc-language-hidden">
+						<summary class="d-flex align-items-start gap-2"><span class="bi bi-translate flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v language packs in other languages are not counted." (len .)}} <span class="text-decoration-underline">{{t "See them"}}</span></span></summary>
+						<ul class="list-unstyled ms-4 mt-2 mb-0">
+							{{- range .}}
+							<li class="d-flex flex-wrap gap-2"><span class="text-body">{{.Name}}</span><span class="font-monospace">{{.Id}}</span></li>
+							{{- end}}
+						</ul>
+						<a class="d-inline-block ms-4 mt-2" href="/settings.html#dlcLanguages"><span class="bi bi-gear me-1" aria-hidden="true"></span>{{t "Choose the languages"}}</a>
+					</details>
+					{{- end}}
 				</article>
 				{{- end}}
 			</div>

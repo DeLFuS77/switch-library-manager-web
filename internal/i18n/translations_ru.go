@@ -3,6 +3,20 @@ package i18n
 // Russian interface translations; see translations.go.
 func init() {
 	Translations["ru"] = map[string]string{
+		// the language packs of the languages not chosen (#200)
+		"Language packs and commentary": "Языковые пакеты и комментарии",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "Отметьте нужные языки: языковые пакеты и комментарии игры на других языках не показываются среди недостающих DLC. Если ничего не отмечено, показываются все.",
+		"%v language packs in other languages are not counted.": "Не учитываются языковые пакеты на других языках: %v.",
+		"See them":                "Показать",
+		"Choose the languages":    "Выбрать языки",
+		"Other language":          "Другой язык",
+		"Spanish (Spain)":         "Испанский (Испания)",
+		"Spanish (Latin America)": "Испанский (Латинская Америка)",
+		"Portuguese (Brazil)":     "Португальский (Бразилия)",
+		"Turkish":                 "Турецкий",
+		"Arabic":                  "Арабский",
+		"Simplified Chinese":      "Китайский (упрощённый)",
+		"Traditional Chinese":     "Китайский (традиционный)",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 файл",
 		"1 file, %v":                            "1 файл, %v",

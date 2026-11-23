@@ -132,10 +132,12 @@ type TitleVersion struct {
 }
 
 type TitleDlc struct {
-	Id              string
-	Name            string
-	Owned           bool
-	Ignored         bool
+	Id      string
+	Name    string
+	Owned   bool
+	Ignored bool
+	// a language pack in a language not chosen in Settings: not missing, as if ignored (#200)
+	LanguageHidden  bool
 	File            *TitleFile
 	LatestVersion   int
 	UpdateAvailable bool
@@ -277,6 +279,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
+	languageHidden := web.languageHiddenDLC()
 	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
 
 	if title != nil {
@@ -443,6 +446,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	for id := range dlcIds {
 		dlc := TitleDlc{Id: strings.ToUpper(id)}
 		_, dlc.Ignored = ignoredDlc[id]
+		_, dlc.LanguageHidden = languageHidden[id]
 
 		if title != nil {
 			if attributes, ok := title.Dlc[id]; ok {
@@ -480,13 +484,13 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			dlc.ComesOut = 0
 		}
 		// DLC of a game that is not in the library are not "missing", nor the ones not out yet
-		if detail.Owned && !dlc.Owned && !dlc.Ignored && dlc.ComesOut == 0 {
+		if detail.Owned && !dlc.Owned && !dlc.Ignored && !dlc.LanguageHidden && dlc.ComesOut == 0 {
 			detail.MissingDlc++
 		}
 		if dlc.Owned {
 			detail.DlcOwned++
 			detail.DlcTotal++
-		} else if !dlc.Ignored && dlc.ComesOut == 0 {
+		} else if !dlc.Ignored && !dlc.LanguageHidden && dlc.ComesOut == 0 {
 			detail.DlcTotal++
 		}
 		detail.Dlc = append(detail.Dlc, dlc)

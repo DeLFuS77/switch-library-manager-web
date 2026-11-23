@@ -1,10 +1,14 @@
 package web
 
 import (
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
-	"strings"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 func (web *Web) HandleDLC() {
@@ -42,6 +46,9 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 	}
 
 	missingDLC := web.missingDLC()
+	hidden := web.languageHiddenDLC()
+	ignored := toLowerSet(settings.ReadSettings(web.dataFolder).IgnoreDLCTitleIds)
+	day := dateNumber(time.Now())
 
 	for _, v := range missingDLC {
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
@@ -61,6 +68,25 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 				missingDlc[i] = dlc
 			}
 
+			// the language packs in the languages not chosen, to see them all the same (#200)
+			hiddenDlc := []db.TitleAttributes{}
+			if prefix, err := db.TitleIDPrefix(v.Attributes.Id); err == nil && len(hidden) > 0 {
+				local := localDB.TitlesMap[prefix]
+				if title := switchDB.TitlesMap[prefix]; title != nil && local != nil {
+					for id, dlc := range title.Dlc {
+						_, languageHidden := hidden[id]
+						_, owned := local.Dlc[id]
+						_, ignoredHere := ignored[id]
+						if languageHidden && !owned && !ignoredHere && dlc.OutBy(day) {
+							dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
+							dlc.Id = strings.ToUpper(dlc.Id)
+							hiddenDlc = append(hiddenDlc, dlc)
+						}
+					}
+				}
+			}
+			sort.Slice(hiddenDlc, func(i, j int) bool { return hiddenDlc[i].Name < hiddenDlc[j].Name })
+
 			imageUrl := coverUrl(switchDB, localDB, v.Attributes)
 
 			items = append(items, TitleItem{
@@ -68,6 +94,7 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 				Id:              strings.ToUpper(v.Attributes.Id),
 				MissingDLC:      v.MissingDLC,
 				MissingDLCItems: missingDlc,
+				LanguageHidden:  hiddenDlc,
 				Name:            name,
 				OriginalName:    v.Attributes.Name,
 				Region:          v.Attributes.Region,

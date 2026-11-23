@@ -23,6 +23,8 @@ type SettingsPageData struct {
 	NextSync      time.Time
 	SyncIntervals []int
 	Languages     []string
+	// the languages of the language packs listed as DLC (#200)
+	DLCLanguages []DLCLanguage
 	// games of the library without a cover
 	MissingCovers int
 	// games of the Switch 2 the folders have: told under "I have a Switch 2" while it is off
@@ -71,89 +73,90 @@ type SettingsForm struct {
 	Prodkeys    string `in:"form=prod_keys"`
 	ScanFolders string `in:"form=scan_folders"`
 	// the folders to skip: the starts, the ends and the parts of their names, one per line
-	SkipStarting          string `in:"form=skip_starting"`
-	SkipEnding            string `in:"form=skip_ending"`
-	SkipContaining        string `in:"form=skip_containing"`
-	IgnoreDLCTitleIds     string `in:"form=ignore_dlc_title_ids"`
-	IgnoreUpdateTitleIds  string `in:"form=ignore_update_title_ids"`
-	IgnoreDLCUpdates      bool   `in:"form=ignore_dlc_updates"`
-	IgnoreFileTypes       string `in:"form=ignore_file_types"`
-	HideDemoGames         bool   `in:"form=hide_demo_games"`
-	Cheats                bool   `in:"form=cheats"`
-	KeepUpdatesWithCheats bool   `in:"form=keep_updates_with_cheats"`
-	CountRegionsOnce      bool   `in:"form=count_regions_once"`
-	HasSwitch2            bool   `in:"form=has_switch2"`
-	PreferredRegion       string `in:"form=preferred_region"`
-	PreferredRegion2      string `in:"form=preferred_region_2"`
-	PreferredRegion3      string `in:"form=preferred_region_3"`
-	WatchFolders          bool   `in:"form=watch_folders"`
-	WatchIntervalMinutes  int    `in:"form=watch_interval_minutes"`
-	BackgroundHours       string `in:"form=background_hours"`
-	VerifyIntervalDays    int    `in:"form=verify_interval_days"`
-	VerifySpeed           string `in:"form=verify_speed"`
-	ConsoleFirmware       string `in:"form=console_firmware"`
-	CheckForUpdates       bool   `in:"form=check_for_updates"`
-	AutoInstallUpdates    bool   `in:"form=auto_install_updates"`
-	AutomationEnabled     bool   `in:"form=automation_enabled"`
-	AutomationVerify      bool   `in:"form=automation_verify"`
-	AutomationCompress    bool   `in:"form=automation_compress"`
-	AutomationCleanup     bool   `in:"form=automation_cleanup"`
-	AutomationOrganize    bool   `in:"form=automation_organize"`
-	AutomationNewOnly     bool   `in:"form=automation_organize_new_only"`
-	AutomationNotify      bool   `in:"form=automation_notify"`
-	AutomationNight       bool   `in:"form=automation_night"`
-	VaultEnabled          bool   `in:"form=vault_enabled"`
-	VaultUser             string `in:"form=vault_user"`
-	VaultPassword         string `in:"form=vault_password"`
-	VaultKeep             int    `in:"form=vault_keep"`
-	VaultNotify           bool   `in:"form=vault_notify"`
-	NetInstallEnabled     bool   `in:"form=net_install_enabled"`
-	NetInstallAllUpdates  bool   `in:"form=net_install_all_updates"`
-	NetInstallRemote      bool   `in:"form=net_install_remote"`
-	NetInstallMessage     string `in:"form=net_install_message"`
-	NetInstallUploads     bool   `in:"form=net_install_allow_uploads"`
-	NetInstallUploadDir   string `in:"form=net_install_upload_folder"`
-	QuarantineKeep        string `in:"form=quarantine_keep"`
-	QuarantineLimit       int    `in:"form=quarantine_limit"`
-	QuarantineMakeRoom    bool   `in:"form=quarantine_make_room"`
-	QuarantineOriginals   bool   `in:"form=quarantine_originals"`
-	IgdbClientId          string `in:"form=igdb_client_id"`
-	IgdbClientSecret      string `in:"form=igdb_client_secret"`
-	AutoCompress          string `in:"form=auto_compress"`
-	AutoCompressLevel     string `in:"form=auto_compress_level"`
-	AutoCompressKeep      bool   `in:"form=auto_compress_keep"`
-	NszBlocks             bool   `in:"form=nsz_blocks"`
-	CompressThreads       int    `in:"form=compress_threads"`
-	CompressFilesAtOnce   int    `in:"form=compress_files_at_once"`
-	LowPriority           bool   `in:"form=low_priority"`
-	SyncIntervalHours     int    `in:"form=sync_interval_hours"`
-	Language              string `in:"form=language"`
-	DiscordWebhookUrl     string `in:"form=discord_webhook_url"`
-	TelegramBotToken      string `in:"form=telegram_bot_token"`
-	TelegramChatId        string `in:"form=telegram_chat_id"`
-	WebhookUrl            string `in:"form=webhook_url"`
-	NtfyUrl               string `in:"form=ntfy_url"`
-	NtfyToken             string `in:"form=ntfy_token"`
-	GotifyUrl             string `in:"form=gotify_url"`
-	GotifyToken           string `in:"form=gotify_token"`
-	PushoverUser          string `in:"form=pushover_user"`
-	PushoverToken         string `in:"form=pushover_token"`
-	SmtpHost              string `in:"form=smtp_host"`
-	SmtpPort              string `in:"form=smtp_port"`
-	SmtpSecurity          string `in:"form=smtp_security"`
-	SmtpUser              string `in:"form=smtp_user"`
-	SmtpPassword          string `in:"form=smtp_password"`
-	SmtpFrom              string `in:"form=smtp_from"`
-	SmtpTo                string `in:"form=smtp_to"`
-	NotifyUpdates         bool   `in:"form=notify_updates"`
-	NotifyDlc             bool   `in:"form=notify_dlc"`
-	NotifyWishlist        bool   `in:"form=notify_wishlist"`
-	NotifyCheats          bool   `in:"form=notify_cheats"`
-	NotifyNewGames        bool   `in:"form=notify_new_games"`
-	NotifyTaskFailures    bool   `in:"form=notify_task_failures"`
-	NotifyQueueDone       bool   `in:"form=notify_queue_done"`
-	NotifyConsoleQueue    bool   `in:"form=notify_console_queue"`
-	TelegramCommands      bool   `in:"form=telegram_commands"`
+	SkipStarting          string   `in:"form=skip_starting"`
+	SkipEnding            string   `in:"form=skip_ending"`
+	SkipContaining        string   `in:"form=skip_containing"`
+	IgnoreDLCTitleIds     string   `in:"form=ignore_dlc_title_ids"`
+	DLCLanguages          []string `in:"form=dlc_languages"`
+	IgnoreUpdateTitleIds  string   `in:"form=ignore_update_title_ids"`
+	IgnoreDLCUpdates      bool     `in:"form=ignore_dlc_updates"`
+	IgnoreFileTypes       string   `in:"form=ignore_file_types"`
+	HideDemoGames         bool     `in:"form=hide_demo_games"`
+	Cheats                bool     `in:"form=cheats"`
+	KeepUpdatesWithCheats bool     `in:"form=keep_updates_with_cheats"`
+	CountRegionsOnce      bool     `in:"form=count_regions_once"`
+	HasSwitch2            bool     `in:"form=has_switch2"`
+	PreferredRegion       string   `in:"form=preferred_region"`
+	PreferredRegion2      string   `in:"form=preferred_region_2"`
+	PreferredRegion3      string   `in:"form=preferred_region_3"`
+	WatchFolders          bool     `in:"form=watch_folders"`
+	WatchIntervalMinutes  int      `in:"form=watch_interval_minutes"`
+	BackgroundHours       string   `in:"form=background_hours"`
+	VerifyIntervalDays    int      `in:"form=verify_interval_days"`
+	VerifySpeed           string   `in:"form=verify_speed"`
+	ConsoleFirmware       string   `in:"form=console_firmware"`
+	CheckForUpdates       bool     `in:"form=check_for_updates"`
+	AutoInstallUpdates    bool     `in:"form=auto_install_updates"`
+	AutomationEnabled     bool     `in:"form=automation_enabled"`
+	AutomationVerify      bool     `in:"form=automation_verify"`
+	AutomationCompress    bool     `in:"form=automation_compress"`
+	AutomationCleanup     bool     `in:"form=automation_cleanup"`
+	AutomationOrganize    bool     `in:"form=automation_organize"`
+	AutomationNewOnly     bool     `in:"form=automation_organize_new_only"`
+	AutomationNotify      bool     `in:"form=automation_notify"`
+	AutomationNight       bool     `in:"form=automation_night"`
+	VaultEnabled          bool     `in:"form=vault_enabled"`
+	VaultUser             string   `in:"form=vault_user"`
+	VaultPassword         string   `in:"form=vault_password"`
+	VaultKeep             int      `in:"form=vault_keep"`
+	VaultNotify           bool     `in:"form=vault_notify"`
+	NetInstallEnabled     bool     `in:"form=net_install_enabled"`
+	NetInstallAllUpdates  bool     `in:"form=net_install_all_updates"`
+	NetInstallRemote      bool     `in:"form=net_install_remote"`
+	NetInstallMessage     string   `in:"form=net_install_message"`
+	NetInstallUploads     bool     `in:"form=net_install_allow_uploads"`
+	NetInstallUploadDir   string   `in:"form=net_install_upload_folder"`
+	QuarantineKeep        string   `in:"form=quarantine_keep"`
+	QuarantineLimit       int      `in:"form=quarantine_limit"`
+	QuarantineMakeRoom    bool     `in:"form=quarantine_make_room"`
+	QuarantineOriginals   bool     `in:"form=quarantine_originals"`
+	IgdbClientId          string   `in:"form=igdb_client_id"`
+	IgdbClientSecret      string   `in:"form=igdb_client_secret"`
+	AutoCompress          string   `in:"form=auto_compress"`
+	AutoCompressLevel     string   `in:"form=auto_compress_level"`
+	AutoCompressKeep      bool     `in:"form=auto_compress_keep"`
+	NszBlocks             bool     `in:"form=nsz_blocks"`
+	CompressThreads       int      `in:"form=compress_threads"`
+	CompressFilesAtOnce   int      `in:"form=compress_files_at_once"`
+	LowPriority           bool     `in:"form=low_priority"`
+	SyncIntervalHours     int      `in:"form=sync_interval_hours"`
+	Language              string   `in:"form=language"`
+	DiscordWebhookUrl     string   `in:"form=discord_webhook_url"`
+	TelegramBotToken      string   `in:"form=telegram_bot_token"`
+	TelegramChatId        string   `in:"form=telegram_chat_id"`
+	WebhookUrl            string   `in:"form=webhook_url"`
+	NtfyUrl               string   `in:"form=ntfy_url"`
+	NtfyToken             string   `in:"form=ntfy_token"`
+	GotifyUrl             string   `in:"form=gotify_url"`
+	GotifyToken           string   `in:"form=gotify_token"`
+	PushoverUser          string   `in:"form=pushover_user"`
+	PushoverToken         string   `in:"form=pushover_token"`
+	SmtpHost              string   `in:"form=smtp_host"`
+	SmtpPort              string   `in:"form=smtp_port"`
+	SmtpSecurity          string   `in:"form=smtp_security"`
+	SmtpUser              string   `in:"form=smtp_user"`
+	SmtpPassword          string   `in:"form=smtp_password"`
+	SmtpFrom              string   `in:"form=smtp_from"`
+	SmtpTo                string   `in:"form=smtp_to"`
+	NotifyUpdates         bool     `in:"form=notify_updates"`
+	NotifyDlc             bool     `in:"form=notify_dlc"`
+	NotifyWishlist        bool     `in:"form=notify_wishlist"`
+	NotifyCheats          bool     `in:"form=notify_cheats"`
+	NotifyNewGames        bool     `in:"form=notify_new_games"`
+	NotifyTaskFailures    bool     `in:"form=notify_task_failures"`
+	NotifyQueueDone       bool     `in:"form=notify_queue_done"`
+	NotifyConsoleQueue    bool     `in:"form=notify_console_queue"`
+	TelegramCommands      bool     `in:"form=telegram_commands"`
 	// the order of the files, sent by the setup wizard only: empty leaves the options of
 	// Organize as they are
 	OrganizeLayout       string `in:"form=organize_layout"`
@@ -517,6 +520,7 @@ func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
 	scanFolders := SplitAndTrimSpaceArray(form.ScanFolders, "\n")
 	appSettings.Prodkeys = form.Prodkeys
 	appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(form.IgnoreDLCTitleIds, "\n")
+	appSettings.DLCLanguages = chosenDLCLanguages(form.DLCLanguages)
 	appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(form.IgnoreUpdateTitleIds, "\n")
 	appSettings.IgnoreDLCUpdates = form.IgnoreDLCUpdates
 	appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(form.IgnoreFileTypes, ",", " "), " ")
@@ -643,6 +647,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		NetInstallReady:         netInstallReady,
 		GlobalPageData:          web.globalPageData("settings"),
 		Settings:                &shown,
+		DLCLanguages:            dlcLanguages(&shown),
 		NextSync:                nextSyncTime(current),
 		SyncIntervals:           []int{0, 6, 12, 24, 168},
 		Languages:               i18n.SupportedLanguages,
