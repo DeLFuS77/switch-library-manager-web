@@ -108,7 +108,7 @@ func (web *Web) compressPaths(paths []string, trigger string) bool {
 // not one cancelled, nor one that could not be read (in use, still being copied), nor one
 // without room, which are tried again.
 func (web *Web) noteAutoCompressFailure(path string, err error) {
-	if err == nil || errors.Is(err, errCompressSpace) || errors.Is(err, context.Canceled) || notContent(err) {
+	if err == nil || noRoom(err) || errors.Is(err, context.Canceled) || notContent(err) {
 		return
 	}
 	if info, statErr := os.Stat(path); statErr == nil {

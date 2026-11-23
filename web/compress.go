@@ -1273,7 +1273,17 @@ func compressDamage(err error) bool {
 	return strings.Contains(err.Error(), "damaged") || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
 }
 
+// noRoom tells a work that stopped for the room on the disk: before it began, or a volume that
+// filled up while it was writing.
+func noRoom(err error) bool {
+	return errors.Is(err, errCompressSpace) || diskfree.Full(err)
+}
+
 func compressNote(kind string, err error) string {
+	if diskfree.Full(err) {
+		// a disk that filled up on the way says the same as one without room before it began
+		err = errCompressSpace
+	}
 	if fileGone(err) {
 		return NOTE_FILE_GONE
 	}
