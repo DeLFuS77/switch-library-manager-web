@@ -10,6 +10,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // The files that are not games (images, notes, archives...) can be deleted from Issues, one by
@@ -46,7 +47,16 @@ func (web *Web) nonGameRefusal(path string, now time.Time) string {
 	if nonGameProtectedTypes[filepath.Ext(lower)] || strings.HasSuffix(lower, ".cnmt.xml") {
 		return NON_GAME_PART_OF_GAME
 	}
-	for _, folder := range strings.FieldsFunc(strings.ToLower(filepath.Dir(path)), func(r rune) bool { return r == '/' || r == '\\' }) {
+	// only the folders inside the library count: a library in D:\Switch is not a copy of an SD card
+	folders := filepath.Dir(path)
+	for _, root := range scanFolders(settings.ReadSettings(web.dataFolder)) {
+		if insideFolder(path, root) {
+			if rel, err := filepath.Rel(root, folders); err == nil && len(rel) < len(folders) {
+				folders = rel
+			}
+		}
+	}
+	for _, folder := range strings.FieldsFunc(strings.ToLower(folders), func(r rune) bool { return r == '/' || r == '\\' }) {
 		if nonGameProtectedFolders[folder] {
 			return NON_GAME_PART_OF_GAME
 		}
