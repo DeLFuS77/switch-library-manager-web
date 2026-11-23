@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
-	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -264,18 +263,19 @@ func (web *Web) makeOptimized(ctx context.Context, sources []string, target stri
 	if _, err := os.Stat(target); err == nil {
 		return errOptimizeExists
 	}
-	// room for the NSP made of an NSZ or XCZ given, and for the new file, at most their size
-	if free, err := diskfree.Free(filepath.Dir(target)); err == nil && free < uint64(2*size)+(64<<20) {
-		if !web.makeRoom(filepath.Dir(target), 2*size+(64<<20)) {
-			return errCompressSpace
-		}
+	// room for the NSP made of an NSZ or XCZ given, and for the new file, at most their size,
+	// besides what the other files being written at the same time take
+	release, err := web.reserveSpace(filepath.Dir(target), 2*size)
+	if err != nil {
+		return err
 	}
+	defer release()
 	temporary := filepath.Join(filepath.Dir(target), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)
 	bar := filling(size, report(0))
 	threads := settings.ReadSettings(web.dataFolder).CompressThreads
 	measured := false
-	_, err := optimize.Run(ctx, sources, temporary, optimize.Options{
+	_, err = optimize.Run(ctx, sources, temporary, optimize.Options{
 		Threads: threads,
 		Work:    filepath.Dir(target),
 		Progress: func(step string, done int64, total int64) {

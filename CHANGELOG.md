@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- A disk that fills up while a file is written says there is not enough free space, and Optimize for install counts the room other files being written take
+
 ## 2.0.23
 
 ### Fixes
