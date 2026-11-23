@@ -56,11 +56,30 @@ func TestExtractNacpBranches(t *testing.T) {
 	}
 }
 
+// Control data that keeps its names compressed gives 32 entries of 0x300 bytes, a name and its
+// publisher each, the first 16 in the same languages as always, then Polish and Thai: each
+// language reads its own entry, with its publisher.
 func TestReadNacpCompressedTitles(t *testing.T) {
 	const nacpSize = 0x4000
-	const titleDataSize = 0x6000
+	const titleDataSize = 32 * 0x300
 	titleData := make([]byte, titleDataSize)
-	copy(titleData, []byte("Compressed Game"))
+	entries := map[Language][2]string{
+		AmericanEnglish:      {"Compressed Game", "Publisher"},
+		BritishEnglish:       {"Compressed Game UK", "Publisher UK"},
+		Japanese:             {"圧縮ゲーム", "パブリッシャー"},
+		LatinAmericanSpanish: {"Juego comprimido LA", "Editora LA"},
+		Spanish:              {"Juego comprimido", "Editora"},
+		Korean:               {"압축 게임", "퍼블리셔"},
+		BrazilianPortuguese:  {"Jogo comprimido", "Editora BR"},
+		Polish:               {"Skompresowana gra", "Wydawca"},
+		Thai:                 {"เกมบีบอัด", "ผู้จัดจำหน่าย"},
+	}
+	for language, entry := range entries {
+		copy(titleData[int(language)*0x300:], entry[0])
+		copy(titleData[int(language)*0x300+0x200:], entry[1])
+	}
+	// an entry past the languages the app knows is not read
+	copy(titleData[20*0x300:], "Unknown language")
 	var compressed bytes.Buffer
 	writer, err := flate.NewWriter(&compressed, flate.BestCompression)
 	if err != nil {
@@ -84,8 +103,55 @@ func TestReadNacpCompressedTitles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if nacp.TitleName["AmericanEnglish"].Title != "Compressed Game" {
-		t.Fatalf("unexpected compressed NACP title: %q", nacp.TitleName["AmericanEnglish"].Title)
+	for language, entry := range entries {
+		got := nacp.TitleName[language.String()]
+		if got.Language != language || got.Title != entry[0] || got.Publisher != entry[1] {
+			t.Errorf("%v: %+v, want %q by %q", language, got, entry[0], entry[1])
+		}
+	}
+	if got := nacp.TitleName["Thai"].Language.ToLanguageTag(); got != "th" {
+		t.Errorf("the tag of Thai: %q", got)
+	}
+	if got := nacp.TitleName["Polish"].Language.ToLanguageTag(); got != "pl" {
+		t.Errorf("the tag of Polish: %q", got)
+	}
+	if len(nacp.TitleName) != int(knownLanguages) {
+		t.Errorf("%d languages read, want %d", len(nacp.TitleName), knownLanguages)
+	}
+	if !nacp.CompressedNamesRead {
+		t.Error("the names are not marked as read as 32 entries")
+	}
+
+	// the same data but its compressed names broken
+	broken := append([]byte(nil), data...)
+	binary.LittleEndian.PutUint16(broken, 0x3000)
+	if _, err := readNacp(broken, RomfsHeader{}, RomfsFileEntry{size: nacpSize}); err == nil {
+		t.Error("compressed names larger than their space were read")
+	}
+}
+
+// Control data that does not keep its names compressed gives the 16 languages of always,
+// without Polish and Thai.
+func TestNacpTitleEntriesLegacy(t *testing.T) {
+	data := make([]byte, 0x4000)
+	copy(data[6*0x300:], "Juego")
+	copy(data[6*0x300+0x200:], "Editora")
+	titleData, entries, err := NacpTitleEntries(data)
+	if err != nil || entries != 16 || len(titleData) != 0x3000 {
+		t.Fatalf("%d entries in %#x bytes: %v", entries, len(titleData), err)
+	}
+	nacp, err := readNacp(data, RomfsHeader{}, RomfsFileEntry{size: uint64(len(data))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := nacp.TitleName["Spanish"]; got.Title != "Juego" || got.Publisher != "Editora" {
+		t.Errorf("Spanish: %+v", got)
+	}
+	if _, ok := nacp.TitleName["Polish"]; ok || len(nacp.TitleName) != 16 {
+		t.Errorf("%d languages read: %v", len(nacp.TitleName), nacp.TitleName)
+	}
+	if _, _, err := NacpTitleEntries(data[:0x2000]); err == nil {
+		t.Error("a NACP too small was read")
 	}
 }
 

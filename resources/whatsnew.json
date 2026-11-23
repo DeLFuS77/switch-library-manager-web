@@ -1,4 +1,39 @@
 {
+  "2.0.23": {
+    "en": [
+      "Games that keep their names compressed in the control data show the name in the right language and their publisher."
+    ],
+    "es": [
+      "Los juegos que guardan sus nombres comprimidos en los datos de control muestran el nombre en el idioma correcto y su editor."
+    ],
+    "de": [
+      "Spiele, die ihre Namen komprimiert in den Steuerdaten speichern, zeigen den Namen in der richtigen Sprache und ihren Herausgeber."
+    ],
+    "fr": [
+      "Les jeux qui gardent leurs noms compressés dans les données de contrôle affichent le nom dans la bonne langue et leur éditeur."
+    ],
+    "it": [
+      "I giochi che tengono i nomi compressi nei dati di controllo mostrano il nome nella lingua giusta e il loro editore."
+    ],
+    "pt": [
+      "Os jogos que guardam os nomes comprimidos nos dados de controlo mostram o nome no idioma certo e a sua editora."
+    ],
+    "nl": [
+      "Games die hun namen gecomprimeerd in de controlegegevens bewaren, tonen de naam in de juiste taal en hun uitgever."
+    ],
+    "ru": [
+      "Игры, которые хранят названия в сжатом виде в управляющих данных, показывают название на нужном языке и своего издателя."
+    ],
+    "ja": [
+      "コントロールデータに名前を圧縮して保存しているゲームも、正しい言語の名前と発売元が表示されます。"
+    ],
+    "ko": [
+      "컨트롤 데이터에 이름을 압축해 저장하는 게임도 올바른 언어의 이름과 배급사가 표시됩니다."
+    ],
+    "zh": [
+      "在控制数据中以压缩方式保存名称的游戏，现在会以正确的语言显示名称及其发行商。"
+    ]
+  },
   "2.0.22": {
     "en": [
       "Wishlist: a view of its own in the Library, next to Missing ones, and /api/wishlist to read it as JSON.",
