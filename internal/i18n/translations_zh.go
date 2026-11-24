@@ -2265,6 +2265,7 @@ func init() {
 		"no game or update in it has an ExeFS":                                                                   "其中的游戏和更新都没有 ExeFS",
 		"the ExeFS of the game lacks: %v":                                                                        "游戏的 ExeFS 缺少：%v",
 		"the ExeFS of update v%v lacks: %v":                                                                      "更新 v%v 的 ExeFS 缺少：%v",
+		"its update is for the program %v, not for its game %v":                                                  "其更新属于程序 %v，而不是其游戏 %v",
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine 和 Lichii 打不开这个 NUP：文件完好，但违反了这些模拟器的一条规则。",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "虽然文件完好，Eglantine 和 Lichii 仍无法启动这个 NUP 中的游戏。",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "无法读取 %v [原因：%v]；Eglantine 和 Lichii 也打不开它",

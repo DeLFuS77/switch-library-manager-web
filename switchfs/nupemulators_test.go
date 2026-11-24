@@ -207,3 +207,37 @@ func TestNupEmulatorsInTheCheckAndTheMetadata(t *testing.T) {
 		t.Error("a file check tells the emulators of a NUP only")
 	}
 }
+
+// nupNpdmOf is an NPDM made up with the program ID of its ACI0.
+func nupNpdmOf(id uint64) []byte {
+	npdm := make([]byte, 0x80+0x18)
+	copy(npdm, "META")
+	binary.LittleEndian.PutUint32(npdm[0x70:], 0x80)
+	copy(npdm[0x80:], "ACI0")
+	binary.LittleEndian.PutUint64(npdm[0x90:], id)
+	return npdm
+}
+
+// The update they would start is for another program than the game beside it: they refuse it.
+func TestNupEmulatorsRefuseAnUpdateOfAnotherProgram(t *testing.T) {
+	with := func(game, update uint64) string {
+		packages := nupPlayable()
+		if game != 0 {
+			packages[0].Meta = append(packages[0].Meta, testnup.Record{Type: 0x0001, Payload: nupNpdmOf(game)})
+		}
+		packages[1].Meta = append(packages[1].Meta, testnup.Record{Type: 0x0001, Payload: nupNpdmOf(update)})
+		return emulatorsOf(t, testnup.Build(packages)).String()
+	}
+	if got := with(0x0400486024DEC000, 0x0400486024DEC000); got != "" {
+		t.Errorf("same program: %q", got)
+	}
+	if got := with(0x0400486024DEC000, 0x0400486024DEC001); !strings.Contains(got, "for the program 0400486024DEC001, not for its game 0400486024DEC000") {
+		t.Errorf("another program: %q", got)
+	}
+	if got := with(0, 0x0400999999999000); !strings.Contains(got, "not for its game 0400486024DEC000") {
+		t.Errorf("game without NPDM: %q", got)
+	}
+	if got := with(0x0100486024DEC000, 0x0400486024DEC000); got != "" {
+		t.Errorf("Switch 2 Edition: %q", got)
+	}
+}

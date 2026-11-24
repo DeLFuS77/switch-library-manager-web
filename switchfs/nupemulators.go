@@ -1,6 +1,7 @@
 package switchfs
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -62,10 +63,11 @@ const (
 	nupIssueNoExefs       = "no game or update in it has an ExeFS"
 	nupIssueGameLacks     = "the ExeFS of the game lacks: %v"
 	nupIssueUpdateLacks   = "the ExeFS of update v%v lacks: %v"
+	nupIssueForeign       = "its update is for the program %v, not for its game %v"
 )
 
 // NupEmulatorTexts are the texts of NupEmulatorIssue, for their translations.
-var NupEmulatorTexts = []string{nupIssueKind, nupIssueFlags, nupIssueLocalized, nupIssueCodecFlag, nupIssueCodecFlags, nupIssuePlacedEmpty, nupIssuePlacedEmpties, nupIssueTagged, nupIssueLoop, nupIssueDeep, nupIssueDlcOnly, nupIssueNoExefs, nupIssueGameLacks, nupIssueUpdateLacks}
+var NupEmulatorTexts = []string{nupIssueKind, nupIssueFlags, nupIssueLocalized, nupIssueCodecFlag, nupIssueCodecFlags, nupIssuePlacedEmpty, nupIssuePlacedEmpties, nupIssueTagged, nupIssueLoop, nupIssueDeep, nupIssueDlcOnly, nupIssueNoExefs, nupIssueGameLacks, nupIssueUpdateLacks, nupIssueForeign}
 
 func nupIssue(text string, args ...any) NupEmulatorIssue {
 	issue := NupEmulatorIssue{Text: text}
@@ -255,6 +257,9 @@ func (container *NupContainer) startFault() *NupEmulatorIssue {
 		issue := nupIssue(nupIssueNoExefs)
 		return &issue
 	}
+	if issue := container.foreignUpdate(base, exefs); issue != nil {
+		return issue
+	}
 	names := map[string]bool{}
 	dir := container.Dirs[container.Packages[exefs].ExefsDir]
 	for _, node := range container.Children[dir.FirstChild : dir.FirstChild+dir.ChildCount] {
@@ -277,6 +282,42 @@ func (container *NupContainer) startFault() *NupEmulatorIssue {
 		issue = nupIssue(nupIssueUpdateLacks, pkg.Version, strings.Join(missing, ", "))
 	}
 	return &issue
+}
+
+// foreignUpdate tells why the emulators refuse the update they would start, nil when they do
+// not: its program is not the one of the game beside it (another game, or another program of a
+// game of several), which they refuse rather than start the update over the wrong game
+// (0007-0045). The ID of the game is the one of its NPDM, else the one of its package; a game
+// without either claims none. Only IDs of the same console are compared: a Switch 2 Edition
+// update of a Switch 1 game has its own rules. NXPress tells the same.
+func (container *NupContainer) foreignUpdate(base int, exefs int) *NupEmulatorIssue {
+	if base < 0 || exefs == base {
+		return nil
+	}
+	game := nupNpdmProgramID(container.Packages[base].Meta[nupTlvNpdm])
+	if game == 0 {
+		game = container.Packages[base].TitleId
+	}
+	update := nupNpdmProgramID(container.Packages[exefs].Meta[nupTlvNpdm])
+	if game == 0 || update == 0 || game == update || game>>56 != update>>56 {
+		return nil
+	}
+	issue := nupIssue(nupIssueForeign, fmt.Sprintf("%016X", update), fmt.Sprintf("%016X", game))
+	return &issue
+}
+
+// nupNpdmProgramID is the program ID of an NPDM, from its ACI0; 0 without one.
+func nupNpdmProgramID(npdm []byte) uint64 {
+	le := binary.LittleEndian
+	if len(npdm) >= 0x78 && string(npdm[:4]) == "META" {
+		if at := int(le.Uint32(npdm[0x70:])); at >= 0 && at+0x18 <= len(npdm) && string(npdm[at:at+4]) == "ACI0" {
+			return le.Uint64(npdm[at+0x10:])
+		}
+	}
+	if at := bytes.Index(npdm, []byte("ACI0")); at >= 0 && at+0x18 <= len(npdm) {
+		return le.Uint64(npdm[at+0x10:])
+	}
+	return 0
 }
 
 // nupStrictLocalized tells whether the records of names and icons by language of a block of

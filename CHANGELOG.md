@@ -5,6 +5,7 @@
 ### Improvements
 
 - Game names, DLC and covers come from the titledb that was updated last, so games and DLC released since mid-October are known
+- A NUP whose update is for another program than its game says that Eglantine and Lichii cannot start it
 
 ## 2.0.24
 

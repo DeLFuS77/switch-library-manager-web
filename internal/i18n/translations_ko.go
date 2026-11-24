@@ -2265,6 +2265,7 @@ func init() {
 		"no game or update in it has an ExeFS":                                                                   "안에 있는 게임과 업데이트 모두 ExeFS가 없습니다",
 		"the ExeFS of the game lacks: %v":                                                                        "게임의 ExeFS에 없는 것: %v",
 		"the ExeFS of update v%v lacks: %v":                                                                      "업데이트 v%v의 ExeFS에 없는 것: %v",
+		"its update is for the program %v, not for its game %v":                                                  "업데이트는 프로그램 %v용이며, 게임 %v용이 아닙니다",
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine과 Lichii에서 이 NUP가 열리지 않습니다. 파일은 온전하지만 이 에뮬레이터의 규칙을 어깁니다.",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "파일은 온전하지만 Eglantine과 Lichii에서 이 NUP의 게임을 시작할 수 없습니다.",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "%v 읽기 실패 [이유: %v]; Eglantine과 Lichii에서도 열리지 않습니다",
