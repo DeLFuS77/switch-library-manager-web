@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.26
+
+### Fixes
+
+- The preview of Organize no longer lists an empty folder without a name when no folder is left empty. Thanks to @TerrorSource for reporting it (#202)
+
 ## 2.0.25
 
 ### Improvements
