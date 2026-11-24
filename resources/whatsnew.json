@@ -1,4 +1,50 @@
 {
+  "2.0.25": {
+    "en": [
+      "Games and DLC released since mid-October get their names, DLC and covers.",
+      "A NUP whose update is for another program than its game says that Eglantine and Lichii cannot start it."
+    ],
+    "es": [
+      "Los juegos y DLC que han salido desde mediados de octubre ya tienen nombre, DLC y carátula.",
+      "Un NUP cuya actualización es de otro programa que su juego avisa de que Eglantine y Lichii no pueden arrancarlo."
+    ],
+    "de": [
+      "Spiele und DLC, die seit Mitte Oktober erschienen sind, bekommen ihre Namen, DLC und Cover.",
+      "Ein NUP, dessen Update zu einem anderen Programm als sein Spiel gehört, meldet, dass Eglantine und Lichii es nicht starten können."
+    ],
+    "fr": [
+      "Les jeux et DLC sortis depuis la mi-octobre ont leur nom, leurs DLC et leur jaquette.",
+      "Un NUP dont la mise à jour est d'un autre programme que son jeu indique qu'Eglantine et Lichii ne peuvent pas le lancer."
+    ],
+    "it": [
+      "I giochi e i DLC usciti da metà ottobre hanno il loro nome, i DLC e la copertina.",
+      "Un NUP il cui aggiornamento è di un altro programma rispetto al suo gioco avvisa che Eglantine e Lichii non possono avviarlo."
+    ],
+    "pt": [
+      "Os jogos e DLC lançados desde meados de outubro já têm nome, DLC e capa.",
+      "Um NUP cuja atualização é de outro programa que não o seu jogo avisa que o Eglantine e o Lichii não o conseguem iniciar."
+    ],
+    "nl": [
+      "Games en DLC die sinds half oktober zijn uitgekomen, krijgen hun naam, DLC en cover.",
+      "Een NUP waarvan de update bij een ander programma hoort dan zijn game, meldt dat Eglantine en Lichii hem niet kunnen starten."
+    ],
+    "ru": [
+      "Игры и DLC, вышедшие с середины октября, получают названия, DLC и обложки.",
+      "NUP, обновление в котором относится к другой программе, а не к его игре, сообщает, что Eglantine и Lichii не смогут его запустить."
+    ],
+    "ja": [
+      "10月中旬以降に発売されたゲームとDLCにも、名前・DLC・カバーが付きます。",
+      "アップデートがゲームとは別のプログラムのものであるNUPは、EglantineとLichiiで起動できないと表示します。"
+    ],
+    "ko": [
+      "10월 중순 이후 출시된 게임과 DLC도 이름, DLC, 커버를 갖게 됩니다.",
+      "업데이트가 게임이 아닌 다른 프로그램의 것인 NUP는 Eglantine과 Lichii에서 시작할 수 없다고 알려 줍니다."
+    ],
+    "zh": [
+      "自十月中旬以来发布的游戏和 DLC 现在也有名称、DLC 和封面。",
+      "如果 NUP 中的更新属于其游戏以外的其他程序，会提示 Eglantine 和 Lichii 无法启动它。"
+    ]
+  },
   "2.0.24": {
     "en": [
       "Settings › What is shown: choose the languages of the language packs; the ones in other languages are not counted as missing DLC.",
