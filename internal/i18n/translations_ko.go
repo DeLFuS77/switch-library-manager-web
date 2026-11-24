@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "아랍어",
 		"Simplified Chinese":      "중국어 간체",
 		"Traditional Chinese":     "중국어 번체",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "사용하지 않는 언어 팩",
+		"Language pack you do not use":  "사용하지 않는 언어 팩",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "설정 › 표시할 항목에서 선택하지 않은 언어의 언어 팩과 해설입니다. 아무것도 선택되지 않았습니다: 삭제할 것을 선택하세요.",
+		"Select all of this group":                            "이 그룹 모두 선택",
+		"Keep this DLC":                                       "이 DLC 유지",
+		"You keep this DLC: it is not deleted.":               "이 DLC를 유지합니다: 삭제되지 않습니다.",
+		"The language of this pack is not known: it stays.":   "이 팩의 언어를 알 수 없습니다: 남겨 둡니다.",
+		"You have %v language packs in other languages (%v).": "다른 언어의 언어 팩이 %v개 있습니다 (%v).",
+		"See them in Space":                                   "공간에서 보기",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "파일 1개",
 		"1 file, %v":                            "파일 1개, %v",

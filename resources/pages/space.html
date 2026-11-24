@@ -73,22 +73,35 @@
 						<span class="bi bi-chevron-down space-group-chevron" aria-hidden="true"></span>
 					</summary>
 					<div class="space-group-body">
-					<p class="small text-body-secondary">{{template "spaceGroupHelp" $g.Id}}</p>
+					<p class="small text-body-secondary">{{template "spaceGroupHelp" $g.Id}}{{if eq $g.Id "languages"}} <a href="/settings.html#dlcLanguages">{{t "Choose the languages"}}</a>{{end}}</p>
+					{{- if eq $g.Id "languages"}}
+					{{- /* none of the language packs is selected at first: the user picks the ones to delete (#200) */}}
+					<div class="form-check small mb-2">
+						<input class="form-check-input" type="checkbox" id="languagesAll" data-group-all>
+						<label class="form-check-label" for="languagesAll">{{t "Select all of this group"}}</label>
+					</div>
+					{{- end}}
 					<ul class="item-list mb-0">
 						{{- range $i, $f := $g.Shown}}
 						<li class="item-row item-row-check">
-							<input class="form-check-input" type="checkbox" name="path" value="{{$f.Path}}" data-size="{{$f.Size}}" id="{{$g.Id}}{{$i}}"{{if $f.Deletable}} checked{{else if $f.OnRequest}} data-ask="{{t "The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone." (fileBase $f.KeptBy) (fileBase $f.Path)}}"{{else}} disabled{{end}}>
+							<input class="form-check-input" type="checkbox" name="path" value="{{$f.Path}}" data-size="{{$f.Size}}" id="{{$g.Id}}{{$i}}"{{if $f.Deletable}}{{if eq $g.Id "languages"}} data-by-hand="true"{{else}} checked{{end}}{{else if $f.OnRequest}} data-ask="{{t "The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone." (fileBase $f.KeptBy) (fileBase $f.Path)}}"{{else}} disabled{{end}}>
 							<label class="item-main" for="{{$g.Id}}{{$i}}">
 								<span class="item-name d-block">{{$f.Name}}</span>
-								<span class="item-meta"><span class="font-monospace text-break" title="{{$f.Path}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{fileBase $f.Path}}</span>{{with $f.KeptBy}}<span class="font-monospace text-break text-success-emphasis" title="{{.}}"><span class="bi bi-check2-circle me-1" aria-hidden="true"></span>{{fileBase .}}</span>{{end}}</span>
+								<span class="item-meta">{{with $f.Language}}<span><span class="bi bi-translate me-1" aria-hidden="true"></span>{{t .}}</span>{{end}}<span class="font-monospace text-break" title="{{$f.Path}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{fileBase $f.Path}}</span>{{with $f.KeptBy}}<span class="font-monospace text-break text-success-emphasis" title="{{.}}"><span class="bi bi-check2-circle me-1" aria-hidden="true"></span>{{fileBase .}}</span>{{end}}</span>
 								{{- if $f.OnRequest}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway."}}</span>
-								{{- else if $f.KeptUpdate}}<span class="chip chip-info mt-1"><span class="bi bi-pin-angle-fill" aria-hidden="true"></span>{{t $f.Note}}</span>
+								{{- else if or $f.KeptUpdate $f.KeptDLC}}<span class="chip chip-info mt-1"><span class="bi bi-pin-angle-fill" aria-hidden="true"></span>{{t $f.Note}}</span>
 								{{- else}}{{with $f.Note}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t .}}</span>{{end}}{{end}}
 							</label>
 							{{- if $f.Keepable}}
 							{{- /* an old update can be kept on purpose, or let go: the button goes with the size, in its column (#193) */}}
 							<span class="d-flex align-items-center gap-2">
 								<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap admin-only" data-update-keep="{{$f.Path}}" data-keep="{{if $f.KeptUpdate}}false{{else}}true{{end}}"{{if not $f.KeptUpdate}} title="{{t "Keep this update"}}"{{end}}><span class="bi {{if $f.KeptUpdate}}bi-pin me-1{{else}}bi-pin-angle{{end}}" aria-hidden="true"></span>{{if $f.KeptUpdate}}{{t "Stop keeping"}}{{else}}<span class="visually-hidden">{{t "Keep this update"}}</span>{{end}}</button>
+								<span class="item-size">{{formatSize $f.Size}}</span>
+							</span>
+							{{- else if $f.KeepableDLC}}
+							{{- /* a language pack can be kept on purpose, as an old update (#200) */}}
+							<span class="d-flex align-items-center gap-2">
+								<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap admin-only" data-dlc-keep="{{$f.DlcId}}" data-keep="{{if $f.KeptDLC}}false{{else}}true{{end}}"{{if not $f.KeptDLC}} title="{{t "Keep this DLC"}}"{{end}}><span class="bi {{if $f.KeptDLC}}bi-pin me-1{{else}}bi-pin-angle{{end}}" aria-hidden="true"></span>{{if $f.KeptDLC}}{{t "Stop keeping"}}{{else}}<span class="visually-hidden">{{t "Keep this DLC"}}</span>{{end}}</button>
 								<span class="item-size">{{formatSize $f.Size}}</span>
 							</span>
 							{{- else}}
@@ -98,7 +111,7 @@
 						{{- end}}
 						{{- if $g.RestCount}}
 						<li class="item-row item-row-check item-row-rest">
-							<input class="form-check-input" type="checkbox" name="rest" value="{{$g.Id}}" data-size="{{$g.RestSize}}" data-count="{{$g.RestCount}}" id="{{$g.Id}}Rest" checked>
+							<input class="form-check-input" type="checkbox" name="rest" value="{{$g.Id}}" data-size="{{$g.RestSize}}" data-count="{{$g.RestCount}}" id="{{$g.Id}}Rest"{{if eq $g.Id "languages"}} data-by-hand="true"{{else}} checked{{end}}>
 							<label class="item-main" for="{{$g.Id}}Rest">
 								<span class="item-name d-block">{{t "And %v more files" $g.RestCount}}</span>
 								<span class="item-meta">{{t "Smaller files of this group, not listed one by one."}}</span>
@@ -168,6 +181,6 @@
 {{- end}}
 {{- end}}
 
-{{define "spaceGroupTitle"}}{{if eq . "old_updates"}}{{t "Old updates"}}{{else if eq . "duplicates"}}{{t "Duplicates"}}{{else}}{{t "Compressed originals"}}{{end}}{{end}}
+{{define "spaceGroupTitle"}}{{if eq . "old_updates"}}{{t "Old updates"}}{{else if eq . "duplicates"}}{{t "Duplicates"}}{{else if eq . "languages"}}{{t "Language packs you do not use"}}{{else}}{{t "Compressed originals"}}{{end}}{{end}}
 
-{{define "spaceGroupHelp"}}{{if eq . "old_updates"}}{{t "A newer update of the same game is in the library."}}{{else if eq . "duplicates"}}{{t "The same content is in the library more than once; the copy shown as kept stays."}}{{else}}{{t "NSP and XCI files with an NSZ or XCZ copy next to them. They can be deleted once the copy is verified."}}{{end}}{{end}}
+{{define "spaceGroupHelp"}}{{if eq . "old_updates"}}{{t "A newer update of the same game is in the library."}}{{else if eq . "duplicates"}}{{t "The same content is in the library more than once; the copy shown as kept stays."}}{{else if eq . "languages"}}{{t "Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete."}}{{else}}{{t "NSP and XCI files with an NSZ or XCZ copy next to them. They can be deleted once the copy is verified."}}{{end}}{{end}}

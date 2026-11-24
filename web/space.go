@@ -23,6 +23,7 @@ const (
 	SPACE_OLD_UPDATES = "old_updates"
 	SPACE_DUPLICATES  = "duplicates"
 	SPACE_COMPRESSED  = "compressed"
+	// SPACE_LANGUAGES, the language packs in the languages not chosen, is in languagepacks.go
 	// a compressed copy that was not verified yet
 	NOTE_SPACE_VERIFY = "Verify the compressed copy first."
 	// duplicates are deleted only when the copy that stays is known to be sound
@@ -54,7 +55,13 @@ type SpaceFile struct {
 	// an old update: it can be kept on purpose (Keep this update), and whether it is
 	Keepable   bool
 	KeptUpdate bool
-	file       db.ExtendedFileInfo
+	// a language pack in a language not chosen (#200): its DLC, its language, and whether it can
+	// be kept on purpose (Keep this DLC) and is
+	DlcId       string
+	Language    string
+	KeepableDLC bool
+	KeptDLC     bool
+	file        db.ExtendedFileInfo
 }
 
 type SpaceGroup struct {
@@ -156,16 +163,19 @@ func (d SpacePageData) Shares() []SpaceShare {
 	return shares
 }
 
+// the groups of the Space page, in their order
+var spaceGroupIds = []string{SPACE_OLD_UPDATES, SPACE_DUPLICATES, SPACE_COMPRESSED, SPACE_LANGUAGES}
+
 // spaceGroups finds old updates, duplicates and originals that already have a compressed
 // copy. Originals can only be deleted once their compressed copy was verified.
 func (web *Web) spaceGroups() []SpaceGroup {
 	_, localDB := web.state.get()
 	groups := map[string]*SpaceGroup{}
-	for _, id := range []string{SPACE_OLD_UPDATES, SPACE_DUPLICATES, SPACE_COMPRESSED} {
+	for _, id := range spaceGroupIds {
 		groups[id] = &SpaceGroup{Id: id, Files: []SpaceFile{}}
 	}
 	if localDB == nil {
-		return []SpaceGroup{*groups[SPACE_OLD_UPDATES], *groups[SPACE_DUPLICATES], *groups[SPACE_COMPRESSED]}
+		return []SpaceGroup{*groups[SPACE_OLD_UPDATES], *groups[SPACE_DUPLICATES], *groups[SPACE_COMPRESSED], *groups[SPACE_LANGUAGES]}
 	}
 	add := func(id string, file SpaceFile) {
 		group := groups[id]
@@ -293,8 +303,13 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		}
 	}
 
+	// the language packs in the languages not chosen (#200)
+	for _, file := range web.languagePackFiles() {
+		add(SPACE_LANGUAGES, file)
+	}
+
 	result := []SpaceGroup{}
-	for _, id := range []string{SPACE_OLD_UPDATES, SPACE_DUPLICATES, SPACE_COMPRESSED} {
+	for _, id := range spaceGroupIds {
 		group := groups[id]
 		sort.Slice(group.Files, func(i, j int) bool {
 			if group.Files[i].Size == group.Files[j].Size {
@@ -707,6 +722,7 @@ func (web *Web) HandleSpace() {
 	}).Methods("GET")
 
 	web.handleRegionRemove()
+	web.handleKeepDLC()
 	web.handleRegionMain()
 
 	// the files deleted so far by the cleanup running: the page takes them off its list as

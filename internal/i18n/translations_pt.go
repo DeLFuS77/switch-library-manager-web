@@ -5,8 +5,8 @@ func init() {
 	Translations["pt"] = map[string]string{
 		// the language packs of the languages not chosen (#200)
 		"Language packs and commentary": "Pacotes de idioma e comentários",
-		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "Marque os idiomas que quer: os pacotes de idioma e os comentários de um jogo noutros idiomas não aparecem como DLC em falta. Sem nenhum marcado, aparecem todos.",
-		"%v language packs in other languages are not counted.": "%v pacotes de idioma noutros idiomas não são contados.",
+		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "Marque os idiomas que quer: os pacotes de idioma e os comentários de um jogo em outros idiomas não aparecem como DLC em falta. Sem nenhum marcado, aparecem todos.",
+		"%v language packs in other languages are not counted.": "%v pacotes de idioma em outros idiomas não são contados.",
 		"See them":                "Ver",
 		"Choose the languages":    "Escolher os idiomas",
 		"Other language":          "Outro idioma",
@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "Árabe",
 		"Simplified Chinese":      "Chinês simplificado",
 		"Traditional Chinese":     "Chinês tradicional",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "Pacotes de idioma que não usa",
+		"Language pack you do not use":  "Pacote de idioma que não usa",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "Pacotes de idioma e comentários nos idiomas que não marcou em Configurações, O que é mostrado. Nenhum está selecionado: selecione os que quer apagar.",
+		"Select all of this group":                            "Selecionar todo este grupo",
+		"Keep this DLC":                                       "Manter este DLC",
+		"You keep this DLC: it is not deleted.":               "Você mantém este DLC: não é apagado.",
+		"The language of this pack is not known: it stays.":   "O idioma deste pacote não é conhecido: fica.",
+		"You have %v language packs in other languages (%v).": "Você tem %v pacotes de idioma em outros idiomas (%v).",
+		"See them in Space":                                   "Ver em Espaço",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 ficheiro",
 		"1 file, %v":                            "1 ficheiro, %v",

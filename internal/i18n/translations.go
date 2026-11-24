@@ -18,6 +18,16 @@ var Translations = map[string]map[string]string{
 		"Arabic":                  "Árabe",
 		"Simplified Chinese":      "Chino simplificado",
 		"Traditional Chinese":     "Chino tradicional",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "Paquetes de idioma que no usas",
+		"Language pack you do not use":  "Paquete de idioma que no usas",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "Paquetes de idioma y de comentarios en los idiomas que no marcaste en Ajustes, Qué se muestra. No hay ninguno marcado: marca los que quieras borrar.",
+		"Select all of this group":                            "Marcar todo este grupo",
+		"Keep this DLC":                                       "Conservar este DLC",
+		"You keep this DLC: it is not deleted.":               "Conservas este DLC: no se borra.",
+		"The language of this pack is not known: it stays.":   "No se sabe de qué idioma es este paquete: se queda.",
+		"You have %v language packs in other languages (%v).": "Tienes %v paquetes de idioma en otros idiomas (%v).",
+		"See them in Space":                                   "Verlos en Espacio",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 archivo",
 		"1 file, %v":                            "1 archivo, %v",

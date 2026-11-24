@@ -25,6 +25,9 @@ type SettingsPageData struct {
 	Languages     []string
 	// the languages of the language packs listed as DLC (#200)
 	DLCLanguages []DLCLanguage
+	// the language packs of the library in the other languages, which Space can delete
+	LanguagePacks     int
+	LanguagePacksSize int64
 	// games of the library without a cover
 	MissingCovers int
 	// games of the Switch 2 the folders have: told under "I have a Switch 2" while it is off
@@ -642,7 +645,10 @@ func (web *Web) settingsPageData() SettingsPageData {
 		netInstallReady = web.auth.Enabled()
 	}
 	_, titleKeys, _ := settings.KeysSummary()
+	languagePacks, languagePacksSize := web.languagePacksSummary()
 	return SettingsPageData{
+		LanguagePacks:           languagePacks,
+		LanguagePacksSize:       languagePacksSize,
 		Portal:                  portal,
 		NetInstallReady:         netInstallReady,
 		GlobalPageData:          web.globalPageData("settings"),
