@@ -1,4 +1,61 @@
 {
+  "2.0.24": {
+    "en": [
+      "Settings › What is shown: choose the languages of the language packs; the ones in other languages are not counted as missing DLC.",
+      "Files that are not games can be deleted from Issues when the library is in a folder named like one of an SD card.",
+      "A disk that fills up while a file is written says there is not enough free space."
+    ],
+    "es": [
+      "Ajustes › Qué se muestra: elige los idiomas de los paquetes de idioma; los de otros idiomas no cuentan como DLC que faltan.",
+      "Los archivos que no son juegos se pueden borrar desde Problemas aunque la biblioteca esté en una carpeta que se llame como una de la tarjeta SD.",
+      "Un disco que se llena mientras se escribe un archivo avisa de que no hay espacio libre suficiente."
+    ],
+    "de": [
+      "Einstellungen › Was angezeigt wird: Wähle die Sprachen der Sprachpakete; die in anderen Sprachen zählen nicht als fehlende DLC.",
+      "Dateien, die keine Spiele sind, lassen sich unter Probleme löschen, auch wenn die Bibliothek in einem Ordner liegt, der wie einer der SD-Karte heißt.",
+      "Ein Laufwerk, das beim Schreiben einer Datei voll wird, meldet, dass nicht genug freier Speicher da ist."
+    ],
+    "fr": [
+      "Paramètres › Ce qui s'affiche : choisis les langues des packs de langue ; ceux des autres langues ne comptent pas comme DLC manquants.",
+      "Les fichiers qui ne sont pas des jeux peuvent être supprimés depuis Problèmes même si la bibliothèque est dans un dossier nommé comme un de la carte SD.",
+      "Un disque qui se remplit pendant l'écriture d'un fichier indique qu'il n'y a pas assez d'espace libre."
+    ],
+    "it": [
+      "Impostazioni › Cosa si mostra: scegli le lingue dei pacchetti di lingua; quelli in altre lingue non contano come DLC mancanti.",
+      "I file che non sono giochi si possono eliminare da Problemi anche quando la libreria è in una cartella con il nome di una della scheda SD.",
+      "Un disco che si riempie mentre si scrive un file avvisa che non c'è abbastanza spazio libero."
+    ],
+    "pt": [
+      "Configurações › O que é mostrado: escolhe os idiomas dos pacotes de idioma; os de outros idiomas não contam como DLC em falta.",
+      "Os ficheiros que não são jogos podem ser apagados em Problemas mesmo com a biblioteca numa pasta com o nome de uma do cartão SD.",
+      "Um disco que fica cheio enquanto se escreve um ficheiro avisa que não há espaço livre suficiente."
+    ],
+    "nl": [
+      "Instellingen › Wat er getoond wordt: kies de talen van de taalpakketten; die in andere talen tellen niet als ontbrekende DLC.",
+      "Bestanden die geen games zijn, kun je verwijderen bij Problemen, ook als de bibliotheek in een map staat die heet als een van de SD-kaart.",
+      "Een schijf die vol raakt terwijl een bestand wordt geschreven, meldt dat er niet genoeg vrije ruimte is."
+    ],
+    "ru": [
+      "Настройки › Что показывать: выберите языки языковых пакетов; пакеты на других языках не считаются недостающими DLC.",
+      "Файлы, которые не являются играми, можно удалить в разделе «Проблемы», даже если библиотека лежит в папке с именем как на SD-карте.",
+      "Если диск заполняется во время записи файла, появляется сообщение, что свободного места недостаточно."
+    ],
+    "ja": [
+      "設定 › 表示する内容：言語パックの言語を選べます。ほかの言語のパックは足りないDLCとして数えません。",
+      "ライブラリがSDカードのフォルダーと同じ名前のフォルダーにあっても、ゲームではないファイルを「問題」から削除できます。",
+      "ファイルの書き込み中にディスクがいっぱいになると、空き容量が足りないと表示されます。"
+    ],
+    "ko": [
+      "설정 › 표시할 항목: 언어 팩의 언어를 고를 수 있습니다. 다른 언어의 팩은 없는 DLC로 세지 않습니다.",
+      "라이브러리가 SD 카드의 폴더와 같은 이름의 폴더에 있어도 게임이 아닌 파일을 문제에서 삭제할 수 있습니다.",
+      "파일을 쓰는 동안 디스크가 가득 차면 여유 공간이 부족하다고 알려 줍니다."
+    ],
+    "zh": [
+      "设置 › 显示内容：可以选择语言包的语言；其他语言的语言包不再算作缺少的 DLC。",
+      "即使媒体库位于与 SD 卡文件夹同名的文件夹中，也可以在“问题”中删除不是游戏的文件。",
+      "写入文件时磁盘写满，会提示可用空间不足。"
+    ]
+  },
   "2.0.23": {
     "en": [
       "Games that keep their names compressed in the control data show the name in the right language and their publisher."
