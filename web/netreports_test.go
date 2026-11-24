@@ -252,3 +252,52 @@ func TestNetReportsInDiagnostics(t *testing.T) {
 		t.Error("not in the demo")
 	}
 }
+
+// The card of a console on the page Consoles says how many reports it sent, with the newest to
+// download and the way to Diagnostics, for an administrator only; not in the demo (#205).
+func TestNetReportsOnTheConsoleCard(t *testing.T) {
+	web, admin, bob, console, auth, _ := consolesWeb(t)
+	created := createKey(t, admin, "Switch salon", ROLE_CONSOLE)
+	adminAuth := bearer(created.Key)
+	page := admin.do("GET", "/consoles.html", nil).Body.String()
+	if !strings.Contains(page, "Switch salon") || strings.Contains(page, "console-reports-line") {
+		t.Fatalf("no report yet: %s", page)
+	}
+	var first, second struct {
+		Stored string `json:"stored"`
+	}
+	json.Unmarshal(sendReport(console, bytes.NewReader(reportZip(t, "nxdock.log")), "application/zip", "Authorization", adminAuth).Body.Bytes(), &first)
+	data := reportZip(t, "nxdock.log", "history.tsv")
+	json.Unmarshal(sendReport(console, bytes.NewReader(data), "application/zip", "Authorization", adminAuth).Body.Bytes(), &second)
+	if first.Stored == "" || second.Stored == "" {
+		t.Fatal("the reports were not kept")
+	}
+	page = admin.do("GET", "/consoles.html", nil).Body.String()
+	for _, want := range []string{"console-reports-line", "2 reports from NXDock", `href="/api/install/reports/` + created.ID + "/" + second.Stored + `" download`,
+		"Download the newest", `href="/diagnostics.html#consoleReportsTitle"`} {
+		if !strings.Contains(page, want) {
+			t.Errorf("the card has no %s", want)
+		}
+	}
+	if strings.Contains(page, first.Stored) {
+		t.Error("only the newest is offered")
+	}
+
+	// bob's console sent one too, but bob is not an administrator
+	sendReport(console, bytes.NewReader(reportZip(t, "nxdock.log")), "application/zip", "Authorization", auth)
+	if page := bob.do("GET", "/consoles.html", nil).Body.String(); strings.Contains(page, "console-reports-line") || strings.Contains(page, "from NXDock") {
+		t.Error("a player sees no report")
+	}
+
+	if n, last := web.netConsoleReports(created.ID); n != 2 || last == nil || last.Name != second.Stored || last.Size != int64(len(data)) {
+		t.Errorf("the reports of the console: %d %+v", n, last)
+	}
+	if n, last := web.netConsoleReports("0123456789abcdef"); n != 0 || last != nil {
+		t.Errorf("a console without reports: %d %+v", n, last)
+	}
+
+	t.Setenv("SLM_DEMO", "true")
+	if page := admin.do("GET", "/consoles.html", nil).Body.String(); strings.Contains(page, "console-reports-line") {
+		t.Error("not in the demo")
+	}
+}
