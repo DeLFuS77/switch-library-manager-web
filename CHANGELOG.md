@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- A NUP whose update is for another program than its game says that Eglantine and Lichii cannot start it
+
 ## 2.0.24
 
 ### Improvements

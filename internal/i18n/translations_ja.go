@@ -2265,6 +2265,7 @@ func init() {
 		"no game or update in it has an ExeFS":                                                                   "含まれるゲームにも更新データにも ExeFS がありません",
 		"the ExeFS of the game lacks: %v":                                                                        "ゲームの ExeFS に次がありません: %v",
 		"the ExeFS of update v%v lacks: %v":                                                                      "更新データ v%v の ExeFS に次がありません: %v",
+		"its update is for the program %v, not for its game %v":                                                  "アップデートはプログラム %v 用で、ゲーム %v 用ではありません",
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine と Lichii ではこの NUP を開けません。ファイルは壊れていませんが、これらのエミュレーターの規則に反しています。",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "ファイルは壊れていませんが、Eglantine と Lichii ではこの NUP のゲームを起動できません。",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "%vを読み込めませんでした [理由: %v]。Eglantine と Lichii でも開けません",
