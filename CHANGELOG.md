@@ -5,6 +5,7 @@
 ### Improvements
 
 - Space › Language packs you do not use: the language packs and commentary already in the library in the languages not chosen can be deleted, none selected at first, and Keep this DLC keeps one. Thanks to @TerrorSource for the idea (#200)
+- Consoles: the card of a console shows the reports NXDock sent from it, with the newest to download and a link to Diagnostics, for administrators. Thanks to @TerrorSource for reporting it (#205)
 
 ### Fixes
 

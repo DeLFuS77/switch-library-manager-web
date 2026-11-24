@@ -463,3 +463,19 @@
 	white-space: nowrap;
 	font-variant-numeric: tabular-nums;
 }
+
+// the reports NXDock sent from a console, at the foot of its card (#205)
+.console-reports-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .25rem .6rem;
+	margin-top: .85rem;
+	padding-top: .75rem;
+	border-top: 1px solid var(--slm-border);
+	font-size: .92rem;
+
+	> .bi {
+		color: var(--bs-info);
+	}
+}

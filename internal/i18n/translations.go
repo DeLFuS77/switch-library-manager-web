@@ -2652,6 +2652,12 @@ var Translations = map[string]map[string]string{
 		"Delete the report of %v from %v? It cannot be undone.":                                "¿Borrar el informe de %v del %v? No se puede deshacer.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Ninguna consola ha enviado un informe todavía. NXDock envía uno cuando se lo pides, para un issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Se guardan los 10 últimos de cada consola. Cada uno queda anotado en Actividad.",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 informe de NXDock",
+		"%v reports from NXDock":      "%v informes de NXDock",
+		"the newest %v (%v)":          "el último, %v (%v)",
+		"Download the newest":         "Descargar el último",
+		"See them all in Diagnostics": "Verlos todos en Diagnóstico",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "Falta 1 DLC",
 

@@ -2624,6 +2624,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "%v のレポート (%v) を削除しますか？元に戻せません。",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "まだどの本体からもレポートは届いていません。NXDock は求められたときに issue 用のレポートを送ります。",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "本体ごとに最新の 10 件を保存します。それぞれアクティビティに記録されます。",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "NXDock からのレポート 1 件",
+		"%v reports from NXDock":      "NXDock からのレポート %v 件",
+		"the newest %v (%v)":          "最新: %v（%v）",
+		"Download the newest":         "最新をダウンロード",
+		"See them all in Diagnostics": "すべて診断で見る",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "DLCが1件不足",
 

@@ -2625,6 +2625,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "Supprimer le rapport de %v du %v ? C’est définitif.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Aucune console n’a encore envoyé de rapport. NXDock en envoie un quand tu le lui demandes, pour une issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Les 10 derniers de chaque console sont gardés. Chacun est noté dans l’Activité.",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 rapport de NXDock",
+		"%v reports from NXDock":      "%v rapports de NXDock",
+		"the newest %v (%v)":          "le plus récent : %v (%v)",
+		"Download the newest":         "Télécharger le plus récent",
+		"See them all in Diagnostics": "Tous les voir dans Diagnostic",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "1 DLC manquant",
 

@@ -2624,6 +2624,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "Удалить отчёт %v от %v? Это нельзя отменить.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Пока ни одна консоль не отправила отчёт. NXDock отправляет его по вашей просьбе, для issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Хранятся последние 10 отчётов каждой консоли. Каждый отмечается в разделе «Активность».",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 отчёт от NXDock",
+		"%v reports from NXDock":      "Отчётов от NXDock: %v",
+		"the newest %v (%v)":          "последний: %v (%v)",
+		"Download the newest":         "Скачать последний",
+		"See them all in Diagnostics": "Все в разделе «Диагностика»",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "Не хватает 1 DLC",
 
