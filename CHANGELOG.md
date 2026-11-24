@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.26
+## Unreleased
 
 ### Fixes
 
