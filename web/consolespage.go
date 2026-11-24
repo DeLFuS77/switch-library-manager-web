@@ -68,6 +68,9 @@ type ConsoleCard struct {
 	// the first games out of date, and how many more there are
 	Games []ConsoleOutdated
 	More  int
+	// the reports it sent (#205), for an administrator: how many, and the newest
+	Reports    int
+	LastReport *netReportRow
 }
 
 // ConsoleSpace is the free space of a storage of a console.
@@ -370,6 +373,9 @@ func (web *Web) consolesPage(r *http.Request, lang string, now time.Time) Consol
 			continue
 		}
 		card := ConsoleCard{Id: key.ID, Name: key.Name, Waiting: web.netPushes.waiting(key.ID)}
+		if principal.IsAdmin() && !isDemoMode() {
+			card.Reports, card.LastReport = web.netConsoleReports(key.ID)
+		}
 		inventory, told := web.readNetInventory(key.ID)
 		if told {
 			card.Told, card.Titles = true, summarizeNetInventory(inventory).Titles
