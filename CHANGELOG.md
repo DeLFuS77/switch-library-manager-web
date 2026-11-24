@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Game names, DLC and covers come from the titledb that was updated last, so games and DLC released since mid-October are known
+
 ## 2.0.24
 
 ### Improvements

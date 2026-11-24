@@ -1,5 +1,5 @@
-# Generates titles.json from blawar/titledb, versions.json from the versions of blawar/titledb
-# and other sources, titles.dlc.json with the DLC of each game, and titles.switch2.json from the
+# Generates titles.json from blawar/titledb or borntohonk/titledb, the one changed last,
+# versions.json from the versions of both and other sources, titles.dlc.json with the DLC of each game, and titles.switch2.json from the
 # title list of switchbrew, and publishes them
 # as assets of the rolling "data" release, which is the
 # default source of the app (settings.DATA_RELEASE_URL). Each file is published compressed too,
@@ -51,8 +51,38 @@ jobs:
           git init -q "$GITHUB_WORKSPACE/nut"
           git -C "$GITHUB_WORKSPACE/nut" fetch -q --depth 1 https://github.com/blawar/nut.git "$NUT_COMMIT"
           git -C "$GITHUB_WORKSPACE/nut" checkout -q FETCH_HEAD
-          # the titles are data, followed as they change
-          git clone --depth 1 https://github.com/blawar/titledb.git "$GITHUB_WORKSPACE/nut/titledb"
+          # the titles are data, followed as they change. blawar/titledb stops for weeks at times
+          # and borntohonk/titledb, with the same files, goes on: the one changed last is used.
+          # Only the newest commit of each is fetched, and only the files of the one used.
+          for source in blawar borntohonk; do
+            git clone -q --depth 1 --filter=blob:none --no-checkout \
+              "https://github.com/$source/titledb.git" "$GITHUB_WORKSPACE/titledb-$source"
+          done
+          source=blawar
+          if [ "$(git -C "$GITHUB_WORKSPACE/titledb-borntohonk" log -1 --format=%ct)" -gt \
+               "$(git -C "$GITHUB_WORKSPACE/titledb-blawar" log -1 --format=%ct)" ]; then
+            source=borntohonk
+          fi
+          echo "Titles from $source/titledb, of $(git -C "$GITHUB_WORKSPACE/titledb-$source" log -1 --format=%cI)"
+          echo "$source" > "$GITHUB_WORKSPACE/titledb-source.txt"
+          # the versions of both, whichever gives the titles (a missing one is left out)
+          mkdir -p "$GITHUB_WORKSPACE/versions-sources"
+          for other in blawar borntohonk; do
+            git -C "$GITHUB_WORKSPACE/titledb-$other" show HEAD:versions.json \
+              > "$GITHUB_WORKSPACE/versions-sources/$other.versions.json" \
+              || rm -f "$GITHUB_WORKSPACE/versions-sources/$other.versions.json"
+          done
+          git -C "$GITHUB_WORKSPACE/titledb-$source" checkout -q
+          mv "$GITHUB_WORKSPACE/titledb-$source" "$GITHUB_WORKSPACE/nut/titledb"
+          # a store too big for GitHub may be kept compressed (US.es.json.zst): it is read
+          # decompressed. titles.json is the one NUT makes, not the compressed one of the source
+          for packed in "$GITHUB_WORKSPACE"/nut/titledb/*.json.zst; do
+            [ -e "$packed" ] || continue
+            plain="${packed%.zst}"
+            if [ "$(basename "$plain")" != titles.json ] && [ ! -e "$plain" ]; then
+              zstd -q -d "$packed" -o "$plain"
+            fi
+          done
 
       - name: Install NUT Python dependencies
         working-directory: ${{ github.workspace }}/nut
@@ -66,8 +96,9 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/generated-data"
           cp titledb/titles.json "$GITHUB_WORKSPACE/generated-data/titles.json"
 
-      # blawar/titledb stops for weeks at times: the versions of other sources are added to its
-      # own, and a source that cannot be downloaded is left out this time
+      # the versions of blawar/titledb and borntohonk/titledb, the one that gave the titles first
+      # (its dates are kept), with the ones of other sources added; a source that cannot be
+      # downloaded is left out this time
       - name: Generate versions
         run: |
           mkdir -p versions-sources
@@ -77,11 +108,13 @@ jobs:
               echo "::warning::$2 could not be downloaded, its versions are left out"
             fi
           }
-          get borntohonk.versions.json https://raw.githubusercontent.com/borntohonk/titledb/master/versions.json
           get nx-versions.txt https://raw.githubusercontent.com/16BitWonder/nx-versions/master/versions.txt
           get nx-changelog.md https://raw.githubusercontent.com/16BitWonder/nx-versions/master/FULL-CHANGELOG.md
-          python .github/scripts/merge_versions.py nut/titledb/versions.json generated-data/versions.json \
-            --versions versions-sources/borntohonk.versions.json \
+          first="$(cat titledb-source.txt)"
+          second=borntohonk
+          [ "$first" = borntohonk ] && second=blawar
+          python .github/scripts/merge_versions.py "versions-sources/$first.versions.json" generated-data/versions.json \
+            --versions "versions-sources/$second.versions.json" \
             --nx-versions versions-sources/nx-versions.txt --nx-changelog versions-sources/nx-changelog.md
 
       # names and descriptions for the translated interface languages
@@ -214,7 +247,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           NOTES: >-
-            Rolling `titles.json` in US English, generated from blawar/titledb using blawar/nut;
+            Rolling `titles.json` in US English, generated from blawar/titledb or borntohonk/titledb (the one updated last) using blawar/nut;
             `versions.json`, with the versions of blawar/titledb, borntohonk/titledb and 16BitWonder/nx-versions;
             `titles.<lang>.json` with names and descriptions in Spanish, French, German, Italian, Portuguese,
             Dutch, Russian, Japanese, Korean and Chinese; and `titles.switch2.json`, the games of the

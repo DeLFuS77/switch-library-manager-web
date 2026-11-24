@@ -37,8 +37,8 @@ const (
 	// the name of a file compressed with zstd is the one of the file with this after it, and a
 	// download whose URL ends with it is decompressed: titles.json.zst
 	COMPRESSED_SUFFIX = ".zst"
-	// titles.json is generated from blawar/titledb, and versions.json joins the versions of
-	// blawar/titledb with the ones of other sources
+	// titles.json is generated from blawar/titledb or borntohonk/titledb, the one changed last, and
+	// versions.json joins the versions of both with the ones of other sources
 	DEFAULT_TITLES_JSON_URL   = DATA_RELEASE_URL + "titles.json"
 	DEFAULT_VERSIONS_JSON_URL = DATA_RELEASE_URL + "versions.json"
 	// the versions of blawar/titledb alone: the default before versions.json of the data release
