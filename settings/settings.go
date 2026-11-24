@@ -123,6 +123,9 @@ type OrganizeOptions struct {
 	// the ID of the update and its number, so they stay kept when a file is moved, renamed or
 	// compressed (#193)
 	KeepUpdates []string `json:"keep_updates,omitempty"`
+	// the DLC kept on purpose by their title ID: Space does not offer to delete them as language
+	// packs in a language not chosen (#200)
+	KeepDlc []string `json:"keep_dlc,omitempty"`
 	// a file whose name has its title ID in brackets keeps its name: it is only moved
 	KeepNamesWithId bool `json:"keep_names_with_id,omitempty"`
 	// the subfolder of the game file, inside the game folder as the ones of updates and DLC

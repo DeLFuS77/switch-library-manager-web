@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "アラビア語",
 		"Simplified Chinese":      "簡体字中国語",
 		"Traditional Chinese":     "繁体字中国語",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "使わない言語パック",
+		"Language pack you do not use":  "使わない言語パック",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "設定の「表示する内容」でチェックしていない言語の言語パックと実況です。何も選択されていません。削除するものを選んでください。",
+		"Select all of this group":                            "このグループをすべて選択",
+		"Keep this DLC":                                       "このDLCを残す",
+		"You keep this DLC: it is not deleted.":               "このDLCは残します：削除されません。",
+		"The language of this pack is not known: it stays.":   "このパックの言語が不明です：残します。",
+		"You have %v language packs in other languages (%v).": "他の言語の言語パックが%v個あります（%v）。",
+		"See them in Space":                                   "容量で見る",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 個のファイル",
 		"1 file, %v":                            "1 個のファイル、%v",

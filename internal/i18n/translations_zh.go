@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "阿拉伯语",
 		"Simplified Chinese":      "简体中文",
 		"Traditional Chinese":     "繁體中文",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "不使用的语言包",
+		"Language pack you do not use":  "不使用的语言包",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "你在“设置 › 显示内容”中未勾选的语言的语言包和解说。默认未选择：请选择要删除的项。",
+		"Select all of this group":                            "选择此组全部",
+		"Keep this DLC":                                       "保留此 DLC",
+		"You keep this DLC: it is not deleted.":               "你保留此 DLC：不会删除。",
+		"The language of this pack is not known: it stays.":   "此包的语言未知：保留。",
+		"You have %v language packs in other languages (%v).": "你有 %v 个其他语言的语言包（%v）。",
+		"See them in Space":                                   "在空间中查看",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 个文件",
 		"1 file, %v":                            "1 个文件，%v",

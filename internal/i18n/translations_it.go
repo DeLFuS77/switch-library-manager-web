@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "Arabo",
 		"Simplified Chinese":      "Cinese semplificato",
 		"Traditional Chinese":     "Cinese tradizionale",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "Pacchetti lingua che non usi",
+		"Language pack you do not use":  "Pacchetto lingua che non usi",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "Pacchetti lingua e commenti nelle lingue che non hai spuntato in Impostazioni, Cosa si mostra. Nessuno è selezionato: seleziona quelli da eliminare.",
+		"Select all of this group":                            "Seleziona tutto il gruppo",
+		"Keep this DLC":                                       "Conserva questo DLC",
+		"You keep this DLC: it is not deleted.":               "Conservi questo DLC: non viene eliminato.",
+		"The language of this pack is not known: it stays.":   "La lingua di questo pacchetto non è nota: resta.",
+		"You have %v language packs in other languages (%v).": "Hai %v pacchetti lingua in altre lingue (%v).",
+		"See them in Space":                                   "Vedili in Spazio",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 file",
 		"1 file, %v":                            "1 file, %v",

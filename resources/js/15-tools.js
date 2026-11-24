@@ -553,6 +553,30 @@ function initUpdateKeep() {
 	});
 }
 
+// a DLC kept on purpose, or let go (Space, the language packs you do not use): the page shows it
+// again as it is now (#200)
+function initDLCKeep() {
+	// the line of Settings leads to the group, which opens
+	const target = window.location.hash === '#space-languages' && document.getElementById('space-languages');
+	if (target && target.closest('details')) {
+		target.closest('details').open = true;
+		target.scrollIntoView();
+	}
+	document.addEventListener('click', e => {
+		const button = e.target.closest('[data-dlc-keep]');
+		if (!button) {
+			return;
+		}
+		button.disabled = true;
+		postForm('/dlc/keep', { id: button.dataset.dlcKeep, keep: button.dataset.keep })
+			.then(() => window.location.reload())
+			.catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+	});
+}
+
 // the charts of the history: the values of the day under the pointer
 function initHistoryCharts() {
 	document.querySelectorAll('.history-charts [data-bs-toggle="pill"]').forEach((button) => {

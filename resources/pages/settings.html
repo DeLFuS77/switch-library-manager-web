@@ -141,6 +141,9 @@
 										</div></div>
 										{{- end}}
 									</div>
+									{{- if .LanguagePacks}}
+									<div class="form-text d-flex align-items-center gap-2 mt-2"><span class="bi bi-hdd" aria-hidden="true"></span><span>{{t "You have %v language packs in other languages (%v)." .LanguagePacks (formatSize .LanguagePacksSize)}} <a href="/space.html#space-languages">{{t "See them in Space"}}</a></span></div>
+									{{- end}}
 								</fieldset>
 								<div class="col-md-6">
 									<label for="ignore_file_types" class="form-label fw-semibold">{{t "Ignored file types"}}</label>

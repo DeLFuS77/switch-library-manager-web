@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Space › Language packs you do not use: the language packs and commentary already in the library in the languages not chosen can be deleted, none selected at first, and Keep this DLC keeps one. Thanks to @TerrorSource for the idea (#200)
+
 ### Fixes
 
 - The preview of Organize no longer lists an empty folder without a name when no folder is left empty. Thanks to @TerrorSource for reporting it (#202)
