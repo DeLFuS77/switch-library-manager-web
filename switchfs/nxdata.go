@@ -474,3 +474,14 @@ func (d *NxData) Verify(ctx context.Context, progress func(done int64, total int
 	}
 	return nil
 }
+
+// VerifyNx checks a .nx file whole: every file of each version against its SHA-256, and every
+// block, those no version uses too, against the CRC-32C of the integrity table.
+func VerifyNx(ctx context.Context, path string, progress func(done int64, total int64)) error {
+	data, err := OpenNxData(path)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+	return data.Verify(ctx, progress)
+}

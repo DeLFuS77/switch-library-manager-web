@@ -315,7 +315,7 @@ func countGameFiles(folder string) (int, int, bool) {
 			case ".nup":
 				nup++
 				count++
-			case ".nsp", ".nsz", ".xci", ".xcz":
+			case ".nsp", ".nsz", ".xci", ".xcz", ".nx":
 				count++
 			}
 		}

@@ -209,7 +209,7 @@ var Translations = map[string]map[string]string{
 		"Uploaded: the library is being scanned": "Subido: se está analizando la biblioteca",
 		"The upload failed. Choose the file again to go on where it stopped.":                    "La subida ha fallado. Elige otra vez el archivo para seguir por donde se quedó.",
 		"Drop the games to upload them to the library folder":                                    "Suelta los juegos para subirlos a la carpeta de la biblioteca",
-		"Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded.":                                 "Solo se pueden subir archivos NSP, NSZ, XCI, XCZ y NUP.",
+		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                                 "Solo se pueden subir archivos NSP, NSZ, XCI, XCZ, NUP y .nx.",
 		"A file with this name is already in the library folder.":                                "Ya hay un archivo con este nombre en la carpeta de la biblioteca.",
 		"Not enough free space in the library folder for this file.":                             "No hay espacio libre suficiente en la carpeta de la biblioteca para este archivo.",
 		"The library folder is not set or cannot be found. Set it in Settings.":                  "La carpeta de la biblioteca no está configurada o no se encuentra. Configúrala en Ajustes.",

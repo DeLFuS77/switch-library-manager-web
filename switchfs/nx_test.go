@@ -152,12 +152,9 @@ func TestNxFixtures(t *testing.T) {
 		if err != nil {
 			continue
 		}
-		// the data: a file wrong deeper is refused when opened or verified
-		data, err := OpenNxData(path)
-		if err == nil {
-			err = data.Verify(t.Context(), nil)
-			data.Close()
-		}
+		// the data: a file wrong deeper is refused when opened or verified, as the check of
+		// the library verifies it
+		_, err = VerifyFile(t.Context(), path, nil)
 		switch {
 		case f.Expected == "accept" && err != nil:
 			t.Errorf("%s: verify: %v", f.File, err)

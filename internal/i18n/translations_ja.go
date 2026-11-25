@@ -211,7 +211,7 @@ func init() {
 		"Uploaded: the library is being scanned": "アップロード完了:ライブラリを分析しています",
 		"The upload failed. Choose the file again to go on where it stopped.":                    "アップロードに失敗しました。もう一度ファイルを選ぶと、止まったところから続けます。",
 		"Drop the games to upload them to the library folder":                                    "ゲームをドロップしてライブラリフォルダーにアップロード",
-		"Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded.":                                 "アップロードできるのはNSP、NSZ、XCI、XCZ、NUPファイルだけです。",
+		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                                 "アップロードできるのはNSP、NSZ、XCI、XCZ、NUP、.nxファイルだけです。",
 		"A file with this name is already in the library folder.":                                "ライブラリフォルダーに同じ名前のファイルがすでにあります。",
 		"Not enough free space in the library folder for this file.":                             "このファイルを置くための空き容量がライブラリフォルダーにありません。",
 		"The library folder is not set or cannot be found. Set it in Settings.":                  "ライブラリフォルダーが設定されていないか見つかりません。設定で指定してください。",

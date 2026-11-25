@@ -1380,6 +1380,9 @@ func VerifyFile(ctx context.Context, path string, progress func(done int64, tota
 	if IsNupFile(path) {
 		return VerifyNup(ctx, path, progress)
 	}
+	if IsNxFile(path) {
+		return FileCheck{}, VerifyNx(ctx, path, progress)
+	}
 	_, check, err := checkPackage(ctx, path, nil, progress)
 	return check, err
 }
