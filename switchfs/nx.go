@@ -99,6 +99,9 @@ type NxSnapshot struct {
 	ContentId    [16]byte
 	LogicalSize  uint64
 	nacp         []byte
+	// the identity the format gives it: its kind, version and content ID with every path of its
+	// tree and the size and SHA-256 of every file
+	Identity [32]byte
 	// the directory of the manifest its tree starts at
 	root uint32
 }
@@ -491,6 +494,7 @@ func readNxCatalog(r io.ReaderAt, h *nxHeader) (*NxArchive, error) {
 			row := snapshots[s*nxSnapshotSize:]
 			snapshot := NxSnapshot{Type: int(row[4]), Version: le.Uint32(row[8:]), LogicalSize: le.Uint64(row[16:]), root: le.Uint32(row[12:])}
 			copy(snapshot.ContentId[:], row[32:48])
+			copy(snapshot.Identity[:], row[56:88])
 			flags := row[5]
 			if snapshot.Type > 4 || flags&^3 != 0 || le.Uint16(row[6:]) != 0 {
 				return nil, errors.New("a version of the catalog is not valid")
