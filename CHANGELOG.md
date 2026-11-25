@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.27
+
+### Fixes
+
+- The inventory (/export/library.json) no longer lists as "missing" the language packs in languages not chosen, now "hidden", nor the DLC not out yet, now "upcoming". Thanks to @TerrorSource for reporting it (#200)
+
 ## 2.0.26
 
 ### Improvements
