@@ -53,6 +53,23 @@ func exportFile(file *TitleFile) *ExportFile {
 	return &ExportFile{Type: file.Type, Path: file.Path, Size: file.Size, Version: file.Version, DisplayVersion: file.DisplayVersion}
 }
 
+// exportDlcStatus is what the inventory says of a DLC: "owned", "ignored", "hidden" (a language
+// pack in a language not chosen in Settings), "upcoming" (not out yet) or "missing". Only
+// "missing" counts in dlcMissing, as on the page of the game (#200).
+func exportDlcStatus(dlc TitleDlc) string {
+	switch {
+	case dlc.Owned:
+		return "owned"
+	case dlc.Ignored:
+		return "ignored"
+	case dlc.LanguageHidden:
+		return "hidden"
+	case dlc.ComesOut != 0:
+		return "upcoming"
+	}
+	return "missing"
+}
+
 // getExport returns every game of the library, sorted by name.
 func (web *Web) getExport() []ExportTitle {
 	_, localDB := web.state.get()
@@ -99,15 +116,10 @@ func (web *Web) getExport() []ExportTitle {
 		}
 
 		for _, dlc := range detail.Dlc {
-			status := "missing"
-			switch {
-			case dlc.Owned:
-				status = "owned"
+			if dlc.Owned {
 				title.DlcOwned++
-			case dlc.Ignored:
-				status = "ignored"
 			}
-			title.Dlc = append(title.Dlc, ExportDlc{Id: dlc.Id, Name: dlc.Name, Status: status, UpdateAvailable: dlc.UpdateAvailable, File: exportFile(dlc.File)})
+			title.Dlc = append(title.Dlc, ExportDlc{Id: dlc.Id, Name: dlc.Name, Status: exportDlcStatus(dlc), UpdateAvailable: dlc.UpdateAvailable, File: exportFile(dlc.File)})
 		}
 
 		for _, file := range title.Files {
