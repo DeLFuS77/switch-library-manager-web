@@ -159,10 +159,10 @@ var NonGameFileTypes = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"
 	".part", ".partial", ".tmp", ".bak", ".crdownload", ".download", ".aria2", ".!qb", ".!ut"}
 
 // IsGameFileType reports whether files with this extension (with its dot) are games, which
-// can never be ignored. A NUP holds a decrypted game (see switchfs.ReadNup).
+// can never be ignored. A NUP and a .nx hold decrypted games (see switchfs.ReadNup and ReadNx).
 func IsGameFileType(extension string) bool {
 	switch strings.ToLower(extension) {
-	case ".nsp", ".nsz", ".xci", ".xcz", ".nup":
+	case ".nsp", ".nsz", ".xci", ".xcz", ".nup", ".nx":
 		return true
 	}
 	return false
@@ -873,7 +873,8 @@ func gameFiles(files []ExtendedFileInfo, ignoreFileTypes map[string]struct{}, sk
 			!strings.HasSuffix(fileName, "nsp") &&
 			!strings.HasSuffix(fileName, "nsz") &&
 			!strings.HasSuffix(fileName, "xcz") &&
-			!strings.HasSuffix(fileName, ".nup") {
+			!strings.HasSuffix(fileName, ".nup") &&
+			!strings.HasSuffix(fileName, ".nx") {
 			if _, ok := ignoreFileTypes[filepath.Ext(fileName)]; !ok {
 				skipped[file] = SkippedFile{ReasonCode: REASON_UNSUPPORTED_TYPE, ReasonText: "file type is not supported"}
 			}
@@ -934,8 +935,8 @@ type libraryScan struct {
 	titlesInFile map[ExtendedFileInfo]int
 	// the covers of the games found
 	covers []coverDownload
-	// the best copy of each title found in the other format than the copy of the library (see
-	// OtherFormat and addOtherFormat), by slot: a game, an update of a version, a DLC
+	// the best copy of each title found in each other format than the copy of the library (see
+	// OtherFormat and addOtherFormat), by slot (a game, an update of a version, a DLC) and format
 	otherFormat map[string]SwitchFileInfo
 }
 
@@ -1185,7 +1186,7 @@ func (s *libraryScan) addDlc(switchTitle *SwitchGameFiles, file ExtendedFileInfo
 	} else {
 		kept = s.competeDlc(held, found)
 	}
-	if kept.ExtendedInfo == file || s.otherFormat[slot].ExtendedInfo == file {
+	if kept.ExtendedInfo == file || s.otherFormat[formatSlot(slot, file.FileName)].ExtendedInfo == file {
 		metadata.Type = "DLC"
 	}
 	switchTitle.Dlc[metadata.TitleId] = kept
@@ -1232,33 +1233,41 @@ func (s *libraryScan) addOtherFormat(slot string, kept SwitchFileInfo, file Swit
 	if s.otherFormat == nil {
 		s.otherFormat = map[string]SwitchFileInfo{}
 	}
-	held, ok := s.otherFormat[slot]
+	fileSlot, keptSlot := formatSlot(slot, file.ExtendedInfo.FileName), formatSlot(slot, kept.ExtendedInfo.FileName)
+	held, ok := s.otherFormat[fileSlot]
 	if !ok {
-		if replaces(kept, file) {
-			s.otherFormat[slot] = kept
+		if _, taken := s.otherFormat[keptSlot]; !taken && replaces(kept, file) {
+			s.otherFormat[keptSlot] = kept
 			s.markOtherFormat(kept.ExtendedInfo, file.ExtendedInfo)
 			return file
 		}
-		s.otherFormat[slot] = file
+		s.otherFormat[fileSlot] = file
 		s.markOtherFormat(file.ExtendedInfo, kept.ExtendedInfo)
 		return kept
 	}
 	if winner := compete(held, file); winner.ExtendedInfo == file.ExtendedInfo {
-		s.otherFormat[slot] = file
+		s.otherFormat[fileSlot] = file
 		s.markOtherFormat(file.ExtendedInfo, kept.ExtendedInfo)
 	}
 	return kept
 }
 
-// keptChanged names the new copy of the library in the reason of the copy of the other format of
-// its slot (see addOtherFormat).
+// formatSlot is the key of a slot for the copies of one format (see fileFormat).
+func formatSlot(slot string, fileName string) string {
+	return slot + "|" + fileFormat(fileName)
+}
+
+// keptChanged names the new copy of the library in the reason of the copies of the other formats
+// of its slot (see addOtherFormat).
 func (s *libraryScan) keptChanged(slot string, kept ExtendedFileInfo) {
-	held, ok := s.otherFormat[slot]
-	if !ok {
-		return
-	}
-	if reason, listed := s.skipped[held.ExtendedInfo]; listed && reason.ReasonCode == REASON_OTHER_FORMAT {
-		s.skipped[held.ExtendedInfo] = otherFormatReason(kept)
+	for _, format := range []string{formatInstall, formatNup, formatNx} {
+		held, ok := s.otherFormat[slot+"|"+format]
+		if !ok {
+			continue
+		}
+		if reason, listed := s.skipped[held.ExtendedInfo]; listed && reason.ReasonCode == REASON_OTHER_FORMAT {
+			s.skipped[held.ExtendedInfo] = otherFormatReason(kept)
+		}
 	}
 }
 
@@ -1280,12 +1289,30 @@ func otherFormatReason(kept ExtendedFileInfo) SkippedFile {
 		ReasonText: "same game in the other format, a NUP for emulators and an NSP or XCI to install: both kept (" + fullPath(kept) + ")"}
 }
 
-// OtherFormat tells two copies of a game of which one is a NUP and the other is not. A NUP holds
-// the game decrypted, for emulators, an NSP or an XCI holds it to be installed, and they may not
-// hold the same version: the same game in both is kept in both, and neither is ever deleted as a
-// duplicate of the other.
+// the formats a game may be in side by side, never deleted for each other (see OtherFormat)
+const (
+	formatInstall = "install"
+	formatNup     = "nup"
+	formatNx      = "nx"
+)
+
+// fileFormat is the format of a file of games: a NUP, a .nx, or an NSP, NSZ, XCI or XCZ.
+func fileFormat(name string) string {
+	switch {
+	case switchfs.IsNupFile(name):
+		return formatNup
+	case switchfs.IsNxFile(name):
+		return formatNx
+	}
+	return formatInstall
+}
+
+// OtherFormat tells two copies of a game in different formats: a NUP, a .nx, an NSP or XCI. A NUP
+// and a .nx hold the game decrypted, for emulators, each with its own reader, an NSP or an XCI
+// holds it to be installed, and they may not hold the same version: the same game in two of them
+// is kept in both, and neither is ever deleted as a duplicate of the other.
 func OtherFormat(a string, b string) bool {
-	return switchfs.IsNupFile(a) != switchfs.IsNupFile(b)
+	return fileFormat(a) != fileFormat(b)
 }
 
 // KeptInOtherFormat tells a duplicate whose copy kept is of the other format (see OtherFormat),
@@ -1473,10 +1500,16 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 	keys, _ := settings.SwitchKeys()
 	fileKey := filePath + "|" + file.FileName + "|" + strconv.Itoa(int(file.Size))
 
-	if switchfs.IsNupFile(file.FileName) {
-		// read again when the reader of the NUP files tells more of them, and when the file changed
-		// without changing its size (a tool that edits its name or icon in place)
-		fileKey += "|nup" + strconv.Itoa(switchfs.NupReaderVersion)
+	if switchfs.IsEmulatorFile(file.FileName) {
+		nx := switchfs.IsNxFile(file.FileName)
+		// read again when the reader of the NUP or .nx files tells more of them, and when the file
+		// changed without changing its size (a tool that edits its name or icon in place, a .nx
+		// given an update or a DLC)
+		if nx {
+			fileKey += "|nx" + strconv.Itoa(switchfs.NxReaderVersion)
+		} else {
+			fileKey += "|nup" + strconv.Itoa(switchfs.NupReaderVersion)
+		}
 		if info, err := os.Stat(filePath); err == nil {
 			fileKey += "|" + strconv.FormatInt(info.ModTime().UnixNano(), 10)
 		}
@@ -1484,12 +1517,16 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
 			zap.S().Warnf("%v", err)
 		}
-		// what a NUP tells does not depend on the keys: what was read once stays true
+		// what a NUP or a .nx tells does not depend on the keys: what was read once stays true
 		if metadata != nil {
 			result.metadata = metadata
 			return result
 		}
-		metadata, err := switchfs.ReadNupMetadata(filePath)
+		read, kind := switchfs.ReadNupMetadata, "NUP"
+		if nx {
+			read, kind = switchfs.ReadNxMetadata, ".nx"
+		}
+		metadata, err := read(filePath)
 		if err == nil && len(metadata) == 0 {
 			err = errors.New("no title ID in the file")
 		}
@@ -1498,12 +1535,12 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 			result.cacheKey = fileKey
 			return result
 		}
-		reason := readErrorText("NUP", err)
-		if switchfs.NupEmulatorsRefuse(err) {
+		reason := readErrorText(kind, err)
+		if !nx && switchfs.NupEmulatorsRefuse(err) {
 			reason += "; " + switchfs.NupEmulatorsRefuseToo
 		}
 		result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: reason, CutShort: CutShort(err, "")}
-		zap.S().Warnf("[file:%v] failed to read NUP [reason: %v]", file.FileName, err)
+		zap.S().Warnf("[file:%v] failed to read %v [reason: %v]", file.FileName, kind, err)
 	} else if keys != nil && keys.GetKey("header_key") != "" {
 		_, _, generation := settings.KeysSummary()
 		var metadata map[string]*switchfs.ContentMetaAttributes

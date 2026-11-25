@@ -41,6 +41,13 @@ func extractIcon(path string, newestUpdate bool) ([]byte, error) {
 		}
 		return container.Icon()
 	}
+	if IsNxFile(path) {
+		archive, err := ReadNx(path)
+		if err != nil {
+			return nil, err
+		}
+		return archive.Icon()
+	}
 	file, err := OpenFile(path)
 	if err != nil {
 		return nil, err

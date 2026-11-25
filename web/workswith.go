@@ -87,9 +87,10 @@ func worksWith(storage string, merged bool) *FileWorks {
 }
 
 // fileWorks is what a file of the library works with, from what the library noted when it read
-// it; nil for a NUP, whose row tells what Eglantine and Lichii make of it.
+// it; nil for a NUP, whose row tells what Eglantine and Lichii make of it, and for a .nx, which no
+// installer takes and only some emulators open.
 func fileWorks(info db.SwitchFileInfo, merged bool) *FileWorks {
-	if switchfs.IsNupFile(info.ExtendedInfo.FileName) {
+	if switchfs.IsEmulatorFile(info.ExtendedInfo.FileName) {
 		return nil
 	}
 	storage := ""
@@ -163,7 +164,7 @@ func gameEmulators(local *db.SwitchGameFiles) string {
 // fileOpensAsItIs tells whether emulators open a file as it is (EMULATORS_AS_IS), need it
 // decompressed (EMULATORS_NOT_AS_IS), or "" when it is not known.
 func fileOpensAsItIs(file db.SwitchFileInfo) string {
-	if file.Metadata == nil {
+	if file.Metadata == nil || switchfs.IsNxFile(file.ExtendedInfo.FileName) {
 		return ""
 	}
 	if switchfs.IsNupFile(file.ExtendedInfo.FileName) {

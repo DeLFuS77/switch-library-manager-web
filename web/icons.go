@@ -44,7 +44,7 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 			continue
 		}
 		path := filepath.Join(title.File.ExtendedInfo.BaseFolder, title.File.ExtendedInfo.FileName)
-		if !withKeys && !switchfs.IsNupFile(path) {
+		if !withKeys && !switchfs.IsEmulatorFile(path) {
 			continue
 		}
 		info, err := os.Stat(path)

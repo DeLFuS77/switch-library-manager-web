@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The library reads .nx files (decrypted games for emulators, like NUP): the game, its updates, its DLC, its name and icon. A .nx, a NUP and an NSP or XCI of the same game are never deleted for each other
+
 ## 2.0.27
 
 ### Fixes
