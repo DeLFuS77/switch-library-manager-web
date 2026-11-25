@@ -68,6 +68,8 @@ type NxArchive struct {
 	MinorVersion int
 	Generation   uint64
 	Applications []NxApplication
+	// the header of the generation read, for the data of the files (see OpenNxData)
+	header *nxHeader
 }
 
 // NxApplication is a game of a .nx file with all its versions and DLC.
@@ -97,6 +99,8 @@ type NxSnapshot struct {
 	ContentId    [16]byte
 	LogicalSize  uint64
 	nacp         []byte
+	// the directory of the manifest its tree starts at
+	root uint32
 }
 
 // IsNxFile tells a .nx file by the extension of its name.
@@ -394,7 +398,7 @@ func readNxCatalog(r io.ReaderAt, h *nxHeader) (*NxArchive, error) {
 		}
 	}
 
-	archive := &NxArchive{MinorVersion: h.minor, Generation: h.generation}
+	archive := &NxArchive{MinorVersion: h.minor, Generation: h.generation, header: h}
 	nextSnapshot, nextProgram, nextLocalized := uint32(0), uint32(0), uint32(0)
 	type appKey struct {
 		platform byte
@@ -485,7 +489,7 @@ func readNxCatalog(r io.ReaderAt, h *nxHeader) (*NxArchive, error) {
 		hasBase, hasDlc := false, false
 		for s := firstSnapshot; s < firstSnapshot+count; s++ {
 			row := snapshots[s*nxSnapshotSize:]
-			snapshot := NxSnapshot{Type: int(row[4]), Version: le.Uint32(row[8:]), LogicalSize: le.Uint64(row[16:])}
+			snapshot := NxSnapshot{Type: int(row[4]), Version: le.Uint32(row[8:]), LogicalSize: le.Uint64(row[16:]), root: le.Uint32(row[12:])}
 			copy(snapshot.ContentId[:], row[32:48])
 			flags := row[5]
 			if snapshot.Type > 4 || flags&^3 != 0 || le.Uint16(row[6:]) != 0 {

@@ -141,12 +141,28 @@ func TestNxFixtures(t *testing.T) {
 	deeper := map[string]bool{"block_hash": true, "path": true, "manifest": true}
 	notChecked := map[string]bool{"invalid_shared_media_types.nx": true, "slot_generation_conflict.nx": true}
 	for _, f := range index.Fixtures {
-		_, err := ReadNx(filepath.Join(dir, f.File))
+		path := filepath.Join(dir, f.File)
+		_, err := ReadNx(path)
 		switch {
 		case f.Expected == "accept" && err != nil:
 			t.Errorf("%s: %v", f.File, err)
 		case f.Expected != "accept" && err == nil && f.Error != nil && !deeper[*f.Error] && !notChecked[f.File]:
 			t.Errorf("%s: read, want it refused (%s)", f.File, *f.Error)
+		}
+		if err != nil {
+			continue
+		}
+		// the data: a file wrong deeper is refused when opened or verified
+		data, err := OpenNxData(path)
+		if err == nil {
+			err = data.Verify(t.Context(), nil)
+			data.Close()
+		}
+		switch {
+		case f.Expected == "accept" && err != nil:
+			t.Errorf("%s: verify: %v", f.File, err)
+		case f.Expected != "accept" && err == nil && !notChecked[f.File]:
+			t.Errorf("%s: verified, want it refused (%v)", f.File, f.Error)
 		}
 	}
 }
