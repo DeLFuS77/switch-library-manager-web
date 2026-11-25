@@ -1,4 +1,39 @@
 {
+  "2.0.27": {
+    "en": [
+      "The full inventory (JSON) marks the language packs you do not use as hidden and the DLC not out yet as upcoming, instead of missing."
+    ],
+    "es": [
+      "El inventario completo (JSON) marca los paquetes de idioma que no usas como ocultos y los DLC que aún no han salido como próximos, en vez de que faltan."
+    ],
+    "de": [
+      "Das vollständige Inventar (JSON) markiert Sprachpakete, die du nicht nutzt, als ausgeblendet und noch nicht erschienene DLC als kommend statt als fehlend."
+    ],
+    "fr": [
+      "L'inventaire complet (JSON) indique les packs de langue que vous n'utilisez pas comme masqués et les DLC pas encore sortis comme à venir, au lieu de manquants."
+    ],
+    "it": [
+      "L'inventario completo (JSON) segna i pacchetti di lingua che non usi come nascosti e i DLC non ancora usciti come in arrivo, invece che mancanti."
+    ],
+    "pt": [
+      "O inventário completo (JSON) marca os pacotes de idioma que não usa como ocultos e os DLC ainda não lançados como futuros, em vez de em falta."
+    ],
+    "nl": [
+      "De volledige inventaris (JSON) markeert taalpakketten die je niet gebruikt als verborgen en DLC die nog niet uit zijn als binnenkort, in plaats van ontbrekend."
+    ],
+    "ru": [
+      "Полный список (JSON) помечает языковые пакеты, которые вы не используете, как скрытые, а ещё не вышедшие DLC — как ожидаемые, а не как недостающие."
+    ],
+    "ja": [
+      "完全な一覧（JSON）では、使わない言語パックは非表示、まだ発売されていないDLCは発売予定として示され、不足とは表示されません。"
+    ],
+    "ko": [
+      "전체 목록(JSON)은 사용하지 않는 언어 팩을 숨김으로, 아직 나오지 않은 DLC를 출시 예정으로 표시하며 누락으로 표시하지 않습니다."
+    ],
+    "zh": [
+      "完整清单（JSON）将你不用的语言包标为已隐藏，将尚未推出的 DLC 标为即将推出，而不再标为缺失。"
+    ]
+  },
   "2.0.26": {
     "en": [
       "Space can delete the language packs and commentary in the languages you do not use.",
