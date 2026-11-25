@@ -472,7 +472,12 @@ func (f *fileOperations) deleteEmptyFolders(root string, roots []string, known [
 				}
 			}
 		}
-		f.record(Operation{Kind: OP_CLEANUP, From: root, Reason: "empty folders will be deleted"}, nil)
+		// told only when the run takes a file out of a folder, or deletes one found empty, as only
+		// then can a folder be left empty: else the note was listed as an empty folder without a
+		// name, that could not be deleted (#202)
+		if f.takesFilesOut() {
+			f.record(Operation{Kind: OP_CLEANUP, From: root, Reason: "empty folders will be deleted"}, nil)
+		}
 		return
 	}
 	candidates := map[string]bool{}
@@ -515,6 +520,20 @@ func (f *fileOperations) deleteEmptyFolders(root string, roots []string, known [
 		err := os.Remove(folder)
 		f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, err)
 	}
+}
+
+// takesFilesOut tells a run that moves a file to another folder or deletes one, which can leave
+// its folder empty; a file renamed in its folder does not.
+func (f *fileOperations) takesFilesOut() bool {
+	for _, op := range f.operations {
+		if op.Error != "" || op.From == "" {
+			continue
+		}
+		if op.Kind == OP_DELETE || (op.Kind == OP_MOVE && filepath.Dir(op.From) != filepath.Dir(op.To)) {
+			return true
+		}
+	}
+	return false
 }
 
 // excludedFolders tells a folder inside one of the library folders (roots) that the scan leaves

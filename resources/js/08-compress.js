@@ -120,7 +120,8 @@ function bindFileForm(form, url) {
 		// "1 file selected", not "1 files"
 		const template = count === 1 && summary.dataset.templateOne ? summary.dataset.templateOne : summary.dataset.template;
 		summary.textContent = template.replace('%v', count).replace('%v', formatSize(size));
-		const shown = boxes().filter(visible);
+		// the files chosen one by one (language packs) are not counted by "select all"
+		const shown = boxes().filter(visible).filter(box => !box.dataset.byHand);
 		const shownSelected = shown.filter(box => box.checked);
 		all.checked = shown.length > 0 && shownSelected.length === shown.length;
 		all.indeterminate = shownSelected.length > 0 && shownSelected.length < shown.length;
@@ -128,12 +129,20 @@ function bindFileForm(form, url) {
 	// "select all" changes the rows the filter shows
 	// "select all" leaves out the files that ask first: they are chosen one by one
 	all.addEventListener('change', () => {
-		boxes().filter(visible).filter(box => !box.dataset.ask).forEach(box => {
+		boxes().filter(visible).filter(box => !box.dataset.ask && !box.dataset.byHand).forEach(box => {
 			box.checked = all.checked;
 		});
 		update();
 	});
 	form.addEventListener('change', e => {
+		// "select all of this group": the files of a group chosen one by one (#200)
+		if (e.target.matches('[data-group-all]')) {
+			e.target.closest('details').querySelectorAll('input[data-by-hand]:not(:disabled)').forEach(box => {
+				box.checked = e.target.checked;
+			});
+			update();
+			return;
+		}
 		if (e.target.matches('input[name="path"], input[name="rest"]')) {
 			if (e.target.checked && e.target.dataset.ask && !window.confirm(e.target.dataset.ask)) {
 				e.target.checked = false;

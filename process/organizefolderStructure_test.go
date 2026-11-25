@@ -808,3 +808,34 @@ func TestDeleteFoldersFoundEmpty(t *testing.T) {
 		t.Fatalf("no error: %+v", failedOps(ops.operations))
 	}
 }
+
+// A preview that takes no file out of a folder, with no folder found empty, tells of no empty
+// folder: the note that the folders left empty are deleted was listed as one empty folder,
+// without a name, that could not be deleted (#202). One that moves a file out of its folder
+// tells it.
+func TestEmptyFoldersNoteOnlyWhenAFolderCanEmpty(t *testing.T) {
+	root := t.TempDir()
+	os.MkdirAll(filepath.Join(root, "Game"), 0o755)
+	writeFixture(t, filepath.Join(root, "Game", "game.nsp"), "x")
+
+	preview := newFileOperations(true)
+	preview.deleteEmptyFolders(root, []string{root}, nil)
+	if len(preview.operations) != 0 {
+		t.Fatalf("nothing changes, no empty folder is told: %+v", preview.operations)
+	}
+
+	// a file renamed in its folder leaves it as full as it was
+	preview = newFileOperations(true)
+	preview.record(Operation{Kind: OP_MOVE, From: filepath.Join(root, "Game", "game.nsp"), To: filepath.Join(root, "Game", "Game.nsp")}, nil)
+	preview.deleteEmptyFolders(root, []string{root}, nil)
+	if countKind(preview.operations, OP_CLEANUP) != 0 {
+		t.Fatalf("a rename empties no folder: %+v", preview.operations)
+	}
+
+	preview = newFileOperations(true)
+	preview.record(Operation{Kind: OP_MOVE, From: filepath.Join(root, "Game", "game.nsp"), To: filepath.Join(root, "Other", "game.nsp")}, nil)
+	preview.deleteEmptyFolders(root, []string{root}, nil)
+	if countKind(preview.operations, OP_CLEANUP) != 1 {
+		t.Fatalf("a file moved out of its folder can leave it empty: %+v", preview.operations)
+	}
+}

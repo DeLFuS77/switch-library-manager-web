@@ -33,7 +33,8 @@ import (
 //     time they came (UTC); the newest 10 of each console stay.
 //   - The administrators list them with GET /api/install/reports, download one with GET
 //     /api/install/reports/{keyId}/{name} and delete it with DELETE on the same path; the page
-//     Diagnostics lists them, with Download and Delete. Not in the demo.
+//     Diagnostics lists them, with Download and Delete, and the card of each console on the page
+//     Consoles says how many it sent, with the newest to download (#205). Not in the demo.
 
 const (
 	netInstallReport = NET_INSTALL_PREFIX + "report"
@@ -267,6 +268,20 @@ func (web *Web) netReportOwnerOf(keyId string, keys map[string]KeyRow) netReport
 		owner.Console, owner.Owner = key.Name, key.User
 	}
 	return owner
+}
+
+// netConsoleReports are how many reports a console sent, and the newest of them (nil without any),
+// for its card on the page Consoles.
+func (web *Web) netConsoleReports(keyId string) (int, *netReportRow) {
+	names := web.netReportNames(keyId)
+	for i := len(names) - 1; i >= 0; i-- {
+		info, err := os.Stat(filepath.Join(web.netReportsRoot(), keyId, names[i]))
+		if err != nil {
+			continue
+		}
+		return len(names), &netReportRow{KeyId: keyId, Name: names[i], Date: netReportTime(names[i]), Size: info.Size()}
+	}
+	return 0, nil
 }
 
 // handleNetReportList lists the reports of every console, newest first, for the administrators.

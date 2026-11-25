@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "Арабский",
 		"Simplified Chinese":      "Китайский (упрощённый)",
 		"Traditional Chinese":     "Китайский (традиционный)",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "Языковые пакеты, которые вы не используете",
+		"Language pack you do not use":  "Языковой пакет, который вы не используете",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "Языковые пакеты и комментарии на языках, не отмеченных в Настройки, Что показывать. Ничего не выбрано: выберите, что удалить.",
+		"Select all of this group":                            "Выбрать всю группу",
+		"Keep this DLC":                                       "Оставить этот DLC",
+		"You keep this DLC: it is not deleted.":               "Вы оставляете этот DLC: он не удаляется.",
+		"The language of this pack is not known: it stays.":   "Язык этого пакета неизвестен: он остаётся.",
+		"You have %v language packs in other languages (%v).": "У вас %v языковых пакетов на других языках (%v).",
+		"See them in Space":                                   "Посмотреть в «Место»",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 файл",
 		"1 file, %v":                            "1 файл, %v",
@@ -2614,6 +2624,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "Удалить отчёт %v от %v? Это нельзя отменить.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Пока ни одна консоль не отправила отчёт. NXDock отправляет его по вашей просьбе, для issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Хранятся последние 10 отчётов каждой консоли. Каждый отмечается в разделе «Активность».",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 отчёт от NXDock",
+		"%v reports from NXDock":      "Отчётов от NXDock: %v",
+		"the newest %v (%v)":          "последний: %v (%v)",
+		"Download the newest":         "Скачать последний",
+		"See them all in Diagnostics": "Все в разделе «Диагностика»",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "Не хватает 1 DLC",
 

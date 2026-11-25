@@ -18,6 +18,16 @@ var Translations = map[string]map[string]string{
 		"Arabic":                  "Árabe",
 		"Simplified Chinese":      "Chino simplificado",
 		"Traditional Chinese":     "Chino tradicional",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "Paquetes de idioma que no usas",
+		"Language pack you do not use":  "Paquete de idioma que no usas",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "Paquetes de idioma y de comentarios en los idiomas que no marcaste en Ajustes, Qué se muestra. No hay ninguno marcado: marca los que quieras borrar.",
+		"Select all of this group":                            "Marcar todo este grupo",
+		"Keep this DLC":                                       "Conservar este DLC",
+		"You keep this DLC: it is not deleted.":               "Conservas este DLC: no se borra.",
+		"The language of this pack is not known: it stays.":   "No se sabe de qué idioma es este paquete: se queda.",
+		"You have %v language packs in other languages (%v).": "Tienes %v paquetes de idioma en otros idiomas (%v).",
+		"See them in Space":                                   "Verlos en Espacio",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 archivo",
 		"1 file, %v":                            "1 archivo, %v",
@@ -2642,6 +2652,12 @@ var Translations = map[string]map[string]string{
 		"Delete the report of %v from %v? It cannot be undone.":                                "¿Borrar el informe de %v del %v? No se puede deshacer.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Ninguna consola ha enviado un informe todavía. NXDock envía uno cuando se lo pides, para un issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Se guardan los 10 últimos de cada consola. Cada uno queda anotado en Actividad.",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 informe de NXDock",
+		"%v reports from NXDock":      "%v informes de NXDock",
+		"the newest %v (%v)":          "el último, %v (%v)",
+		"Download the newest":         "Descargar el último",
+		"See them all in Diagnostics": "Verlos todos en Diagnóstico",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "Falta 1 DLC",
 

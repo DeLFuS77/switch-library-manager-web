@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "Arabisch",
 		"Simplified Chinese":      "Vereinfachtes Chinesisch",
 		"Traditional Chinese":     "Traditionelles Chinesisch",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "Nicht genutzte Sprachpakete",
+		"Language pack you do not use":  "Nicht genutztes Sprachpaket",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "Sprachpakete und Kommentare in den Sprachen, die du unter Einstellungen, Was angezeigt wird, nicht gewählt hast. Keines ist ausgewählt: wähle die aus, die gelöscht werden sollen.",
+		"Select all of this group":                            "Diese ganze Gruppe auswählen",
+		"Keep this DLC":                                       "Diesen DLC behalten",
+		"You keep this DLC: it is not deleted.":               "Du behältst diesen DLC: er wird nicht gelöscht.",
+		"The language of this pack is not known: it stays.":   "Die Sprache dieses Pakets ist nicht bekannt: es bleibt.",
+		"You have %v language packs in other languages (%v).": "Du hast %v Sprachpakete in anderen Sprachen (%v).",
+		"See them in Space":                                   "In Speicherplatz ansehen",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 Datei",
 		"1 file, %v":                            "1 Datei, %v",
@@ -2615,6 +2625,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "Den Bericht von %v vom %v löschen? Das lässt sich nicht rückgängig machen.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Noch keine Konsole hat einen Bericht gesendet. NXDock sendet einen, wenn du es darum bittest, für ein Issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "Die letzten 10 jeder Konsole werden behalten. Jeder wird in der Aktivität vermerkt.",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 Bericht von NXDock",
+		"%v reports from NXDock":      "%v Berichte von NXDock",
+		"the newest %v (%v)":          "der neueste: %v (%v)",
+		"Download the newest":         "Den neuesten herunterladen",
+		"See them all in Diagnostics": "Alle in Diagnose ansehen",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "1 DLC fehlt",
 

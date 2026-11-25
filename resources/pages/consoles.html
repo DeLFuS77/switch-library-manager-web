@@ -129,6 +129,14 @@
 					</div>
 					{{- end}}
 					{{- end}}
+					{{- with $c.LastReport}}
+					{{- /* the reports NXDock sent from this console (#205), for an administrator */}}
+					<div class="console-reports-line">
+						<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>
+						<span><span class="fw-semibold">{{if eq $c.Reports 1}}{{t "1 report from NXDock"}}{{else}}{{t "%v reports from NXDock" $c.Reports}}{{end}}</span> &middot; {{t "the newest %v (%v)" (formatDateTime .Date) (formatSize .Size)}}</span>
+						<a class="btn btn-link p-0" href="/api/install/reports/{{.KeyId}}/{{.Name}}" download>{{t "Download the newest"}}</a><span class="text-body-secondary" aria-hidden="true">&middot;</span><a class="btn btn-link p-0" href="/diagnostics.html#consoleReportsTitle">{{t "See them all in Diagnostics"}}</a>
+					</div>
+					{{- end}}
 				</article>
 {{- end}}
 

@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "Arabisch",
 		"Simplified Chinese":      "Vereenvoudigd Chinees",
 		"Traditional Chinese":     "Traditioneel Chinees",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "Taalpakketten die je niet gebruikt",
+		"Language pack you do not use":  "Taalpakket dat je niet gebruikt",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "Taalpakketten en commentaar in de talen die je niet hebt aangevinkt bij Instellingen, Wat er getoond wordt. Er is niets geselecteerd: selecteer wat verwijderd moet worden.",
+		"Select all of this group":                            "Deze hele groep selecteren",
+		"Keep this DLC":                                       "Deze DLC bewaren",
+		"You keep this DLC: it is not deleted.":               "Je bewaart deze DLC: hij wordt niet verwijderd.",
+		"The language of this pack is not known: it stays.":   "De taal van dit pakket is niet bekend: het blijft.",
+		"You have %v language packs in other languages (%v).": "Je hebt %v taalpakketten in andere talen (%v).",
+		"See them in Space":                                   "Bekijk ze in Ruimte",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 bestand",
 		"1 file, %v":                            "1 bestand, %v",
@@ -2614,6 +2624,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "Het rapport van %v van %v verwijderen? Dit kan niet ongedaan worden gemaakt.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "Nog geen console heeft een rapport gestuurd. NXDock stuurt er een als je erom vraagt, voor een issue.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "De laatste 10 van elke console worden bewaard. Elk ervan staat in Activiteit.",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 rapport van NXDock",
+		"%v reports from NXDock":      "%v rapporten van NXDock",
+		"the newest %v (%v)":          "het nieuwste: %v (%v)",
+		"Download the newest":         "Het nieuwste downloaden",
+		"See them all in Diagnostics": "Alle bekijken in Diagnose",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "1 DLC ontbreekt",
 

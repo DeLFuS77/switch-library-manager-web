@@ -1,4 +1,50 @@
 {
+  "2.0.26": {
+    "en": [
+      "Space can delete the language packs and commentary in the languages you do not use.",
+      "The card of a console in Consoles shows the reports NXDock sent from it, with the newest to download."
+    ],
+    "es": [
+      "Espacio puede borrar los paquetes de idioma y los comentarios de los idiomas que no usas.",
+      "La tarjeta de una consola en Consolas muestra los informes que mandó NXDock, con el último para descargar."
+    ],
+    "de": [
+      "Speicherplatz kann die Sprachpakete und Kommentare in den Sprachen löschen, die du nicht nutzt.",
+      "Die Karte einer Konsole unter Konsolen zeigt die Berichte, die NXDock von ihr gesendet hat, mit dem neuesten zum Herunterladen."
+    ],
+    "fr": [
+      "Espace peut supprimer les packs de langue et les commentaires dans les langues que vous n'utilisez pas.",
+      "La carte d'une console dans Consoles montre les rapports envoyés par NXDock, avec le plus récent à télécharger."
+    ],
+    "it": [
+      "Spazio può eliminare i pacchetti di lingua e i commenti nelle lingue che non usi.",
+      "La scheda di una console in Console mostra i rapporti inviati da NXDock, con il più recente da scaricare."
+    ],
+    "pt": [
+      "Espaço pode apagar os pacotes de idioma e os comentários nos idiomas que não usa.",
+      "O cartão de uma consola em Consolas mostra os relatórios que o NXDock enviou, com o mais recente para transferir."
+    ],
+    "nl": [
+      "Ruimte kan de taalpakketten en het commentaar verwijderen in de talen die je niet gebruikt.",
+      "De kaart van een console bij Consoles toont de rapporten die NXDock ervan stuurde, met het nieuwste om te downloaden."
+    ],
+    "ru": [
+      "«Место» может удалить языковые пакеты и комментарии на языках, которыми вы не пользуетесь.",
+      "Карточка консоли в разделе «Консоли» показывает отчёты, отправленные NXDock, и последний можно скачать."
+    ],
+    "ja": [
+      "「容量」で、使わない言語の言語パックと実況を削除できます。",
+      "「本体」の各本体のカードに NXDock から送られたレポートが表示され、最新のものをダウンロードできます。"
+    ],
+    "ko": [
+      "공간에서 사용하지 않는 언어의 언어 팩과 해설을 삭제할 수 있습니다.",
+      "콘솔의 각 콘솔 카드에 NXDock이 보낸 보고서가 표시되며, 최신 보고서를 내려받을 수 있습니다."
+    ],
+    "zh": [
+      "“空间”可以删除你不使用的语言的语言包和解说。",
+      "“主机”中每台主机的卡片会显示 NXDock 发送的报告，可下载最新的一份。"
+    ]
+  },
   "2.0.25": {
     "en": [
       "Games and DLC released since mid-October get their names, DLC and covers.",

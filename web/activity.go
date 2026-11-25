@@ -157,6 +157,7 @@ var (
 		SPACE_OLD_UPDATES:               "Old updates",
 		SPACE_DUPLICATES:                "Duplicates",
 		SPACE_COMPRESSED:                "Compressed originals",
+		SPACE_LANGUAGES:                 "Language packs you do not use",
 		tasklog.VERIFY_LEVEL_SIGNATURE:  "Signature",
 		tasklog.VERIFY_LEVEL_HASH:       "Hash",
 		tasklog.VERIFY_LEVEL_BOTH:       "Both",

@@ -62,6 +62,7 @@ var quarantineReasons = map[string]string{
 	QUARANTINE_DUPLICATE:    "Duplicate",
 	QUARANTINE_OLD_UPDATE:   "Old update",
 	QUARANTINE_REGION:       "Copy of another region",
+	QUARANTINE_LANGUAGE:     "Language pack you do not use",
 	QUARANTINE_COMPRESSED:   "Original of a compressed file",
 	QUARANTINE_CONVERTED:    "Converted to NSP",
 	QUARANTINE_DECOMPRESSED: "Decompressed to NSP",
@@ -185,6 +186,8 @@ func quarantineReason(reason string) string {
 		return QUARANTINE_COMPRESSED
 	case reason == "other region":
 		return QUARANTINE_REGION
+	case reason == SPACE_LANGUAGES:
+		return QUARANTINE_LANGUAGE
 	}
 	return QUARANTINE_DELETED
 }

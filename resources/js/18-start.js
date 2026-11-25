@@ -331,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIssueDelete();
 	initIssueKeep();
 	initUpdateKeep();
+	initDLCKeep();
 	initPlay();
 	initSmartCollections();
 	initActivityFilter();

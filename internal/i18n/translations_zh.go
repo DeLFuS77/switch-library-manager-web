@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "阿拉伯语",
 		"Simplified Chinese":      "简体中文",
 		"Traditional Chinese":     "繁體中文",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "不使用的语言包",
+		"Language pack you do not use":  "不使用的语言包",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "你在“设置 › 显示内容”中未勾选的语言的语言包和解说。默认未选择：请选择要删除的项。",
+		"Select all of this group":                            "选择此组全部",
+		"Keep this DLC":                                       "保留此 DLC",
+		"You keep this DLC: it is not deleted.":               "你保留此 DLC：不会删除。",
+		"The language of this pack is not known: it stays.":   "此包的语言未知：保留。",
+		"You have %v language packs in other languages (%v).": "你有 %v 个其他语言的语言包（%v）。",
+		"See them in Space":                                   "在空间中查看",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "1 个文件",
 		"1 file, %v":                            "1 个文件，%v",
@@ -2614,6 +2624,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "要删除 %v 的报告（%v）吗？此操作无法撤销。",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "还没有主机发送报告。NXDock 会在你要求时发送一份，用于提交 issue。",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "每台主机保留最近 10 份。每份都会记入活动记录。",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "1 份来自 NXDock 的报告",
+		"%v reports from NXDock":      "%v 份来自 NXDock 的报告",
+		"the newest %v (%v)":          "最新：%v（%v）",
+		"Download the newest":         "下载最新的",
+		"See them all in Diagnostics": "在诊断中查看全部",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "缺少 1 个 DLC",
 

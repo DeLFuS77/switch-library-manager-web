@@ -17,6 +17,16 @@ func init() {
 		"Arabic":                  "아랍어",
 		"Simplified Chinese":      "중국어 간체",
 		"Traditional Chinese":     "중국어 번체",
+		// the language packs of the library in the languages not chosen, deleted from Space (#200)
+		"Language packs you do not use": "사용하지 않는 언어 팩",
+		"Language pack you do not use":  "사용하지 않는 언어 팩",
+		"Language packs and commentary in the languages you did not tick in Settings, What is shown. None is selected: select the ones to delete.": "설정 › 표시할 항목에서 선택하지 않은 언어의 언어 팩과 해설입니다. 아무것도 선택되지 않았습니다: 삭제할 것을 선택하세요.",
+		"Select all of this group":                            "이 그룹 모두 선택",
+		"Keep this DLC":                                       "이 DLC 유지",
+		"You keep this DLC: it is not deleted.":               "이 DLC를 유지합니다: 삭제되지 않습니다.",
+		"The language of this pack is not known: it stays.":   "이 팩의 언어를 알 수 없습니다: 남겨 둡니다.",
+		"You have %v language packs in other languages (%v).": "다른 언어의 언어 팩이 %v개 있습니다 (%v).",
+		"See them in Space":                                   "공간에서 보기",
 		// the wishlist as a view and as JSON (#196), the files that are not games deleted from Issues (#197)
 		"1 file":                                "파일 1개",
 		"1 file, %v":                            "파일 1개, %v",
@@ -2614,6 +2624,12 @@ func init() {
 		"Delete the report of %v from %v? It cannot be undone.":                                "%v의 보고서(%v)를 삭제할까요? 되돌릴 수 없습니다.",
 		"No console has sent a report yet. NXDock sends one when you ask it to, for an issue.": "아직 보고서를 보낸 콘솔이 없습니다. NXDock은 요청하면 이슈용 보고서를 보냅니다.",
 		"The last 10 of each console are kept. Each one is noted in Activity.":                 "콘솔마다 최근 10개를 보관합니다. 각각 활동에 기록됩니다.",
+		// the reports of a console on its card in Consoles (#205)
+		"1 report from NXDock":        "NXDock 보고서 1개",
+		"%v reports from NXDock":      "NXDock 보고서 %v개",
+		"the newest %v (%v)":          "최신: %v (%v)",
+		"Download the newest":         "최신 보고서 다운로드",
+		"See them all in Diagnostics": "진단에서 모두 보기",
 		// a game of a console that lacks one DLC (see resources/pages/consoles.html)
 		"1 DLC missing": "DLC 1개 누락",
 

@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.25
+  <Changes>### 2.0.26
+- Space deletes the language packs you do not use; the card of a console shows the reports NXDock sent; no empty folder without a name in the Organize preview
+### 2.0.25
 - Games and DLC released since mid-October are known; a NUP whose update is for another program says emulators cannot start it
 ### 2.0.24
 - Choose the languages of the language packs; files that are not games are offered in a library named like an SD card folder; a full disk says there is no free space
