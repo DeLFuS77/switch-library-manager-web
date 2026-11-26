@@ -1752,8 +1752,17 @@
 	50% { transform: translateY(2px); }
 }
 
+// a file still to send is dimmer: its cover and number fade, its text turns secondary and stays
+// readable
 .net-lane-waiting {
-	opacity: .55;
+	.task-lane-thumb,
+	.task-lane-number {
+		opacity: .55;
+	}
+
+	.task-file-line {
+		color: var(--bs-secondary-color);
+	}
 }
 
 .net-lane-state {
