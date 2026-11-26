@@ -24,6 +24,9 @@ func getType(gameFile *db.SwitchGameFiles) string {
 	if switchfs.IsNupFile(gameFile.File.ExtendedInfo.FileName) {
 		return "nup"
 	}
+	if switchfs.IsNxFile(gameFile.File.ExtendedInfo.FileName) {
+		return "nx"
+	}
 	if gameFile.MultiContent {
 		return "multi-content"
 	}

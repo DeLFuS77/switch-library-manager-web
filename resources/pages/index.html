@@ -21,7 +21,7 @@
 			</div>
 			{{- if not .Demo}}
 			<div class="editor-only">
-				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz,.nup" multiple hidden>
+				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz,.nup,.nx" multiple hidden>
 				{{- if and .Auth.CanEdit (gt (len .UploadFolders) 1)}}
 				{{- /* with several folders, each maybe another disk, the files chosen or dropped ask where they go;
 					only to those who upload, as it tells the paths */}}
@@ -50,7 +50,7 @@
 				<section class="upload-panel surface" id="uploadPanel" aria-live="polite" aria-labelledby="uploadPanelTitle" hidden
 					data-waiting="{{t "Waiting"}}" data-starting="{{t "Starting..."}}" data-progress="{{t "%v of %v"}}" data-retrying="{{t "Connection lost, trying again..."}}"
 					data-done="{{t "Uploaded: the library is being scanned"}}" data-failed="{{t "The upload failed. Choose the file again to go on where it stopped."}}"
-					data-bad-name="{{t "Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded."}}" data-cancel="{{t "Cancel"}}" data-uploading-to="{{t "Uploading games to %v"}}">
+					data-bad-name="{{t "Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded."}}" data-cancel="{{t "Cancel"}}" data-uploading-to="{{t "Uploading games to %v"}}">
 					<div class="upload-panel-head"><span class="bi bi-upload text-primary" aria-hidden="true"></span><span id="uploadPanelTitle">{{t "Uploading games"}}</span>
 						<button type="button" class="btn btn-link btn-sm p-0 ms-auto upload-where-again" hidden>{{t "Ask where again"}}</button></div>
 					<ul class="upload-list"></ul>

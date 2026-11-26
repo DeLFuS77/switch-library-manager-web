@@ -479,6 +479,8 @@ func (web *Web) heldTitles(path string) ([]heldTitle, bool) {
 		contents, err = switchfs.ReadXciMetadata(path)
 	case ".nup":
 		contents, err = switchfs.ReadNupMetadata(path)
+	case ".nx":
+		contents, err = switchfs.ReadNxMetadata(path)
 	}
 	if err != nil {
 		return nil, false

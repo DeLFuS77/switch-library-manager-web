@@ -211,7 +211,7 @@ func init() {
 		"Uploaded: the library is being scanned": "Загружено: библиотека анализируется",
 		"The upload failed. Choose the file again to go on where it stopped.":                    "Загрузка не удалась. Выберите файл снова, чтобы продолжить с места остановки.",
 		"Drop the games to upload them to the library folder":                                    "Перетащите игры сюда, чтобы загрузить их в папку библиотеки",
-		"Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded.":                                 "Можно загружать только файлы NSP, NSZ, XCI, XCZ и NUP.",
+		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                            "Можно загружать только файлы NSP, NSZ, XCI, XCZ, NUP и .nx.",
 		"A file with this name is already in the library folder.":                                "В папке библиотеки уже есть файл с таким именем.",
 		"Not enough free space in the library folder for this file.":                             "Недостаточно свободного места в папке библиотеки для этого файла.",
 		"The library folder is not set or cannot be found. Set it in Settings.":                  "Папка библиотеки не задана или не найдена. Укажите её в «Настройках».",

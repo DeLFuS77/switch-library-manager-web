@@ -582,8 +582,8 @@ func statFiles(paths []string, workers int) []os.FileInfo {
 	return infos
 }
 
-// the game files a check goes through: NUP files have their hashes checked, not signatures
-var verifyExtensions = []string{".nsp", ".nsz", ".xci", ".xcz", ".nup"}
+// the game files a check goes through: NUP and .nx files have their hashes checked, not signatures
+var verifyExtensions = []string{".nsp", ".nsz", ".xci", ".xcz", ".nup", ".nx"}
 
 // verifyLibraryFile checks one file: every NCA against its content ID (NSZ and XCZ files
 // decompressed), and an NCA that does not match it against the hashes of its data, to
@@ -853,8 +853,8 @@ func (web *Web) filesToVerify(store *verifyStore, paths []string, hashes bool, s
 				}
 			}
 		}
-		// a NUP holds decrypted files, which have no signature to check
-		if signatures && !switchfs.IsNupFile(path) {
+		// a NUP or a .nx holds decrypted files, which have no signature to check
+		if signatures && !switchfs.IsEmulatorFile(path) {
 			signed, ok := store.signatureResult(path, info)
 			if file.signature = due(ok, signed.Checked); file.signature && !file.hash {
 				file.checked = signed.Checked
@@ -1233,7 +1233,7 @@ func (web *Web) nothingToVerify(paths []string, level string) bool {
 		if _, ok := store.current(paths[i], info); !ok && level != tasklog.VERIFY_LEVEL_SIGNATURE {
 			return false
 		}
-		if _, ok := store.signatureResult(paths[i], info); !ok && level != tasklog.VERIFY_LEVEL_HASH && !switchfs.IsNupFile(paths[i]) {
+		if _, ok := store.signatureResult(paths[i], info); !ok && level != tasklog.VERIFY_LEVEL_HASH && !switchfs.IsEmulatorFile(paths[i]) {
 			return false
 		}
 	}

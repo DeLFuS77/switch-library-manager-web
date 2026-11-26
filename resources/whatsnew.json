@@ -1,4 +1,61 @@
 {
+  "2.0.28": {
+    "en": [
+      "The library reads .nx files, the format for emulators: the game, its updates and DLC, its name and icon.",
+      "File check verifies .nx files, and .nx files can be uploaded.",
+      "Compressing one game alone uses every thread of Automatic."
+    ],
+    "es": [
+      "La biblioteca lee archivos .nx, el formato para emuladores: el juego, sus actualizaciones y DLC, su nombre y su icono.",
+      "Comprobar archivos verifica los .nx, y se pueden subir archivos .nx.",
+      "Al comprimir un solo juego se usan todos los hilos de Automático."
+    ],
+    "de": [
+      "Die Bibliothek liest .nx-Dateien, das Format für Emulatoren: das Spiel, seine Updates und DLC, seinen Namen und sein Symbol.",
+      "Die Dateiprüfung prüft .nx-Dateien, und .nx-Dateien können hochgeladen werden.",
+      "Wird nur ein Spiel komprimiert, nutzt Automatisch alle Threads."
+    ],
+    "fr": [
+      "La bibliothèque lit les fichiers .nx, le format pour les émulateurs : le jeu, ses mises à jour et DLC, son nom et son icône.",
+      "La vérification des fichiers vérifie les fichiers .nx, et les fichiers .nx peuvent être envoyés.",
+      "La compression d'un seul jeu utilise tous les threads en mode Automatique."
+    ],
+    "it": [
+      "La libreria legge i file .nx, il formato per gli emulatori: il gioco, i suoi aggiornamenti e DLC, il nome e l'icona.",
+      "Il controllo dei file verifica i file .nx, e i file .nx si possono caricare.",
+      "Comprimendo un solo gioco, Automatico usa tutti i thread."
+    ],
+    "pt": [
+      "A biblioteca lê ficheiros .nx, o formato para emuladores: o jogo, as suas atualizações e DLC, o nome e o ícone.",
+      "A verificação de ficheiros verifica os .nx, e é possível carregar ficheiros .nx.",
+      "Ao comprimir um só jogo, o modo Automático usa todos os threads."
+    ],
+    "nl": [
+      "De bibliotheek leest .nx-bestanden, het formaat voor emulators: het spel, de updates en DLC, de naam en het pictogram.",
+      "De bestandscontrole controleert .nx-bestanden, en .nx-bestanden kunnen worden geüpload.",
+      "Bij het comprimeren van één spel gebruikt Automatisch alle threads."
+    ],
+    "ru": [
+      "Библиотека читает файлы .nx — формат для эмуляторов: игру, её обновления и DLC, название и значок.",
+      "Проверка файлов проверяет файлы .nx, а файлы .nx можно загружать.",
+      "При сжатии одной игры режим «Автоматически» использует все потоки."
+    ],
+    "ja": [
+      "ライブラリーがエミュレーター用の形式である .nx ファイルを読み込みます：ゲーム、アップデートとDLC、名前とアイコン。",
+      "ファイルチェックで .nx ファイルを検証でき、.nx ファイルをアップロードできます。",
+      "ゲームを1本だけ圧縮するとき、自動ですべてのスレッドを使います。"
+    ],
+    "ko": [
+      "라이브러리가 에뮬레이터용 형식인 .nx 파일을 읽습니다: 게임, 업데이트와 DLC, 이름과 아이콘.",
+      "파일 검사가 .nx 파일을 확인하며, .nx 파일을 업로드할 수 있습니다.",
+      "게임 하나만 압축할 때 자동이 모든 스레드를 사용합니다."
+    ],
+    "zh": [
+      "资料库可读取 .nx 文件（模拟器用的格式）：游戏、其更新和 DLC、名称和图标。",
+      "文件检查可校验 .nx 文件，并且可以上传 .nx 文件。",
+      "只压缩一个游戏时，自动会使用全部线程。"
+    ]
+  },
   "2.0.27": {
     "en": [
       "The full inventory (JSON) marks the language packs you do not use as hidden and the DLC not out yet as upcoming, instead of missing."

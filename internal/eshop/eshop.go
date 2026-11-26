@@ -52,7 +52,7 @@ var tags = regexp.MustCompile(`\s*[\[(][^\])]*[\])]`)
 // signs that are no part of a name.
 func Query(name string) string {
 	name = strings.TrimSpace(name)
-	for _, ext := range []string{".nup", ".nsp", ".nsz", ".xci", ".xcz"} {
+	for _, ext := range []string{".nup", ".nx", ".nsp", ".nsz", ".xci", ".xcz"} {
 		if strings.HasSuffix(strings.ToLower(name), ext) {
 			name = name[:len(name)-len(ext)]
 		}

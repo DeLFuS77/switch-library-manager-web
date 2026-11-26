@@ -211,7 +211,7 @@ func init() {
 		"Uploaded: the library is being scanned": "已上传:正在分析游戏库",
 		"The upload failed. Choose the file again to go on where it stopped.":                    "上传失败。再次选择该文件即可从中断处继续。",
 		"Drop the games to upload them to the library folder":                                    "将游戏拖放到此处以上传到游戏库文件夹",
-		"Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded.":                                 "只能上传 NSP、NSZ、XCI、XCZ 和 NUP 文件。",
+		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                            "只能上传 NSP、NSZ、XCI、XCZ、NUP 和 .nx 文件。",
 		"A file with this name is already in the library folder.":                                "游戏库文件夹中已有同名文件。",
 		"Not enough free space in the library folder for this file.":                             "游戏库文件夹的可用空间不足以存放此文件。",
 		"The library folder is not set or cannot be found. Set it in Settings.":                  "游戏库文件夹未设置或找不到。请在设置中指定。",

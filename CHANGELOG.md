@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.28
+
+### Improvements
+
+- The library reads .nx files, the format for emulators: the game, its updates and DLC, its name and icon. A .nx, a NUP and an NSP or XCI of the same game are never deleted for each other
+- File check verifies .nx files, and .nx files can be uploaded
+
+### Fixes
+
+- Compressing one game alone uses every thread of Automatic: the threads were shared among the files at once of the settings, so one game could get a single thread. Thanks to @TerrorSource for reporting it (#208)
+
 ## 2.0.27
 
 ### Fixes
