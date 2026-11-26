@@ -408,13 +408,10 @@ func (d *NxData) head(index int, n uint64) ([]byte, error) {
 }
 
 // ReadNativeDlcIds reads the title ID of each DLC from an NSP, which the catalog does not give,
-// from the header of an NCA of its tree, the CNMT first. headerKey is header_key of prod.keys:
-// without it nothing is read. A DLC whose NCA files tell no ID of a DLC of its game is left
-// without one.
+// from the header of an NCA of its tree, the CNMT first. headerKey is header_key of prod.keys,
+// for an NCA still encrypted ("" without it). A DLC whose NCA files tell no ID of a DLC of its
+// game is left without one.
 func (d *NxData) ReadNativeDlcIds(headerKey string) {
-	if headerKey == "" {
-		return
-	}
 	for a := range d.Applications {
 		app := &d.Applications[a]
 		for s := range app.Snapshots {
@@ -445,18 +442,41 @@ func (d *NxData) ReadNativeDlcIds(headerKey string) {
 	}
 }
 
-// ncaTitleId is the title ID in the header of an NCA (an NCZ keeps it as it was), 0 when it
-// cannot be read.
+// ncaTitleId is the title ID in the header of an NCA, 0 when it cannot be read. The packer of
+// the format keeps the NCA files of an NSP decrypted, their header in the clear with DNCA for
+// its magic; an NCA still encrypted (an NCZ keeps its header as it was) is read with headerKey,
+// when given.
 func (d *NxData) ncaTitleId(index int, headerKey string) uint64 {
-	encrypted, err := d.head(index, 0xC00)
-	if err != nil || len(encrypted) < 0xC00 {
+	header, err := d.head(index, 0xC00)
+	if err != nil || len(header) < 0xC00 {
 		return 0
 	}
-	header, err := DecryptNcaHeader(headerKey, encrypted)
+	switch string(header[0x200:0x204]) {
+	case "DNCA", "NCA3", "NCA2":
+		return binary.LittleEndian.Uint64(header[0x210:])
+	}
+	if headerKey == "" {
+		return 0
+	}
+	decrypted, err := DecryptNcaHeader(headerKey, header)
 	if err != nil {
 		return 0
 	}
-	return binary.LittleEndian.Uint64(header.headerBytes[0x210:])
+	return binary.LittleEndian.Uint64(decrypted.headerBytes[0x210:])
+}
+
+// Native tells a version packed from an NSP or an XCI: its tree holds the NCA files of the
+// package (decrypted), not the folders of a dump. NXPress unpacks only the other ones.
+func (d *NxData) Native(app int, snapshot int) bool {
+	native := false
+	d.Walk(app, snapshot, nil, func(path string, _ int) error {
+		name := strings.ToLower(path)
+		if !strings.Contains(name, "/") && (strings.HasSuffix(name, ".nca") || strings.HasSuffix(name, ".ncz")) {
+			native = true
+		}
+		return nil
+	})
+	return native
 }
 
 // nxDlcOf tells the title ID of a DLC of the game application: the ID of the game, without its

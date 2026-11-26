@@ -99,8 +99,8 @@ type NxSnapshot struct {
 	// the title ID of a DLC converted from a NUP or an extracted dump; 0 for a DLC from an NSP,
 	// which keeps the content ID of its CNMT instead
 	AddonTitleId uint64
-	// for a DLC from an NSP: the title ID in the header of its NCA files, read with prod.keys
-	// (see NxData.ReadNativeDlcIds); 0 while not read
+	// for a DLC from an NSP: the title ID in the header of its NCA files (see
+	// NxData.ReadNativeDlcIds); 0 while not read
 	nativeTitleId uint64
 	ContentId     [16]byte
 	LogicalSize  uint64
@@ -838,23 +838,19 @@ func ReadNxMetadata(path string) (map[string]*ContentMetaAttributes, error) {
 }
 
 // ReadNxWithDlcIds reads the catalog of a .nx file like ReadNx, and the title ID of each DLC
-// from an NSP from the header of its NCA files, with prod.keys. Without the keys, or with those
-// files unreadable, such a DLC stays without an ID.
+// from an NSP from the header of its NCA files, kept decrypted (prod.keys reads one that is
+// not). With those files unreadable, such a DLC stays without an ID.
 func ReadNxWithDlcIds(path string) (*NxArchive, error) {
 	archive, err := ReadNx(path)
 	if err != nil || !archive.hasNativeDlc() {
 		return archive, err
-	}
-	key := nxHeaderKey()
-	if key == "" {
-		return archive, nil
 	}
 	data, err := OpenNxData(path)
 	if err != nil {
 		return archive, nil
 	}
 	defer data.Close()
-	data.ReadNativeDlcIds(key)
+	data.ReadNativeDlcIds(nxHeaderKey())
 	return data.NxArchive, nil
 }
 
