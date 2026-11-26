@@ -1,7 +1,10 @@
 package switchfs
 
 import (
+	"bytes"
+	"compress/flate"
 	"context"
+	"encoding/binary"
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnup"
@@ -44,6 +47,45 @@ func TestVerifyNupLooksAtTheMetadata(t *testing.T) {
 	// the same NUP with its metadata whole is good
 	packages[0].Meta = []testnup.Record{{Type: 0x0001, Payload: npdm}, {Type: 0x0007, Payload: make([]byte, 32)}, {Type: 0x0005, Payload: []byte("Made-up Quest")}}
 	if check, err := VerifyFile(context.Background(), writeNup(t, testnup.Build(packages)), nil); err != nil || check.Partial || len(check.Modified) > 0 {
+		t.Errorf("%+v %v", check, err)
+	}
+}
+
+// A NACP that keeps its names compressed but whose names do not decompress is told; one whose
+// compressed names read is good.
+func TestVerifyNupCompressedNacpNames(t *testing.T) {
+	npdm := append([]byte("META"), make([]byte, 0x80)...)
+	entries := make([]byte, 32*0x300)
+	copy(entries, "Made-up Quest")
+	var packed bytes.Buffer
+	writer, err := flate.NewWriter(&packed, flate.BestCompression)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writer.Write(entries)
+	writer.Close()
+	good := make([]byte, 0x4000)
+	binary.LittleEndian.PutUint16(good, uint16(packed.Len()))
+	copy(good[2:], packed.Bytes())
+	good[0x3215] = 1
+	// the name written over the compressed names
+	broken := bytes.Clone(good)
+	clear(broken[:0x200])
+	copy(broken, "Renamed Quest")
+	nupOf := func(update []byte) string {
+		return writeNup(t, testnup.Build([]testnup.Package{
+			{TitleId: 0x0400486024DEC000, Kind: testnup.Base, Meta: []testnup.Record{{Type: 0x0001, Payload: npdm}, {Type: 0x0002, Payload: good}},
+				Files: []testnup.File{{Path: "exefs/main.npdm", Data: npdm}}},
+			{TitleId: 0x0400486024DEC800, Kind: testnup.Update, Version: 65536, Meta: []testnup.Record{{Type: 0x0001, Payload: npdm}, {Type: 0x0002, Payload: update}},
+				Files: []testnup.File{{Path: "exefs/main.npdm", Data: npdm}}},
+		}))
+	}
+	_, err = VerifyFile(context.Background(), nupOf(broken), nil)
+	found := damagedNup(t, err)
+	if len(found) != 1 || found["update v65536/metadata: NACP"] == "" {
+		t.Errorf("damaged %v", found)
+	}
+	if check, err := VerifyFile(context.Background(), nupOf(good), nil); err != nil || check.Partial || len(check.Modified) > 0 {
 		t.Errorf("%+v %v", check, err)
 	}
 }
