@@ -37,6 +37,9 @@ var ErrNupMetaOtherCopy = errors.New("is a copy of the metadata of another NUP: 
 // the format puts them, and gives how many packages it wrote again: 0 when none had them so. The
 // NUP is read again after, and put back as it was when it does not read the same.
 func FixNupZeroBased(path string) (int, error) {
+	if isSplit(path) {
+		return 0, errSplitWrite
+	}
 	if err := restoreNupMeta(path); err != nil {
 		return 0, err
 	}

@@ -7,13 +7,20 @@ import (
 )
 
 func ReadSplitFileMetadata(filePath string) (map[string]*switchfs.ContentMetaAttributes, error) {
+	// a NUP or a .nx is told by the name of the folder of its parts
+	if switchfs.IsNupFile(filePath) {
+		return switchfs.ReadNupMetadata(filePath)
+	}
+	if switchfs.IsNxFile(filePath) {
+		return switchfs.ReadNxMetadata(filePath)
+	}
 	//check if this is a NS* or XC* file
 	_, err := switchfs.ReadPfs0File(filePath)
 	isXCI := false
 	if err != nil {
 		_, err = readXciHeader(filePath)
 		if err != nil {
-			return nil, errors.New("split file is not an XCI/XCZ or NSP/NSZ")
+			return nil, errors.New("split file is not an XCI/XCZ, NSP/NSZ, NUP or .nx")
 		}
 		isXCI = true
 	}

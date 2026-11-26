@@ -453,16 +453,28 @@ func (web *Web) libraryFiles(extensions ...string) []CompressCandidate {
 	}
 	seen := map[string]bool{}
 	add := func(title *db.SwitchGameFiles, file db.SwitchFileInfo, kind string) {
+		path := filepath.Join(file.ExtendedInfo.BaseFolder, file.ExtendedInfo.FileName)
 		extension := strings.ToLower(filepath.Ext(file.ExtendedInfo.FileName))
+		size := file.ExtendedInfo.Size
+		// a NUP or a .nx split in parts is read as one file by its first part (see
+		// switchfs.WholeFile); the parts of an NSP or an XCI are not taken as one
+		splitEmulator := switchfs.IsEmulatorFile(path) && switchfs.WholeFile(path) != path
+		if splitEmulator {
+			extension = strings.ToLower(filepath.Ext(switchfs.WholeFile(path)))
+		}
 		wanted := false
 		for _, candidate := range extensions {
 			if extension == candidate {
 				wanted = true
 			}
 		}
-		path := filepath.Join(file.ExtendedInfo.BaseFolder, file.ExtendedInfo.FileName)
 		if !wanted || seen[path] {
 			return
+		}
+		if splitEmulator {
+			if whole, err := switchfs.WholeSize(path); err == nil {
+				size = whole
+			}
 		}
 		seen[path] = true
 		name := ""
@@ -480,10 +492,10 @@ func (web *Web) libraryFiles(extensions ...string) []CompressCandidate {
 		if file.Metadata != nil {
 			storage = file.Metadata.Storage
 		}
-		candidates = append(candidates, CompressCandidate{Path: path, Name: name, Kind: kind, Size: file.ExtendedInfo.Size, Storage: storage})
+		candidates = append(candidates, CompressCandidate{Path: path, Name: name, Kind: kind, Size: size, Storage: storage})
 	}
 	for _, title := range localDB.TitlesMap {
-		if title.BaseExist && !title.IsSplit {
+		if title.BaseExist && (!title.IsSplit || switchfs.IsEmulatorFile(title.File.ExtendedInfo.Path())) {
 			add(title, title.File, "Base")
 		}
 		for _, update := range title.Updates {

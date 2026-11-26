@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -114,7 +112,7 @@ type NxSnapshot struct {
 
 // IsNxFile tells a .nx file by the extension of its name.
 func IsNxFile(path string) bool {
-	return strings.EqualFold(filepath.Ext(path), ".nx")
+	return hasExt(path, ".nx")
 }
 
 // IsEmulatorFile tells a file of decrypted games, for emulators only (a NUP or a .nx), from an
@@ -125,18 +123,15 @@ func IsEmulatorFile(path string) bool {
 
 var nxCastagnoli = crc32.MakeTable(crc32.Castagnoli)
 
-// ReadNx reads the catalog of a .nx file.
+// ReadNx reads the catalog of a .nx file, or of one split in parts, given its first part or its
+// folder.
 func ReadNx(path string) (*NxArchive, error) {
-	file, err := os.Open(path)
+	file, size, err := openWhole(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	info, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	return readNx(file, info.Size())
+	return readNx(file, size)
 }
 
 // nxHeader is the part of a header slot the reader uses.

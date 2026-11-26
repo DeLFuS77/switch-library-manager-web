@@ -36,6 +36,10 @@ func scanOtherFormat(t *testing.T, files map[string][]byte) (*LocalSwitchFilesDB
 	t.Cleanup(func() { settings.InitSwitchKeys(t.TempDir()) })
 	folder := t.TempDir()
 	for name, data := range files {
+		// a file split in parts is given by its parts, "Game.nup/00"...
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(folder, name)), 0o755); err != nil {
+			t.Fatal(err)
+		}
 		if err := os.WriteFile(filepath.Join(folder, name), data, 0o644); err != nil {
 			t.Fatal(err)
 		}

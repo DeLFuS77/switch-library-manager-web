@@ -40,10 +40,14 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 	}
 	candidates := []candidate{}
 	for prefix, title := range localDB.TitlesMap {
-		if title.Icon != "" || !title.BaseExist || title.IsSplit {
+		if title.Icon != "" || !title.BaseExist {
 			continue
 		}
 		path := filepath.Join(title.File.ExtendedInfo.BaseFolder, title.File.ExtendedInfo.FileName)
+		// a NUP or a .nx split in parts is read as one file, the parts of an NSP or an XCI are not
+		if title.IsSplit && !switchfs.IsEmulatorFile(path) {
+			continue
+		}
 		if !withKeys && !switchfs.IsEmulatorFile(path) {
 			continue
 		}

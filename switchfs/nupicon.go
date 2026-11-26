@@ -110,6 +110,9 @@ var ErrNupIconOtherCopy = errors.New("is a copy of the table of contents of anot
 // were are kept beside the NUP while it is written, and put back when it does not read the same
 // afterwards; a NUP left with such a copy by a work that stopped gets them back before anything.
 func SetNupIcon(path string, icon []byte) (bool, error) {
+	if isSplit(path) {
+		return false, errSplitWrite
+	}
 	if len(icon) == 0 || !bytes.HasPrefix(icon, []byte{0xFF, 0xD8, 0xFF}) && !bytes.HasPrefix(icon, []byte("\x89PNG\r\n\x1a\n")) {
 		return false, errors.New("the icon is not a JPEG or PNG image")
 	}

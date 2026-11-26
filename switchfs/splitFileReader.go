@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/avast/retry-go/v5"
 )
@@ -22,6 +23,8 @@ type splitFile struct {
 	files     []ReadAtCloser
 	path      string
 	chunkSize int64
+	// the parts are opened as they are read, by readers that may read at the same time
+	open sync.Mutex
 }
 
 type fileWrapper struct {
@@ -146,16 +149,17 @@ func (sp *splitFile) ReadAt(p []byte, off int64) (n int, err error) {
 		}
 		partOffset := off % sp.chunkSize
 		partIndex := int(part)
+		sp.open.Lock()
 		if sp.files[partIndex] == nil {
 			file, openErr := _openFile(path.Join(sp.path, sp.info[partIndex].Name()))
 			if openErr != nil {
-				if n == 0 {
-					return 0, openErr
-				}
+				sp.open.Unlock()
 				return n, openErr
 			}
 			sp.files[partIndex] = file
 		}
+		partFile := sp.files[partIndex]
+		sp.open.Unlock()
 
 		available := sp.info[partIndex].Size() - partOffset
 		if available <= 0 {
@@ -165,7 +169,7 @@ func (sp *splitFile) ReadAt(p []byte, off int64) (n int, err error) {
 		if want > available {
 			want = available
 		}
-		read, readErr := sp.files[partIndex].ReadAt(p[:int(want)], partOffset)
+		read, readErr := partFile.ReadAt(p[:int(want)], partOffset)
 		n += read
 		off += int64(read)
 		p = p[read:]
@@ -196,7 +200,18 @@ func _openFile(path string) (*os.File, error) {
 	return file, err
 }
 
+// Size is the size of the whole file: the sizes of its parts added up.
+func (sp *splitFile) Size() int64 {
+	var size int64
+	for _, info := range sp.info {
+		size += info.Size()
+	}
+	return size
+}
+
 func (sp *splitFile) Close() error {
+	sp.open.Lock()
+	defer sp.open.Unlock()
 	var closeErr error
 	for _, file := range sp.files {
 		if file != nil {
