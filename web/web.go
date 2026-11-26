@@ -923,6 +923,7 @@ func (web *Web) Start() {
 
 	if isDemoMode() {
 		web.loadDemo()
+		go web.demoNetSendTicker()
 	} else {
 		web.startInBackground()
 	}

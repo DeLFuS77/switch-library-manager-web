@@ -86,7 +86,7 @@ func ownfoilError(w http.ResponseWriter, status int, message string) {
 func (web *Web) netOwnfoilGate(w http.ResponseWriter, r *http.Request) (settings.NetInstallOptions, bool) {
 	appSettings := settings.ReadSettings(web.dataFolder)
 	switch {
-	case !netInstallEnabled(appSettings):
+	case !netInstallEnabled(appSettings) || isDemoMode():
 		ownfoilError(w, http.StatusNotFound, "Install over the network is off in Switch Library Manager (Settings › Install over the network)")
 	case !web.auth.Enabled():
 		ownfoilError(w, http.StatusForbidden, "Install over the network needs a user with a password in Switch Library Manager")
