@@ -507,6 +507,8 @@ func viewerAllowed(r *http.Request) bool {
 		// makes their own API keys
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
 			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/") || r.URL.Path == netInstallPushSend ||
+			// and send a NUP to nx2-flow, or cancel it
+			nx2flowAllowed(r.URL.Path) ||
 			// and bring their consoles up to date, or ask them to remove a game
 			netConsoleAskPath(r.URL.Path) ||
 			strings.HasPrefix(r.URL.Path, netQueueRead+"/") ||

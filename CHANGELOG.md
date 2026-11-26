@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Send to nx2-flow: a NUP and its cover go to a Switch 2 running nx2-flow over the local network
+
 ## 2.0.28
 
 ### Improvements

@@ -19,7 +19,7 @@ var taskKindNames = map[string]string{
 	tasklog.TASK_THUMBNAILS: "Thumbnails", tasklog.TASK_COPY: "Copy to the card", tasklog.TASK_CONVERT: "Conversion", tasklog.TASK_PACK: "Combine", tasklog.TASK_OPTIMIZE: OPTIMIZE_ACTION,
 	tasklog.TASK_SPLIT: "Split files", TASK_TIMETOBEAT: "Times to beat and scores (IGDB)", TASK_UPLOAD: "Upload",
 	tasklog.TASK_NUP_FIX: NUP_FIX_ACTION, tasklog.TASK_NUP_ICON: NUP_ICON_ACTION, tasklog.TASK_UNDO_ORGANIZE: UNDO_ORGANIZE_TASK,
-	tasklog.TASK_NET_PREPARE: NET_PREPARE_ACTION,
+	tasklog.TASK_NET_PREPARE: NET_PREPARE_ACTION, TASK_NX2FLOW: NX2FLOW_ACTION,
 }
 
 func (web *Web) notifyTaskFailed(task tasklog.Task) {
