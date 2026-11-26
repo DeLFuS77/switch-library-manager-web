@@ -170,7 +170,7 @@ func (d *NxData) readManifest(m []byte, blockCount uint64) error {
 		return err
 	}
 	poolOffset, poolSize := le.Uint64(m[64:]), le.Uint64(m[72:])
-	if poolOffset%8 != 0 || poolOffset > uint64(len(m)) || poolSize > uint64(len(m))-poolOffset || poolSize > 2<<30 {
+	if poolOffset%8 != 0 || poolOffset > uint64(len(m)) || poolSize != uint64(len(m))-poolOffset || poolSize > 2<<30 {
 		return bad
 	}
 	pool := m[poolOffset : poolOffset+poolSize]
