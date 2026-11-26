@@ -379,6 +379,92 @@ func (d *NxData) Walk(app int, snapshot int, dir func(path string) error, file f
 	return walk(root, "", 0)
 }
 
+// head reads the first n bytes of a file of the manifest (all of it when smaller), from its first
+// blocks, each checked against its CRC-32C.
+func (d *NxData) head(index int, n uint64) ([]byte, error) {
+	f := d.files[index]
+	chunk := uint64(1) << f.chunkLog2
+	n = min(n, f.Size)
+	result := make([]byte, 0, n)
+	buffer := make([]byte, 0, nxMaxBlock)
+	left := f.Size
+	for i := uint32(0); i < f.blocks && uint64(len(result)) < n; i++ {
+		id := d.refs[f.firstRef+i]
+		want := min(chunk, left)
+		if uint64(d.blocks[id].logical) != want {
+			return nil, errors.New("a file of the .nx file has a block of the wrong size")
+		}
+		data, err := d.block(id, buffer)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, data[:min(uint64(len(data)), n-uint64(len(result)))]...)
+		left -= want
+	}
+	if uint64(len(result)) < n {
+		return nil, errors.New("a file of the .nx file is shorter than its size")
+	}
+	return result, nil
+}
+
+// ReadNativeDlcIds reads the title ID of each DLC from an NSP, which the catalog does not give,
+// from the header of an NCA of its tree, the CNMT first. headerKey is header_key of prod.keys:
+// without it nothing is read. A DLC whose NCA files tell no ID of a DLC of its game is left
+// without one.
+func (d *NxData) ReadNativeDlcIds(headerKey string) {
+	if headerKey == "" {
+		return
+	}
+	for a := range d.Applications {
+		app := &d.Applications[a]
+		for s := range app.Snapshots {
+			snapshot := &app.Snapshots[s]
+			if snapshot.Type != NxSnapshotDlc || snapshot.AddonTitleId != 0 || snapshot.nativeTitleId != 0 {
+				continue
+			}
+			var metas, others []int
+			if err := d.Walk(a, s, nil, func(path string, index int) error {
+				name := strings.ToLower(path)
+				switch {
+				case strings.HasSuffix(name, ".cnmt.nca") || strings.HasSuffix(name, ".cnmt.ncz"):
+					metas = append(metas, index)
+				case strings.HasSuffix(name, ".nca") || strings.HasSuffix(name, ".ncz"):
+					others = append(others, index)
+				}
+				return nil
+			}); err != nil {
+				continue
+			}
+			for _, index := range append(metas, others...) {
+				if id := d.ncaTitleId(index, headerKey); nxDlcOf(id, app.Id) {
+					snapshot.nativeTitleId = id
+					break
+				}
+			}
+		}
+	}
+}
+
+// ncaTitleId is the title ID in the header of an NCA (an NCZ keeps it as it was), 0 when it
+// cannot be read.
+func (d *NxData) ncaTitleId(index int, headerKey string) uint64 {
+	encrypted, err := d.head(index, 0xC00)
+	if err != nil || len(encrypted) < 0xC00 {
+		return 0
+	}
+	header, err := DecryptNcaHeader(headerKey, encrypted)
+	if err != nil {
+		return 0
+	}
+	return binary.LittleEndian.Uint64(header.headerBytes[0x210:])
+}
+
+// nxDlcOf tells the title ID of a DLC of the game application: the ID of the game, without its
+// last three digits, plus 0x1000, and a DLC number from 1.
+func nxDlcOf(id uint64, application uint64) bool {
+	return id&0xFFF != 0 && id&^0xFFF == application&^0xFFF+0x1000
+}
+
 // File is a file of the manifest.
 func (d *NxData) File(index int) NxFile {
 	return d.files[index]

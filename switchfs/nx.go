@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // NX is a container of decrypted Switch games (github.com/fab918/nxformat, header versions 0.2
@@ -22,7 +24,8 @@ import (
 
 // NxReaderVersion is the version of what ReadNx tells of a file; the library reads its .nx files
 // again when it changes.
-const NxReaderVersion = 1
+// Version 2 reads the title ID of a DLC from an NSP from its NCA files.
+const NxReaderVersion = 2
 
 const (
 	nxHeaderSize      = 256
@@ -96,7 +99,10 @@ type NxSnapshot struct {
 	// the title ID of a DLC converted from a NUP or an extracted dump; 0 for a DLC from an NSP,
 	// which keeps the content ID of its CNMT instead
 	AddonTitleId uint64
-	ContentId    [16]byte
+	// for a DLC from an NSP: the title ID in the header of its NCA files, read with prod.keys
+	// (see NxData.ReadNativeDlcIds); 0 while not read
+	nativeTitleId uint64
+	ContentId     [16]byte
 	LogicalSize  uint64
 	nacp         []byte
 	// the identity the format gives it: its kind, version and content ID with every path of its
@@ -734,7 +740,8 @@ func nxLanguageTag(tag string) bool {
 
 // TitleId is the title ID of a version as the library knows it: the game for the game (a game
 // of several programs is one title), with the update bit for an update, the ID of the DLC for a
-// DLC; "" when the file does not give it (a DLC from an NSP, whose ID is in its CNMT).
+// DLC; "" when the file does not give it (a DLC from an NSP whose NCA files were not read, see
+// NxData.ReadNativeDlcIds).
 func (app *NxApplication) TitleId(snapshot NxSnapshot) string {
 	switch snapshot.Type {
 	case NxSnapshotBase:
@@ -748,6 +755,9 @@ func (app *NxApplication) TitleId(snapshot NxSnapshot) string {
 	case NxSnapshotDlc:
 		if snapshot.AddonTitleId != 0 {
 			return fmt.Sprintf("%016x", snapshot.AddonTitleId)
+		}
+		if snapshot.nativeTitleId != 0 {
+			return fmt.Sprintf("%016x", snapshot.nativeTitleId)
 		}
 	}
 	return ""
@@ -820,11 +830,53 @@ func (archive *NxArchive) Metadata() map[string]*ContentMetaAttributes {
 
 // ReadNxMetadata reads what a .nx file holds (see NxArchive.Metadata).
 func ReadNxMetadata(path string) (map[string]*ContentMetaAttributes, error) {
-	archive, err := ReadNx(path)
+	archive, err := ReadNxWithDlcIds(path)
 	if err != nil {
 		return nil, err
 	}
 	return archive.Metadata(), nil
+}
+
+// ReadNxWithDlcIds reads the catalog of a .nx file like ReadNx, and the title ID of each DLC
+// from an NSP from the header of its NCA files, with prod.keys. Without the keys, or with those
+// files unreadable, such a DLC stays without an ID.
+func ReadNxWithDlcIds(path string) (*NxArchive, error) {
+	archive, err := ReadNx(path)
+	if err != nil || !archive.hasNativeDlc() {
+		return archive, err
+	}
+	key := nxHeaderKey()
+	if key == "" {
+		return archive, nil
+	}
+	data, err := OpenNxData(path)
+	if err != nil {
+		return archive, nil
+	}
+	defer data.Close()
+	data.ReadNativeDlcIds(key)
+	return data.NxArchive, nil
+}
+
+// hasNativeDlc tells a file with a DLC from an NSP, whose title ID is not in the catalog.
+func (archive *NxArchive) hasNativeDlc() bool {
+	for _, app := range archive.Applications {
+		for _, snapshot := range app.Snapshots {
+			if snapshot.Type == NxSnapshotDlc && snapshot.AddonTitleId == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// nxHeaderKey is the key of the NCA headers from prod.keys, "" without it.
+var nxHeaderKey = func() string {
+	keys, _ := settings.SwitchKeys()
+	if keys == nil {
+		return ""
+	}
+	return keys.GetKey("header_key")
 }
 
 // Icon is the icon of the first game of the file that carries one.
