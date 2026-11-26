@@ -1,4 +1,61 @@
 {
+  "2.0.29": {
+    "en": [
+      "Send to nx2-flow: a NUP and its cover go to a Switch 2 running nx2-flow over the local network.",
+      "NUP and .nx files split in parts for FAT32 are read as one file, and File check verifies them.",
+      "File check says when a NUP keeps the names of its control data compressed and they cannot be read."
+    ],
+    "es": [
+      "Enviar a nx2-flow: un NUP y su carátula van por la red local a una Switch 2 con nx2-flow.",
+      "Los NUP y .nx partidos para FAT32 se leen como un solo archivo, y Comprobar archivos los verifica.",
+      "Comprobar archivos avisa cuando un NUP guarda comprimidos los nombres de sus datos de control y no se pueden leer."
+    ],
+    "de": [
+      "An nx2-flow senden: ein NUP und sein Cover gehen über das lokale Netzwerk an eine Switch 2 mit nx2-flow.",
+      "Für FAT32 in Teile geteilte NUP- und .nx-Dateien werden als eine Datei gelesen, und die Dateiprüfung prüft sie.",
+      "Die Dateiprüfung meldet, wenn ein NUP die Namen seiner Steuerdaten komprimiert speichert und sie nicht gelesen werden können."
+    ],
+    "fr": [
+      "Envoyer à nx2-flow : un NUP et sa jaquette partent par le réseau local vers une Switch 2 avec nx2-flow.",
+      "Les fichiers NUP et .nx découpés pour FAT32 sont lus comme un seul fichier, et la vérification des fichiers les vérifie.",
+      "La vérification des fichiers signale quand un NUP garde compressés les noms de ses données de contrôle et qu'ils ne peuvent pas être lus."
+    ],
+    "it": [
+      "Invia a nx2-flow: un NUP e la sua copertina vanno tramite la rete locale a una Switch 2 con nx2-flow.",
+      "I file NUP e .nx divisi in parti per FAT32 vengono letti come un unico file, e il controllo dei file li verifica.",
+      "Il controllo dei file avvisa quando un NUP tiene compressi i nomi dei dati di controllo e non si possono leggere."
+    ],
+    "pt": [
+      "Enviar para o nx2-flow: um NUP e a sua capa vão pela rede local para uma Switch 2 com nx2-flow.",
+      "Os ficheiros NUP e .nx divididos em partes para FAT32 são lidos como um só ficheiro, e a verificação de ficheiros verifica-os.",
+      "A verificação de ficheiros avisa quando um NUP guarda comprimidos os nomes dos seus dados de controlo e não podem ser lidos."
+    ],
+    "nl": [
+      "Naar nx2-flow sturen: een NUP en zijn hoes gaan via het lokale netwerk naar een Switch 2 met nx2-flow.",
+      "Voor FAT32 in delen gesplitste NUP- en .nx-bestanden worden als één bestand gelezen, en de bestandscontrole controleert ze.",
+      "De bestandscontrole meldt wanneer een NUP de namen van zijn besturingsgegevens gecomprimeerd bewaart en ze niet gelezen kunnen worden."
+    ],
+    "ru": [
+      "Отправка в nx2-flow: NUP и его обложка передаются по локальной сети на Switch 2 с nx2-flow.",
+      "Файлы NUP и .nx, разделённые на части для FAT32, читаются как один файл, и проверка файлов их проверяет.",
+      "Проверка файлов сообщает, когда NUP хранит названия в управляющих данных в сжатом виде и их нельзя прочитать."
+    ],
+    "ja": [
+      "nx2-flowへ送信：NUPとそのカバーをローカルネットワーク経由でnx2-flowのあるSwitch 2へ送ります。",
+      "FAT32用に分割されたNUPと.nxファイルを1つのファイルとして読み込み、ファイルチェックで検証できます。",
+      "NUPがコントロールデータの名前を圧縮したまま保存していて読めないとき、ファイルチェックが知らせます。"
+    ],
+    "ko": [
+      "nx2-flow로 보내기: NUP와 커버가 로컬 네트워크를 통해 nx2-flow가 있는 Switch 2로 전송됩니다.",
+      "FAT32용으로 분할된 NUP와 .nx 파일을 하나의 파일로 읽으며, 파일 검사가 이를 확인합니다.",
+      "NUP가 컨트롤 데이터의 이름을 압축된 채로 저장해 읽을 수 없을 때 파일 검사가 알려 줍니다."
+    ],
+    "zh": [
+      "发送到 nx2-flow：NUP 及其封面通过局域网发送到装有 nx2-flow 的 Switch 2。",
+      "为 FAT32 分割的 NUP 和 .nx 文件会作为一个文件读取，文件检查也会校验它们。",
+      "当 NUP 以压缩方式保存控制数据中的名称且无法读取时，文件检查会提示。"
+    ]
+  },
   "2.0.28": {
     "en": [
       "The library reads .nx files, the format for emulators: the game, its updates and DLC, its name and icon.",

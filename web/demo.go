@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/dlclang"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -94,6 +95,17 @@ var demoGenres = map[string][]string{
 
 // demoFavorites are the favorites of the demo library
 var demoFavorites = []string{"Starlight Odyssey", "Gearheart Tactics", "Ember Trail"}
+
+// demoWished are the games of the catalog on the wishlist of the demo
+var demoWished = []string{"Velvet Thunder", "Hollow Crown", "Pixel Kart Rally 2", "Starlight Odyssey II"}
+
+// demoLanguagePacks are the language packs and commentary of games of the demo, all in the
+// library: the ones in the languages not chosen in Settings are listed in Space
+var demoLanguagePacks = map[string][]string{
+	"Starlight Odyssey":  {"Japanese Language Pack", "French Language Pack", "English Language Pack"},
+	"Gearheart Tactics":  {"Korean Language Pack"},
+	"Robo Rumble League": {"In-game Commentary (German)", "In-game Commentary (English)"},
+}
 
 func demoTitleId(index int) string {
 	return fmt.Sprintf("0100D%07X", index+1) + "0000"
@@ -178,14 +190,29 @@ func (web *Web) loadDemo() {
 			}
 			files.LatestUpdate = version
 		}
-		owned := 0
-		for dlcId, dlc := range title.Dlc {
-			if owned >= game.ownedDlc {
-				break
+		// the first DLC are the ones owned, always the same (the consoles of the demo have them)
+		dlcIds := make([]string, 0, len(title.Dlc))
+		for dlcId := range title.Dlc {
+			dlcIds = append(dlcIds, dlcId)
+		}
+		sort.Strings(dlcIds)
+		if len(dlcIds) > game.ownedDlc {
+			dlcIds = dlcIds[:game.ownedDlc]
+		}
+		// the language packs of the game, all in the library, for Settings and Space
+		for p, pack := range demoLanguagePacks[game.name] {
+			dlcId := id[:12] + "1" + fmt.Sprintf("%03X", 0x100+p)
+			title.Dlc[dlcId] = db.TitleAttributes{Id: dlcId, Name: game.name + " – " + pack, IconUrl: "/i/" + banner}
+			dlcIds = append(dlcIds, dlcId)
+		}
+		for _, dlcId := range dlcIds {
+			dlc := title.Dlc[dlcId]
+			dlcSize := int64(512 << 20)
+			if _, pack := dlclang.Language(dlc.Name); pack {
+				dlcSize = int64(120+40*(len(dlc.Name)%5)) << 20
 			}
-			owned++
 			files.Dlc[dlcId] = db.SwitchFileInfo{
-				ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsp", dlc.Name, dlcId), 512<<20),
+				ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsp", dlc.Name, dlcId), dlcSize),
 				Metadata:     &switchfs.ContentMetaAttributes{TitleId: dlcId, Type: "AddOnContent", Storage: switchfs.StoragePlain},
 			}
 		}
@@ -216,7 +243,16 @@ func (web *Web) loadDemo() {
 	web.writeDemoHistory(switchDB, localDB, time.Now())
 	web.writeDemoTimesToBeat(localDB)
 	web.writeDemoSaves(time.Now())
+	web.writeDemoConsoles(time.Now())
 	web.state.set(switchDB, localDB)
+	for i, game := range demoGames {
+		for _, wished := range demoWished {
+			if wished == game.name {
+				web.wishes().Set(demoTitleId(i), true)
+			}
+		}
+	}
+	web.writeDemoSendTask(time.Now())
 	web.sugarLogger.Infof("[Demo mode: %d made-up games]", len(localDB.TitlesMap))
 }
 
@@ -444,6 +480,10 @@ func (web *Web) writeDemoSaves(now time.Time) {
 			continue
 		}
 		folder := filepath.Join(web.vaultRoot(), VAULT_BASE, game.name)
+		// written once: the backups of a demo started before stay, and no more are added to them
+		if entries, err := os.ReadDir(folder); err == nil && len(entries) > 0 {
+			continue
+		}
 		if err := os.MkdirAll(folder, 0755); err != nil {
 			return
 		}

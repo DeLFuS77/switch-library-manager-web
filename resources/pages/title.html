@@ -52,7 +52,7 @@
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
-							{{- if and $t.Owned .Auth.Enabled}}
+							{{- if and $t.Owned (or .Auth.Enabled .Demo)}}
 							{{- /* shown by 24-net-push.js once it knows the user has a console */}}
 							<button type="button" class="btn btn-glass rounded-pill" data-net-send="{{$t.Id}}" hidden><span class="bi bi-nintendo-switch action-icon" aria-hidden="true"></span><span class="action-label">{{t "Send to console"}}</span></button>
 							{{- end}}
@@ -94,7 +94,7 @@
 								</ul>
 							</div>
 						</div>
-						{{- if .Auth.Enabled}}
+						{{- if or .Auth.Enabled .Demo}}
 						{{- /* what of the game is installed on the consoles of the user (see 24-net-push.js) */}}
 						<div class="net-on" data-net-on="{{$t.Id}}" hidden></div>
 						{{- end}}
@@ -444,7 +444,7 @@
 			{{- template "coverSearch" $t}}
 			{{- template "coverCrop" $t}}
 			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
-			{{- if and $t.Owned .Auth.Enabled}}{{template "netSend" $t}}{{end}}
+			{{- if and $t.Owned (or .Auth.Enabled .Demo)}}{{template "netSend" $t}}{{end}}
 			{{- if $t.CanOptimize}}{{template "titleOptimize" $t}}{{end}}
 {{- end}}
 {{- define "netSend"}}
@@ -457,6 +457,32 @@
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
 						</div>
 						<div class="modal-body">
+							{{- /* NXDock on a Switch 1, or nx2-flow on a Switch 2 for a NUP: shown when both can be chosen */}}
+							<div class="mb-3" data-net-target-choice hidden>
+								<span class="small fw-semibold" id="netSendTarget">{{t "Send to"}}</span>
+								<div class="net-send-modes mt-1" role="radiogroup" aria-labelledby="netSendTarget">
+									<input type="radio" class="btn-check" name="net_send_target" id="net_send_nxdock" value="nxdock" checked data-net-target>
+									<label class="net-send-mode" for="net_send_nxdock"><span class="net-send-mode-name"><span class="bi bi-nintendo-switch me-1" aria-hidden="true"></span>NXDock</span><span class="net-send-mode-why">{{t "Installs it on a Switch 1"}}</span></label>
+									<input type="radio" class="btn-check" name="net_send_target" id="net_send_nx2flow" value="nx2flow" data-net-target>
+									<label class="net-send-mode" for="net_send_nx2flow"><span class="net-send-mode-name"><span class="bi bi-router me-1" aria-hidden="true"></span>nx2-flow</span><span class="net-send-mode-why">{{t "Runs the NUP on a Switch 2"}}</span></label>
+								</div>
+							</div>
+							<div data-net-target-part="nx2flow" hidden>
+								<label class="form-label small fw-semibold" for="nx2flow_address">{{t "Address of the console"}}</label>
+								<input type="text" class="form-control" id="nx2flow_address" inputmode="url" autocomplete="off" spellcheck="false" placeholder="192.168.1.50" aria-describedby="nx2flowAddressHelp" data-nx2flow-address>
+								<div class="form-text mb-3" id="nx2flowAddressHelp">{{t "On the Switch 2, open nx2-flow and press ZL (Transfer): the screen shows the address. The port is 28302 unless you add another one."}}</div>
+								<fieldset class="mb-3">
+									<legend class="small fw-semibold mb-1">{{t "File"}}</legend>
+									<div class="net-send-files" data-nx2flow-files></div>
+								</fieldset>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="nx2flow_cover" checked aria-describedby="nx2flowCoverHelp" data-nx2flow-cover>
+									<label class="form-check-label small" for="nx2flow_cover">{{t "Send the cover too"}}</label>
+									<div class="form-text mt-0" id="nx2flowCoverHelp">{{t "500 × 813, shown on the shelf of nx2-flow."}}</div>
+								</div>
+								<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "It goes to the folder of the games of nx2-flow on the card and is checked once it arrived. The progress shows in Tasks."}}</p>
+							</div>
+							<div data-net-target-part="nxdock">
 							<label class="form-label small fw-semibold" for="net_send_console">{{t "Console"}}</label>
 							<select class="form-select mb-3" id="net_send_console" data-net-send-console></select>
 							{{- /* Normal, or the experimental format of NXPress, which NXDock decompresses while it installs; what it is shows on hover */}}
@@ -478,6 +504,7 @@
 								<p class="net-send-saving small mt-2 mb-0" data-net-send-saving hidden></p>
 							</fieldset>
 							<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The console asks before installing: open NXDock on it."}}</p>
+							</div>
 							<div class="net-error small mt-2" role="alert" data-net-send-error hidden></div>
 						</div>
 						<div class="modal-footer">

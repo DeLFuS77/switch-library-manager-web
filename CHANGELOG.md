@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.29
+
+### Improvements
+
+- Send to nx2-flow: a NUP and its cover go to a Switch 2 running nx2-flow over the local network
+- NUP and .nx files split in parts for FAT32 (a folder with 00, 01…) are read as one file, and File check verifies them
+
+### Fixes
+
+- File check says when a NUP keeps the names of its control data compressed and they cannot be read
+
 ## 2.0.28
 
 ### Improvements

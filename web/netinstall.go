@@ -80,9 +80,10 @@ type netFile struct {
 	displayVersion string
 }
 
-// netInstallEnabled tells whether the network install answers.
+// netInstallEnabled tells whether the network install answers. The demo shows it on, with its
+// made-up consoles (democonsoles.go), but its installers answer nothing (netInstallGate).
 func netInstallEnabled(s *settings.AppSettings) bool {
-	return s.NetInstall.Enabled && !isDemoMode()
+	return s.NetInstall.Enabled || isDemoMode()
 }
 
 // consoleAllowed is what a key of the role Console may ask: reading the paths of /install/,
@@ -185,12 +186,16 @@ func (web *Web) netFilesOf(localDB *db.LocalSwitchFilesDB, options settings.NetI
 		if !netInstallExtensions[extension] || seen[full] || web.linksIntoData(full) {
 			return
 		}
+		size, modTime := info.Size, time.Time{}
 		stat, err := os.Stat(full)
-		if err != nil || stat.IsDir() {
-			return
+		if !isDemoMode() {
+			if err != nil || stat.IsDir() {
+				return
+			}
+			size, modTime = stat.Size(), stat.ModTime()
 		}
 		seen[full] = true
-		entry := netFile{id: netFileId(full), path: full, size: stat.Size(), kind: kind, game: game, modTime: stat.ModTime(),
+		entry := netFile{id: netFileId(full), path: full, size: size, kind: kind, game: game, modTime: modTime,
 			gameKey: gameKey, cover: cover, dlcName: dlcName}
 		if file.Metadata != nil {
 			entry.titleId, entry.version = strings.ToUpper(file.Metadata.TitleId), file.Metadata.Version
@@ -199,7 +204,7 @@ func (web *Web) netFilesOf(localDB *db.LocalSwitchFilesDB, options settings.NetI
 				entry.displayVersion = file.Metadata.Ncap.DisplayVersion
 			}
 		}
-		if extension == ".nsz" || extension == ".xcz" {
+		if (extension == ".nsz" || extension == ".xcz") && !isDemoMode() {
 			if stream := web.netStreams.get(full, stat); stream != nil {
 				entry.stream, entry.size, extension = stream, stream.Size(), stream.Extension()
 			}
@@ -506,7 +511,7 @@ func sortedKeys[V any](m map[string]V) []string {
 // unless allowed.
 func (web *Web) netInstallGate(w http.ResponseWriter, r *http.Request) (settings.NetInstallOptions, bool) {
 	appSettings := settings.ReadSettings(web.dataFolder)
-	if !netInstallEnabled(appSettings) {
+	if !netInstallEnabled(appSettings) || isDemoMode() {
 		http.NotFound(w, r)
 		return appSettings.NetInstall, false
 	}

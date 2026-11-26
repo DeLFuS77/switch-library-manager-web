@@ -46,6 +46,8 @@ const (
 	TASK_UNDO_ORGANIZE = "undoorganize"
 	// games copied to an SD card
 	TASK_COPY = "copy"
+	// a NUP file sent to nx2-flow on a Switch 2 over the network
+	TASK_NX2FLOW = "nx2flow"
 	// background work after a scan
 	TASK_COVERS     = "covers"
 	TASK_THUMBNAILS = "thumbnails"
@@ -592,7 +594,7 @@ func (t Task) SpeedAt(now time.Time) int {
 // measuredInMegabytes tells the tasks whose progress counts megabytes of files.
 func measuredInMegabytes(kind string) bool {
 	switch kind {
-	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_RECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT, TASK_OPTIMIZE, TASK_NET_PREPARE:
+	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_RECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT, TASK_OPTIMIZE, TASK_NET_PREPARE, TASK_NX2FLOW:
 		return true
 	}
 	return false

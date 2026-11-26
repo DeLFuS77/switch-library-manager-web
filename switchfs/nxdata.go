@@ -10,7 +10,6 @@ import (
 	"hash"
 	"hash/crc32"
 	"io"
-	"os"
 	"strings"
 	"unicode/utf8"
 
@@ -63,7 +62,7 @@ type nxBlock struct {
 // NxData is a .nx open to read the files of its versions.
 type NxData struct {
 	*NxArchive
-	file    *os.File
+	file    ReadAtCloser
 	dirs    []nxDirectory
 	entries []nxEntry
 	files   []NxFile
@@ -73,13 +72,14 @@ type NxData struct {
 	decoder *zstd.Decoder
 }
 
-// OpenNxData opens a .nx to read the files of its versions. Close it after.
+// OpenNxData opens a .nx, or one split in parts given its first part or its folder, to read the
+// files of its versions. Close it after.
 func OpenNxData(path string) (*NxData, error) {
-	file, err := os.Open(path)
+	file, size, err := openWhole(path)
 	if err != nil {
 		return nil, err
 	}
-	data, err := openNxData(file)
+	data, err := openNxData(file, size)
 	if err != nil {
 		file.Close()
 		return nil, err
@@ -87,12 +87,8 @@ func OpenNxData(path string) (*NxData, error) {
 	return data, nil
 }
 
-func openNxData(file *os.File) (*NxData, error) {
-	info, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	archive, err := readNx(file, info.Size())
+func openNxData(file ReadAtCloser, size int64) (*NxData, error) {
+	archive, err := readNx(file, size)
 	if err != nil {
 		return nil, err
 	}

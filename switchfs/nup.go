@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -139,23 +137,21 @@ type NupContainer struct {
 	strict []NupEmulatorIssue
 }
 
-// IsNupFile tells a NUP by the extension of its name.
+// IsNupFile tells a NUP by the extension of its name, or of the folder of a NUP split in parts
+// (see WholeFile).
 func IsNupFile(path string) bool {
-	return strings.EqualFold(filepath.Ext(path), ".nup")
+	return hasExt(path, ".nup")
 }
 
-// ReadNup reads the header, the table of contents and the metadata of the packages of a NUP.
+// ReadNup reads the header, the table of contents and the metadata of the packages of a NUP, or
+// of one split in parts, given its first part or its folder.
 func ReadNup(path string) (*NupContainer, error) {
-	file, err := os.Open(path)
+	file, size, err := openWhole(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	info, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	return readNup(file, info.Size())
+	return readNup(file, size)
 }
 
 // readNup checks a NUP as the format asks of a reader (the sizes and offsets inside the file,

@@ -269,6 +269,9 @@ func (web *Web) netUserConsoles(user string) []KeyRow {
 	if user == "" {
 		return consoles
 	}
+	if isDemoMode() {
+		return demoConsoleKeys(user)
+	}
 	for _, key := range web.auth.users.KeyRows(user) {
 		if key.Role == ROLE_CONSOLE && strings.EqualFold(key.User, user) {
 			consoles = append(consoles, key)

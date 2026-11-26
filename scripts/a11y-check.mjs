@@ -191,7 +191,9 @@ function measure(checkWidth) {
 	if (checkWidth && document.documentElement.scrollWidth > document.documentElement.clientWidth) {
 		problems.add(`scrolls sideways: ${document.documentElement.scrollWidth}px wide`);
 	}
-	const endless = document.getAnimations().filter(a => a.effect && a.effect.getTiming().iterations === Infinity && a.playState === 'running');
+	// the spinners keep turning on purpose: they tell that work goes on (see _tables-settings.scss)
+	const endless = document.getAnimations().filter(a => a.effect && a.effect.getTiming().iterations === Infinity && a.playState === 'running'
+		&& !(a.effect.target && a.effect.target.matches && a.effect.target.matches('.spinner-border, .spinner-grow')));
 	return { problems: [...problems], endless: endless.map(a => label(a.effect.target || document.body) + ' ' + (a.animationName || '')) };
 }
 

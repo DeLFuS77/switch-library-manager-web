@@ -179,9 +179,11 @@ type Web struct {
 	netPairs  netPairings
 	netPushes netPushQueue
 	// the pushes sent Compressed that wait for the copy of their file (netsend.go)
-	netCopyWaits   netCopyWaits
-	netQueues      netQueues
-	netSends       netSends // what the consoles are sent, as it is sent (see netprogress.go)
+	netCopyWaits netCopyWaits
+	netQueues    netQueues
+	netSends     netSends // what the consoles are sent, as it is sent (see netprogress.go)
+	// the NUP files sent to nx2-flow on a Switch 2, and the address each user sends to
+	nx2flow        nx2flowSends
 	netInventories sync.Mutex
 	// the reports the consoles send (see netreports.go)
 	netReports netReportStore
@@ -923,6 +925,7 @@ func (web *Web) Start() {
 
 	if isDemoMode() {
 		web.loadDemo()
+		go web.demoNetSendTicker()
 	} else {
 		web.startInBackground()
 	}
@@ -996,6 +999,7 @@ func (web *Web) Start() {
 	web.HandleSmartCollections()
 	web.HandleFavorites()
 	web.HandleNetInstall()
+	web.HandleNx2flow()
 	web.HandleNetSavesPage()
 	web.HandleConsoles()
 	if !isDemoMode() {
