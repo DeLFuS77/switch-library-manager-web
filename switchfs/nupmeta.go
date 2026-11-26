@@ -16,7 +16,8 @@ const (
 
 // checkNupMeta gives the metadata of the packages of a NUP that cannot be what it says, which
 // no hash of the format covers: a build ID that is not 32 bytes, text that is not UTF-8,
-// records of languages that run past their block. The types of the records are only sure in
+// records of languages that run past their block, a NACP that keeps its names compressed and
+// they do not decompress. The types of the records are only sure in
 // a block with an NPDM: the packer of the format counted them from 0 for a while, which a
 // block without one does not show (a DLC has none), so such a block only has its records of
 // languages looked at, which are alike either way.
@@ -42,6 +43,13 @@ func checkNupMeta(container *NupContainer) []NupDamaged {
 		}
 		if id, ok := pkg.Meta[nupTlvBuildID]; ok && len(id) != 32 {
 			bad("build ID", fmt.Sprintf("it is %d bytes instead of 32", len(id)))
+		}
+		// a NACP that keeps its names compressed whose names do not decompress: the console and
+		// the readers of the NUP show no name, or a broken one
+		if nacp := pkg.Meta[nupTlvNacp]; len(nacp) > 0x3215 && nacp[0x3215] == 1 {
+			if _, _, err := NacpTitleEntries(nacp); err != nil {
+				bad("NACP", "it keeps its names compressed, and they cannot be read")
+			}
 		}
 		for _, text := range []struct {
 			kind   uint16

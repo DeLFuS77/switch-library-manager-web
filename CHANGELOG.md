@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- File check says when a NUP keeps the names of its control data compressed and they cannot be read
+
 ## 2.0.28
 
 ### Improvements
