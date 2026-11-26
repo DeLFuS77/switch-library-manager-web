@@ -1,6 +1,6 @@
 // Install over the network, from the web: on the page of a game, Send to console (the files go to
-// a console of the user, which asks before installing them) and what of the game the consoles
-// have; with the console keys (Settings and My account), what is known to be installed on each
+// a console of the user, which asks before installing them, or a NUP to nx2-flow on a Switch 2,
+// at the address the user types) and what of the game the consoles have; with the console keys (Settings and My account), what is known to be installed on each
 // console, and Forget; under each console, what it is sent now or got lately.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
@@ -311,6 +311,25 @@ function netSendModeRemember(mode) {
 	}
 }
 
+// the target of Send to console chosen last: NXDock or nx2-flow
+const netSendTargetKey = 'slm-net-send-target';
+
+function netSendTargetRemembered() {
+	try {
+		return localStorage.getItem(netSendTargetKey) === 'nx2flow' ? 'nx2flow' : 'nxdock';
+	} catch (e) {
+		return 'nxdock';
+	}
+}
+
+function netSendTargetRemember(target) {
+	try {
+		localStorage.setItem(netSendTargetKey, target);
+	} catch (e) {
+		// private windows keep nothing
+	}
+}
+
 function initNetSend() {
 	const button = document.querySelector('[data-net-send]');
 	const on = document.querySelector('[data-net-on]');
@@ -321,6 +340,9 @@ function initNetSend() {
 	const modalElement = document.getElementById('netSend');
 	const form = document.querySelector('[data-net-send-form]');
 	let game = { consoles: [], files: [] };
+	// the NUP files nx2-flow takes, and the address the user sent to last
+	let nx2 = { files: [], address: '' };
+	let canNxdock = false, canNx2 = false;
 
 	// what the consoles have of the game, under its actions
 	const showOnConsoles = () => {
@@ -467,6 +489,11 @@ function initNetSend() {
 		error.hidden = !message;
 	};
 
+	const showButton = () => {
+		if (button && form && modalElement && (canNxdock || canNx2)) {
+			button.hidden = false;
+		}
+	};
 	fetch('/api/install/game/' + encodeURIComponent(titleId), { headers: { Accept: 'application/json' } })
 		.then(response => (response.ok ? response.json() : null))
 		.then(answer => {
@@ -475,11 +502,88 @@ function initNetSend() {
 			}
 			game = { consoles: answer.consoles || [], files: answer.files || [] };
 			showOnConsoles();
-			if (button && form && modalElement && answer.enabled && game.consoles.length && game.files.length) {
-				button.hidden = false;
-			}
+			canNxdock = !!answer.enabled && game.consoles.length > 0 && game.files.length > 0;
+			showButton();
 		})
 		.catch(() => {});
+	// a NUP of the game goes to nx2-flow too: not in the demo, and only for who may send
+	if (button) {
+		fetch('/api/nx2flow/game/' + encodeURIComponent(titleId), { headers: { Accept: 'application/json' } })
+			.then(response => (response.ok ? response.json() : null))
+			.then(answer => {
+				if (!answer || answer.demo) {
+					return;
+				}
+				nx2 = { files: answer.files || [], address: answer.address || '' };
+				canNx2 = nx2.files.length > 0;
+				showButton();
+			})
+			.catch(() => {});
+	}
+
+	// the target chosen, and what shows for it
+	const target = () => {
+		if (!canNxdock) {
+			return 'nx2flow';
+		}
+		if (!canNx2) {
+			return 'nxdock';
+		}
+		const checked = form.querySelector('[data-net-target]:checked');
+		return checked ? checked.value : 'nxdock';
+	};
+	const showTarget = () => {
+		const chosen = target();
+		form.querySelectorAll('[data-net-target-part]').forEach(part => {
+			part.hidden = part.dataset.netTargetPart !== chosen;
+		});
+		const title = document.getElementById('netSendTitle');
+		if (title) {
+			title.querySelector('.bi').className = 'bi ' + (chosen === 'nx2flow' ? 'bi-router' : 'bi-nintendo-switch') + ' me-2';
+		}
+	};
+	const fillNx2 = () => {
+		const choice = form.querySelector('[data-net-target-choice]');
+		choice.hidden = !(canNxdock && canNx2);
+		const remembered = netSendTargetRemembered();
+		form.querySelectorAll('[data-net-target]').forEach(radio => {
+			radio.checked = radio.value === remembered;
+			radio.onchange = () => {
+				netSendTargetRemember(radio.value);
+				showError('');
+				showTarget();
+			};
+		});
+		const address = form.querySelector('[data-nx2flow-address]');
+		if (!address.value) {
+			address.value = nx2.address;
+		}
+		const list = form.querySelector('[data-nx2flow-files]');
+		list.replaceChildren(...nx2.files.map((file, i) => {
+			const item = document.createElement('div');
+			item.className = 'form-check';
+			const radio = document.createElement('input');
+			radio.type = 'radio';
+			radio.name = 'nx2flow_file';
+			radio.className = 'form-check-input';
+			radio.id = 'nx2flow-file-' + i;
+			radio.value = file.id;
+			radio.checked = i === 0;
+			const label = document.createElement('label');
+			label.className = 'form-check-label small';
+			label.htmlFor = radio.id;
+			const name = document.createElement('span');
+			name.className = 'text-break';
+			name.textContent = file.name;
+			const size = document.createElement('span');
+			size.className = 'net-send-size text-body-secondary';
+			size.textContent = formatSize(file.size);
+			label.append(name, size);
+			item.append(radio, label);
+			return item;
+		}));
+		showTarget();
+	};
 
 	if (!button || !form || !modalElement) {
 		return;
@@ -487,10 +591,48 @@ function initNetSend() {
 	button.addEventListener('click', () => {
 		showError('');
 		fillDialog();
+		fillNx2();
 		Modal.getOrCreateInstance(modalElement).show();
 	});
+	// with nx2-flow alone, the address is what there is to type
+	modalElement.addEventListener('shown.bs.modal', () => {
+		const address = form.querySelector('[data-nx2flow-address]');
+		if (target() === 'nx2flow' && !address.value) {
+			address.focus();
+		}
+	});
+	const sendToNx2 = () => {
+		const address = form.querySelector('[data-nx2flow-address]');
+		const file = form.querySelector('[data-nx2flow-files] input:checked');
+		if (!address.value.trim()) {
+			showError(t('Type the address of the console, as the Transfer screen of nx2-flow shows it (for example 192.168.1.50).'));
+			address.focus();
+			return;
+		}
+		showError('');
+		const send = form.querySelector('[data-net-send-go]');
+		send.disabled = true;
+		const body = { titleId, fileId: file ? file.value : '', address: address.value.trim(), cover: form.querySelector('[data-nx2flow-cover]').checked };
+		apiFetch('/api/nx2flow/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+			.then(response => readJSON(response).then(json => {
+				if (!response.ok) {
+					throw new Error(netErrorMessage(response, json));
+				}
+				nx2.address = body.address;
+				Modal.getOrCreateInstance(modalElement).hide();
+				showToast('alert-success', 'bi-check-circle-fill', '', t('Sending to nx2-flow: the progress shows in Tasks.'));
+			}))
+			.catch(e => showError(e.message || t('Could not reach the server.')))
+			.finally(() => {
+				send.disabled = false;
+			});
+	};
 	form.addEventListener('submit', e => {
 		e.preventDefault();
+		if (target() === 'nx2flow') {
+			sendToNx2();
+			return;
+		}
 		const keyId = form.querySelector('[data-net-send-console]').value;
 		const fileIds = [...form.querySelectorAll('[data-net-send-files] input:checked')].map(box => box.value);
 		if (!fileIds.length) {
@@ -517,6 +659,25 @@ function initNetSend() {
 			});
 	});
 }
+
+// Cancel of a send to nx2-flow in Tasks, also on the rows the live list draws again
+document.addEventListener('click', e => {
+	const button = e.target.closest('[data-nx2flow-cancel]');
+	if (!button) {
+		return;
+	}
+	button.disabled = true;
+	apiFetch('/api/nx2flow/cancel/' + encodeURIComponent(button.dataset.nx2flowCancel), { method: 'POST' })
+		.then(response => readJSON(response).then(json => {
+			if (!response.ok) {
+				throw new Error(netErrorMessage(response, json));
+			}
+		}))
+		.catch(error => {
+			button.disabled = false;
+			showToast('alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		});
+});
 
 document.addEventListener('DOMContentLoaded', () => {
 	initNetSend();

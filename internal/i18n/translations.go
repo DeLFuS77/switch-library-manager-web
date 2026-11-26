@@ -4,6 +4,35 @@ package i18n
 // Translate() calls and in web.js; "%v" placeholders are kept in the translation.
 var Translations = map[string]map[string]string{
 	"es": {
+		// Send to nx2-flow (web/nx2flow.go and the dialog Send to console)
+		"Sent a game to nx2-flow": "Envió un juego a nx2-flow",
+		"Send to nx2-flow":        "Enviar a nx2-flow",
+		"Only a user who may download sends a game to a console.":                                                             "Solo un usuario que puede descargar envía un juego a una consola.",
+		"This game has no NUP file in the library to send.":                                                                   "Este juego no tiene ningún archivo NUP en la biblioteca para enviar.",
+		"The NUP file is no longer in the library.":                                                                           "El archivo NUP ya no está en la biblioteca.",
+		"Type the address of the console, as the Transfer screen of nx2-flow shows it (for example 192.168.1.50).":            "Escribe la dirección de la consola, tal como la muestra la pantalla Transfer de nx2-flow (por ejemplo 192.168.1.50).",
+		"Only an address of the local network: the one the Transfer screen of nx2-flow shows.":                                "Solo una dirección de la red local: la que muestra la pantalla Transfer de nx2-flow.",
+		"The console does not answer at that address. Open the Transfer screen of nx2-flow on it (ZL) and check the address.": "La consola no responde en esa dirección. Abre en ella la pantalla Transfer de nx2-flow (ZL) y comprueba la dirección.",
+		"Something is already being sent to this console: wait for it to end, or cancel it in Tasks.":                         "Ya se está enviando algo a esta consola: espera a que acabe o cancélalo en Tareas.",
+		"Too many sends at the same time: wait for one to end.":                                                               "Demasiados envíos a la vez: espera a que acabe uno.",
+		"The card of the console does not have room for this game.":                                                           "La tarjeta de la consola no tiene sitio para este juego.",
+		"That send is not going on.":                                                                                          "Ese envío no está en marcha.",
+		"The game could not be sent to nx2-flow.":                                                                             "No se ha podido enviar el juego a nx2-flow.",
+		"The file on the card is not the one sent: send it again.":                                                            "El archivo de la tarjeta no es el que se envió: vuelve a enviarlo.",
+		"The game was sent without a cover: there is no cover of it to send.":                                                 "El juego se ha enviado sin carátula: no hay ninguna que enviar.",
+		"The game was sent, its cover could not be.":                                                                          "El juego se ha enviado, pero su carátula no.",
+		"Sending %v":                 "Enviando %v",
+		"Checking %v on the console": "Comprobando %v en la consola",
+		"Sending the cover":          "Enviando la carátula",
+		"Send to":                    "Enviar a",
+		"Installs it on a Switch 1":  "Lo instala en una Switch 1",
+		"Runs the NUP on a Switch 2": "Ejecuta el NUP en una Switch 2",
+		"Address of the console":     "Dirección de la consola",
+		"On the Switch 2, open nx2-flow and press ZL (Transfer): the screen shows the address. The port is 28302 unless you add another one.": "En la Switch 2, abre nx2-flow y pulsa ZL (Transfer): la pantalla muestra la dirección. El puerto es 28302 salvo que añadas otro.",
+		"Send the cover too":                         "Enviar también la carátula",
+		"500 × 813, shown on the shelf of nx2-flow.": "500 × 813, la que se ve en la estantería de nx2-flow.",
+		"It goes to the folder of the games of nx2-flow on the card and is checked once it arrived. The progress shows in Tasks.": "Va a la carpeta de juegos de nx2-flow en la tarjeta y se comprueba al llegar. El avance se ve en Tareas.",
+		"Sending to nx2-flow: the progress shows in Tasks.":                                                                       "Enviando a nx2-flow: el avance se ve en Tareas.",
 		// the language packs of the languages not chosen (#200)
 		"Language packs and commentary": "Paquetes de idioma y comentarios",
 		"Tick the languages you want: the language packs and the commentary of a game in other languages are not listed as missing DLC. With none ticked, all of them are.": "Marca los idiomas que quieres: los paquetes de idioma y los comentarios de un juego en otros idiomas no salen como DLC que faltan. Sin ninguno marcado, salen todos.",
@@ -2734,6 +2763,7 @@ var Translations = map[string]map[string]string{
 
 // texts used by web.js, sent to the browser in the page language
 var JSTexts = []string{
+	"Type the address of the console, as the Transfer screen of nx2-flow shows it (for example 192.168.1.50).", "Sending to nx2-flow: the progress shows in Tasks.",
 	"1 file", "1 file, %v", "Delete 1 file", "Move “%v” (%v) to the quarantine? You can put it back from Settings, Quarantine.", "Delete “%v” (%v)? It cannot be recovered.",
 	"Nothing chosen", "%v files, %v", "Delete %v files", "%v files", "No file can be deleted from here now.", "Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.", "Delete %v files (%v)? This cannot be undone.",
 	"Help about %v",
