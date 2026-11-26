@@ -211,7 +211,7 @@ func init() {
 		"Uploaded: the library is being scanned": "Hochgeladen: Die Bibliothek wird analysiert",
 		"The upload failed. Choose the file again to go on where it stopped.":                    "Das Hochladen ist fehlgeschlagen. Wähle die Datei erneut, um dort weiterzumachen, wo es aufgehört hat.",
 		"Drop the games to upload them to the library folder":                                    "Spiele hier ablegen, um sie in den Bibliotheksordner hochzuladen",
-		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                                 "Nur NSP-, NSZ-, XCI-, XCZ-, NUP- und .nx-Dateien können hochgeladen werden.",
+		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                            "Nur NSP-, NSZ-, XCI-, XCZ-, NUP- und .nx-Dateien können hochgeladen werden.",
 		"A file with this name is already in the library folder.":                                "Im Bibliotheksordner gibt es bereits eine Datei mit diesem Namen.",
 		"Not enough free space in the library folder for this file.":                             "Nicht genug freier Speicher im Bibliotheksordner für diese Datei.",
 		"The library folder is not set or cannot be found. Set it in Settings.":                  "Der Bibliotheksordner ist nicht festgelegt oder wurde nicht gefunden. Lege ihn in den Einstellungen fest.",

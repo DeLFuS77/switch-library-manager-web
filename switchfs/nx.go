@@ -103,8 +103,8 @@ type NxSnapshot struct {
 	// NxData.ReadNativeDlcIds); 0 while not read
 	nativeTitleId uint64
 	ContentId     [16]byte
-	LogicalSize  uint64
-	nacp         []byte
+	LogicalSize   uint64
+	nacp          []byte
 	// the identity the format gives it: its kind, version and content ID with every path of its
 	// tree and the size and SHA-256 of every file
 	Identity [32]byte

@@ -211,7 +211,7 @@ func init() {
 		"Uploaded: the library is being scanned": "업로드 완료: 라이브러리를 분석하는 중",
 		"The upload failed. Choose the file again to go on where it stopped.":                    "업로드에 실패했어요. 파일을 다시 선택하면 멈춘 곳부터 이어서 해요.",
 		"Drop the games to upload them to the library folder":                                    "게임을 놓아서 라이브러리 폴더에 업로드하세요",
-		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                                 "NSP, NSZ, XCI, XCZ, NUP, .nx 파일만 업로드할 수 있어요.",
+		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                            "NSP, NSZ, XCI, XCZ, NUP, .nx 파일만 업로드할 수 있어요.",
 		"A file with this name is already in the library folder.":                                "라이브러리 폴더에 같은 이름의 파일이 이미 있어요.",
 		"Not enough free space in the library folder for this file.":                             "라이브러리 폴더에 이 파일을 위한 여유 공간이 부족해요.",
 		"The library folder is not set or cannot be found. Set it in Settings.":                  "라이브러리 폴더가 설정되지 않았거나 찾을 수 없어요. 설정에서 지정하세요.",

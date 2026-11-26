@@ -34,9 +34,9 @@ func TestScanReadsNxFiles(t *testing.T) {
 func TestNxNupAndNszOfAGameAreNoDuplicates(t *testing.T) {
 	for _, names := range [][2]string{{"a game.nx", "z game.nup"}, {"z game.nx", "a game.nup"}} {
 		files := map[string][]byte{
-			names[0]: otherFormatNx("Made-up Game"),
-			names[1]: otherFormatNup("Made-up Game"),
-			"m game copy.nx":                              otherFormatNx("Made-up Game, a copy"),
+			names[0]:         otherFormatNx("Made-up Game"),
+			names[1]:         otherFormatNup("Made-up Game"),
+			"m game copy.nx": otherFormatNx("Made-up Game, a copy"),
 			"Made-up Game [0400AAAA00010000][v0].nsz":     make([]byte, 300),
 			"Made-up Game DLC [0400AAAA00011001][v0].nsz": make([]byte, 20),
 		}

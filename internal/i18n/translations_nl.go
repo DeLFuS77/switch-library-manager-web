@@ -211,7 +211,7 @@ func init() {
 		"Uploaded: the library is being scanned": "Geüpload: de bibliotheek wordt gescand",
 		"The upload failed. Choose the file again to go on where it stopped.":                    "Het uploaden is mislukt. Kies het bestand opnieuw om verder te gaan waar het stopte.",
 		"Drop the games to upload them to the library folder":                                    "Zet de games hier neer om ze naar de bibliotheekmap te uploaden",
-		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                                 "Alleen NSP-, NSZ-, XCI-, XCZ-, NUP- en .nx-bestanden kunnen worden geüpload.",
+		"Only NSP, NSZ, XCI, XCZ, NUP and .nx files can be uploaded.":                            "Alleen NSP-, NSZ-, XCI-, XCZ-, NUP- en .nx-bestanden kunnen worden geüpload.",
 		"A file with this name is already in the library folder.":                                "Er staat al een bestand met deze naam in de bibliotheekmap.",
 		"Not enough free space in the library folder for this file.":                             "Niet genoeg vrije ruimte in de bibliotheekmap voor dit bestand.",
 		"The library folder is not set or cannot be found. Set it in Settings.":                  "De bibliotheekmap is niet ingesteld of niet gevonden. Stel hem in bij Instellingen.",
