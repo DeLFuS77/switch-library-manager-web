@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.28
+  <Changes>### 2.0.29
+- Send to nx2-flow for Switch 2, NUP and .nx files split for FAT32 read as one file, and File check tells when compressed names cannot be read
+### 2.0.28
 - The library reads, verifies and uploads .nx files, the format for emulators; one game alone compresses with every automatic thread
 ### 2.0.27
 - The JSON inventory no longer lists hidden language packs and DLC not out yet as missing
