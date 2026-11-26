@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -121,16 +120,12 @@ type nupFeed struct {
 // of the ones to read.
 func VerifyNup(ctx context.Context, path string, progress func(done int64, total int64)) (FileCheck, error) {
 	check := FileCheck{}
-	file, err := os.Open(path)
+	file, size, err := openWhole(path)
 	if err != nil {
 		return check, err
 	}
 	defer file.Close()
-	info, err := file.Stat()
-	if err != nil {
-		return check, err
-	}
-	container, err := readNup(file, info.Size())
+	container, err := readNup(file, size)
 	if err != nil {
 		if NupEmulatorsRefuse(err) {
 			err = fmt.Errorf("%w; %s", err, NupEmulatorsRefuseToo)
@@ -250,7 +245,7 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 
 // readNupExtents reads the pieces of data in their order and hands each to the first worker
 // free. The first error of a read, or a cancelled ctx, stops it.
-func readNupExtents(ctx context.Context, file *os.File, jobs []*nupExtent, workers int, progress func(done int64)) error {
+func readNupExtents(ctx context.Context, file io.ReaderAt, jobs []*nupExtent, workers int, progress func(done int64)) error {
 	// the max of this package compares bytes
 	workers = min(workers, len(jobs))
 	if workers < 1 {
@@ -293,7 +288,7 @@ func readNupExtents(ctx context.Context, file *os.File, jobs []*nupExtent, worke
 
 // readNupStretch reads the pieces in their order, small pieces in a few big reads, and hands each
 // to the first worker free.
-func readNupStretch(ctx context.Context, file *os.File, jobs []*nupExtent, free chan []byte, idle chan int, feeds []chan *nupFeed,
+func readNupStretch(ctx context.Context, file io.ReaderAt, jobs []*nupExtent, free chan []byte, idle chan int, feeds []chan *nupFeed,
 	tell func(int64)) error {
 	var window []byte
 	windowAt := int64(-1)

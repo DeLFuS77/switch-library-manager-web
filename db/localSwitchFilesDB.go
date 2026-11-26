@@ -1052,7 +1052,7 @@ func (s *libraryScan) addUpdate(switchTitle *SwitchGameFiles, file ExtendedFileI
 	if update, ok := switchTitle.Updates[metadata.Version]; ok {
 		slot := "update|" + metadata.TitleId + "|" + strconv.Itoa(metadata.Version)
 		kept := update
-		if OtherFormat(update.ExtendedInfo.FileName, file.FileName) {
+		if OtherFormat(fullPath(update.ExtendedInfo), fullPath(file)) {
 			kept = s.addOtherFormat(slot, update, found, func(held, file SwitchFileInfo) bool {
 				return s.keepInstead(held.ExtendedInfo, file.ExtendedInfo)
 			}, s.competeUpdate)
@@ -1080,7 +1080,7 @@ func (s *libraryScan) addUpdate(switchTitle *SwitchGameFiles, file ExtendedFileI
 // OtherFormat), as kept next to it: a NUP and an NSP or XCI may not hold the same version, and
 // neither is deleted for the other.
 func (s *libraryScan) markOlder(older ExtendedFileInfo, newer ExtendedFileInfo) {
-	if OtherFormat(older.FileName, newer.FileName) {
+	if OtherFormat(fullPath(older), fullPath(newer)) {
 		s.markOtherFormat(older, newer)
 		return
 	}
@@ -1108,7 +1108,7 @@ func (s *libraryScan) addBase(switchTitle *SwitchGameFiles, idPrefix string, fil
 		slot := "base|" + idPrefix
 		held := switchTitle.File
 		kept := held
-		if OtherFormat(held.ExtendedInfo.FileName, file.FileName) {
+		if OtherFormat(fullPath(held.ExtendedInfo), fullPath(file)) {
 			kept = s.addOtherFormat(slot, held, found, s.newerOrKept, s.competeBase)
 		} else {
 			kept = s.competeBase(held, found)
@@ -1181,7 +1181,7 @@ func (s *libraryScan) addDlc(switchTitle *SwitchGameFiles, file ExtendedFileInfo
 	}
 	slot := "dlc|" + metadata.TitleId
 	kept := held
-	if OtherFormat(held.ExtendedInfo.FileName, file.FileName) {
+	if OtherFormat(fullPath(held.ExtendedInfo), fullPath(file)) {
 		kept = s.addOtherFormat(slot, held, found, s.newerOrKept, s.competeDlc)
 	} else {
 		kept = s.competeDlc(held, found)
@@ -1233,7 +1233,7 @@ func (s *libraryScan) addOtherFormat(slot string, kept SwitchFileInfo, file Swit
 	if s.otherFormat == nil {
 		s.otherFormat = map[string]SwitchFileInfo{}
 	}
-	fileSlot, keptSlot := formatSlot(slot, file.ExtendedInfo.FileName), formatSlot(slot, kept.ExtendedInfo.FileName)
+	fileSlot, keptSlot := formatSlot(slot, fullPath(file.ExtendedInfo)), formatSlot(slot, fullPath(kept.ExtendedInfo))
 	held, ok := s.otherFormat[fileSlot]
 	if !ok {
 		if _, taken := s.otherFormat[keptSlot]; !taken && replaces(kept, file) {
@@ -1253,8 +1253,8 @@ func (s *libraryScan) addOtherFormat(slot string, kept SwitchFileInfo, file Swit
 }
 
 // formatSlot is the key of a slot for the copies of one format (see fileFormat).
-func formatSlot(slot string, fileName string) string {
-	return slot + "|" + fileFormat(fileName)
+func formatSlot(slot string, path string) string {
+	return slot + "|" + fileFormat(path)
 }
 
 // keptChanged names the new copy of the library in the reason of the copies of the other formats
@@ -1296,7 +1296,8 @@ const (
 	formatNx      = "nx"
 )
 
-// fileFormat is the format of a file of games: a NUP, a .nx, or an NSP, NSZ, XCI or XCZ.
+// fileFormat is the format of a file of games: a NUP, a .nx, or an NSP, NSZ, XCI or XCZ. A file
+// split in parts is told by its path: its first part ("00") is in a folder named like the file.
 func fileFormat(name string) string {
 	switch {
 	case switchfs.IsNupFile(name):
@@ -1330,7 +1331,7 @@ func KeptInOtherFormat(file ExtendedFileInfo, skipped SkippedFile) bool {
 		return true
 	}
 	kept := KeptBy(skipped.ReasonText)
-	return kept != "" && OtherFormat(file.FileName, kept)
+	return kept != "" && OtherFormat(fullPath(file), kept)
 }
 
 // PreferDuplicate tells whether the copy file is kept instead of found, the copy of the same
@@ -1500,8 +1501,8 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 	keys, _ := settings.SwitchKeys()
 	fileKey := filePath + "|" + file.FileName + "|" + strconv.Itoa(int(file.Size))
 
-	if switchfs.IsEmulatorFile(file.FileName) {
-		nx := switchfs.IsNxFile(file.FileName)
+	if switchfs.IsEmulatorFile(filePath) {
+		nx := switchfs.IsNxFile(filePath)
 		// read again when the reader of the NUP or .nx files tells more of them, and when the file
 		// changed without changing its size (a tool that edits its name or icon in place, a .nx
 		// given an update or a DLC)
@@ -1512,6 +1513,12 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		}
 		if info, err := os.Stat(filePath); err == nil {
 			fileKey += "|" + strconv.FormatInt(info.ModTime().UnixNano(), 10)
+		}
+		// split in parts: the first one alone does not tell when the others change
+		if switchfs.WholeFile(filePath) != filePath {
+			if size, err := switchfs.WholeSize(filePath); err == nil {
+				fileKey += "|" + strconv.FormatInt(size, 10)
+			}
 		}
 		var metadata map[string]*switchfs.ContentMetaAttributes
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
@@ -1590,9 +1597,10 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		}
 	}
 
-	//fallback to parse data from filename
-	titleId, _ := parseTitleIdFromFileName(file.FileName)
-	version, _ := parseVersionFromFileName(file.FileName)
+	//fallback to parse data from filename; a file split in parts by the name of its folder
+	name := filepath.Base(switchfs.WholeFile(filePath))
+	titleId, _ := parseTitleIdFromFileName(name)
+	version, _ := parseVersionFromFileName(name)
 
 	if titleId == nil || version == nil {
 		result.err = errors.New("unable to determine titleId / version")
@@ -1665,6 +1673,12 @@ func ReadableTitleName(name string) string {
 
 func fullPath(file ExtendedFileInfo) string {
 	return filepath.Join(file.BaseFolder, file.FileName)
+}
+
+// Path is the path of the file; for a file split in parts, of its first part (see
+// switchfs.WholeFile).
+func (file ExtendedFileInfo) Path() string {
+	return fullPath(file)
 }
 
 // readErrorText explains why a file could not be read, with a hint for missing keys.

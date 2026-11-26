@@ -73,7 +73,7 @@ const (
 // nupEmulators is what the emulators make of the NUP a file is; nil for any other file, and for
 // a NUP read by a version that did not tell it.
 func nupEmulators(info db.SwitchFileInfo, lang string) *TitleEmulators {
-	if !switchfs.IsNupFile(info.ExtendedInfo.FileName) || info.Metadata == nil || info.Metadata.Emulators == nil {
+	if !switchfs.IsNupFile(info.ExtendedInfo.Path()) || info.Metadata == nil || info.Metadata.Emulators == nil {
 		return nil
 	}
 	emulators := info.Metadata.Emulators
@@ -516,7 +516,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 // that did not tell the sizes.
 func nupParts(local *db.SwitchGameFiles, gameName string, dlc []TitleDlc) []TitleFilePart {
 	file := local.File
-	if !switchfs.IsNupFile(file.ExtendedInfo.FileName) || file.Metadata == nil || file.Metadata.StoredSize <= 0 {
+	if !switchfs.IsNupFile(file.ExtendedInfo.Path()) || file.Metadata == nil || file.Metadata.StoredSize <= 0 {
 		return nil
 	}
 	parts := []TitleFilePart{{Kind: PART_GAME, Detail: "v" + strconv.Itoa(file.Metadata.Version), Size: file.Metadata.StoredSize}}

@@ -440,7 +440,7 @@ func (web *Web) requireSoundKeptCopies(entry *SpaceFile) {
 			continue
 		}
 		// what the file holds would be left only in a NUP, or only out of one
-		if db.OtherFormat(entry.file.FileName, other) {
+		if db.OtherFormat(entry.file.Path(), other) {
 			entry.Deletable, entry.Note, entry.OnRequest = false, NOTE_SPACE_OTHER_FORMAT, false
 			continue
 		}
@@ -472,7 +472,7 @@ func (web *Web) heldTitles(path string) ([]heldTitle, bool) {
 		return held.([]heldTitle), true
 	}
 	var contents map[string]*switchfs.ContentMetaAttributes
-	switch strings.ToLower(filepath.Ext(path)) {
+	switch strings.ToLower(filepath.Ext(switchfs.WholeFile(path))) {
 	case ".nsp", ".nsz":
 		contents, err = switchfs.ReadNspMetadata(path)
 	case ".xci", ".xcz":

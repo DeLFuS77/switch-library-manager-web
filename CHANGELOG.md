@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- NUP and .nx files split in parts for FAT32 (a folder with 00, 01…) are read as one file, and File check verifies them
+
 ## 2.0.28
 
 ### Improvements
