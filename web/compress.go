@@ -520,6 +520,23 @@ func fileThreads(setting int, files int) int {
 	return min(compressThreads(setting, files), max(1, switchfs.UsableProcessors()/max(1, files)))
 }
 
+// taskWorkersKey holds in the context of a task on files how many files it works on at once.
+type taskWorkersKey struct{}
+
+// withTaskWorkers tells the files of a task how many of them are worked on at once.
+func withTaskWorkers(ctx context.Context, workers int) context.Context {
+	return context.WithValue(ctx, taskWorkersKey{}, workers)
+}
+
+// taskWorkers are the files a task works on at once, which share the threads of a compression:
+// the ones of withTaskWorkers, else the files at once of the settings.
+func taskWorkers(ctx context.Context, appSettings *settings.AppSettings) int {
+	if workers, ok := ctx.Value(taskWorkersKey{}).(int); ok && workers > 0 {
+		return workers
+	}
+	return filesAtOnce(appSettings.CompressFilesAtOnce)
+}
+
 // maxFilesAtOnce is the most files a task on files works on at the same time.
 const maxFilesAtOnce = 4
 
@@ -868,7 +885,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	appSettings := settings.ReadSettings(web.dataFolder)
 	workers, threads := fileTaskWorkers(kind, len(paths), resume, appSettings)
 	web.taskLog().SetWorkers(taskId, workers, threads)
-	run.ctx = switchfs.WithThreads(ctx, fileThreads(appSettings.CompressThreads, workers))
+	run.ctx = withTaskWorkers(switchfs.WithThreads(ctx, fileThreads(appSettings.CompressThreads, workers)), workers)
 	go func() {
 		defer func() {
 			web.releaseFiles()
@@ -917,7 +934,9 @@ func fileTaskWorkers(kind string, files int, resume *tasklog.Resume, appSettings
 	workers = max(1, min(workers, files))
 	threads := 0
 	if kind == tasklog.TASK_COMPRESS {
-		threads = compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce))
+		// shared among the files the task works on at once, not the ones it could: one game alone
+		// takes every thread (#208)
+		threads = compressThreads(appSettings.CompressThreads, workers)
 		if resume != nil {
 			threads = switchfs.LimitThreads(resume.Level, threads, workers)
 		}
@@ -1373,7 +1392,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, blo
 	defer os.Remove(temporary)
 	// the original is hashed while it is compressed: it is read once, not twice
 	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
-		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: filling(info.Size(), report(0)),
+		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, taskWorkers(ctx, appSettings)), taskWorkers(ctx, appSettings)), Progress: filling(info.Size(), report(0)),
 		Blocks: blocks,
 	})
 	if err != nil {
