@@ -686,6 +686,28 @@ func TestFileThreadsKeepToTheShareOfEachFile(t *testing.T) {
 	}
 }
 
+// Automatic threads are shared among the files a compression works on at once, not among the
+// files at once of the settings: one game alone takes every usable processor (#208).
+func TestOneGameTakesEveryThread(t *testing.T) {
+	usable := switchfs.UsableProcessors()
+	appSettings := &settings.AppSettings{CompressFilesAtOnce: 4}
+	workers, threads := fileTaskWorkers(tasklog.TASK_COMPRESS, 1, nil, appSettings)
+	if workers != 1 || threads != usable {
+		t.Fatalf("one game, 4 files at once set: %d files, %d threads, want 1 and %d", workers, threads, usable)
+	}
+	workers, threads = fileTaskWorkers(tasklog.TASK_COMPRESS, 2, nil, appSettings)
+	if workers != 2 || threads != max(1, usable/2) {
+		t.Fatalf("two games: %d files, %d threads, want 2 and %d", workers, threads, max(1, usable/2))
+	}
+	ctx := withTaskWorkers(context.Background(), 1)
+	if got := taskWorkers(ctx, appSettings); got != 1 {
+		t.Fatalf("a task of one file: %d files share the threads", got)
+	}
+	if got := taskWorkers(context.Background(), appSettings); got != 4 {
+		t.Fatalf("outside a task: %d files share the threads, want the 4 of the settings", got)
+	}
+}
+
 // A game stored with the LZ4 of its NCA, rebuilt to stay small once installed, is compressed
 // already: it is not offered to compress (#162).
 func TestNcaLz4FilesAreNotOffered(t *testing.T) {
