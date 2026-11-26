@@ -290,6 +290,10 @@ func (web *Web) handleNetPairWait(w http.ResponseWriter, r *http.Request) {
 // netPairer is who may accept a console: a user signed in who may download, not a key.
 func netPairer(r *http.Request) (*Principal, bool) {
 	principal := principalFrom(r)
+	// the demo, without users, is its made-up user, who paired its made-up consoles
+	if isDemoMode() && principal.Name == "" && principal.Source == "" && roleRank(principal.Role) >= roleRank(ROLE_VIEWER) {
+		return &Principal{Name: DEMO_PLAYER, Role: principal.Role}, true
+	}
 	if principal.Source == "key" || principal.Name == "" || principal.Source == "env" {
 		return principal, false
 	}

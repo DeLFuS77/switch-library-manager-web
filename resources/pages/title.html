@@ -52,7 +52,7 @@
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
-							{{- if and $t.Owned .Auth.Enabled}}
+							{{- if and $t.Owned (or .Auth.Enabled .Demo)}}
 							{{- /* shown by 24-net-push.js once it knows the user has a console */}}
 							<button type="button" class="btn btn-glass rounded-pill" data-net-send="{{$t.Id}}" hidden><span class="bi bi-nintendo-switch action-icon" aria-hidden="true"></span><span class="action-label">{{t "Send to console"}}</span></button>
 							{{- end}}
@@ -94,7 +94,7 @@
 								</ul>
 							</div>
 						</div>
-						{{- if .Auth.Enabled}}
+						{{- if or .Auth.Enabled .Demo}}
 						{{- /* what of the game is installed on the consoles of the user (see 24-net-push.js) */}}
 						<div class="net-on" data-net-on="{{$t.Id}}" hidden></div>
 						{{- end}}
@@ -444,7 +444,7 @@
 			{{- template "coverSearch" $t}}
 			{{- template "coverCrop" $t}}
 			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
-			{{- if and $t.Owned .Auth.Enabled}}{{template "netSend" $t}}{{end}}
+			{{- if and $t.Owned (or .Auth.Enabled .Demo)}}{{template "netSend" $t}}{{end}}
 			{{- if $t.CanOptimize}}{{template "titleOptimize" $t}}{{end}}
 {{- end}}
 {{- define "netSend"}}

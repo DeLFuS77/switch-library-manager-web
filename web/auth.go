@@ -1066,6 +1066,11 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 			info.Consoles = len(web.netUserConsoles(principal.Name)) > 0
 		}
 	}
+	if isDemoMode() {
+		if pairer, pairs := netPairer(r); pairs {
+			info.Consoles = len(web.netUserConsoles(pairer.Name)) > 0
+		}
+	}
 	return info
 }
 

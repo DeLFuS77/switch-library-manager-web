@@ -257,6 +257,9 @@ func (web *Web) handleNetQueueRead(w http.ResponseWriter, r *http.Request) {
 	// what each console is sent now, or was sent last if that ended lately (see netprogress.go)
 	sends := []NetSendView{}
 	if principal, ok := netPairer(r); ok {
+		if isDemoMode() {
+			web.demoNetSend(time.Now())
+		}
 		live, ended := web.netSends.views(time.Now())
 		for _, key := range web.netUserConsoles(principal.Name) {
 			found := false

@@ -85,6 +85,9 @@ func (web *Web) tasksPageData(r *http.Request) TasksPageData {
 // none of the header.
 func (web *Web) taskListData(r *http.Request) TasksPageData {
 	data := TasksPageData{Running: []tasklog.Task{}, ListVersion: web.taskLog().Version()}
+	if isDemoMode() {
+		web.demoNetSend(time.Now())
+	}
 	data.NetRunning, _ = web.netSends.views(time.Now())
 	viewer := principalFrom(r).Name
 	for i := range data.NetRunning {
