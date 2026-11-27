@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.30
+  <Changes>### 2.0.31
+- Send to nx2-flow checks games kept in parts and tells of updates and DLC on their own
+### 2.0.30
 - The publisher written in the game files can go first
 ### 2.0.29
 - Send to nx2-flow for Switch 2, NUP and .nx files split for FAT32 read as one file, and File check tells when compressed names cannot be read

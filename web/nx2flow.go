@@ -5,8 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"hash/crc32"
 	"image"
 	"image/jpeg"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -105,7 +108,9 @@ type nx2flowFile struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 	Size int64  `json:"size"`
-	path string
+	// an update or a DLC in a NUP of its own: nx2-flow only uses the ones inside the NUP of the game
+	Loose bool `json:"loose,omitempty"`
+	path  string
 	// the title ID the cover is named by, lower case
 	titleId string
 }
@@ -235,7 +240,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	if game.File.Metadata != nil && game.File.Metadata.TitleId != "" {
 		application = strings.ToLower(game.File.Metadata.TitleId)
 	}
-	add := func(info db.ExtendedFileInfo) {
+	add := func(info db.ExtendedFileInfo, loose bool) {
 		info = compressedSinceScan(info)
 		full := web.moves.resolve(filepath.Join(info.BaseFolder, info.FileName))
 		if !switchfs.IsNupFile(full) || seen[full] || web.linksIntoData(full) {
@@ -246,11 +251,11 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 			return
 		}
 		seen[full] = true
-		files = append(files, nx2flowFile{Id: netFileId(full), Name: filepath.Base(full), Size: stat.Size(), path: full, titleId: application})
+		files = append(files, nx2flowFile{Id: netFileId(full), Name: filepath.Base(full), Size: stat.Size(), Loose: loose, path: full, titleId: application})
 	}
 	kept := map[string]bool{}
 	if game.BaseExist {
-		add(game.File.ExtendedInfo)
+		add(game.File.ExtendedInfo, false)
 		kept[filepath.Join(game.File.ExtendedInfo.BaseFolder, game.File.ExtendedInfo.FileName)] = true
 	}
 	updates := make([]int, 0, len(game.Updates))
@@ -259,7 +264,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	}
 	sort.Sort(sort.Reverse(sort.IntSlice(updates)))
 	for _, version := range updates {
-		add(game.Updates[version].ExtendedInfo)
+		add(game.Updates[version].ExtendedInfo, true)
 	}
 	dlcs := make([]string, 0, len(game.Dlc))
 	for id := range game.Dlc {
@@ -267,7 +272,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	}
 	sort.Strings(dlcs)
 	for _, id := range dlcs {
-		add(game.Dlc[id].ExtendedInfo)
+		add(game.Dlc[id].ExtendedInfo, true)
 	}
 	// the NUP of a game the library keeps as an NSP or XCI
 	others := []db.ExtendedFileInfo{}
@@ -278,7 +283,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	}
 	sort.Slice(others, func(i, j int) bool { return others[i].FileName < others[j].FileName })
 	for _, file := range others {
-		add(file)
+		add(file, false)
 	}
 	return files
 }
@@ -597,6 +602,22 @@ func (web *Web) runNx2flowSend(ctx context.Context, client *ttx.Client, taskId i
 	// read back from the card, which may take a while for a large file
 	web.taskLog().ProgressArg(taskId, total, total, nx2flowChecking, file.Name)
 	size, hash, err := client.Hash(ctx, target)
+	var remote *ttx.RemoteError
+	if err != nil && errors.As(err, &remote) && ctx.Err() == nil {
+		// nx2-flow keeps a file the card cannot hold whole (4 GB or more in FAT32, or bigger than
+		// split= of its menu.cfg) in parts "<name>.001", "<name>.002"…: each one is checked
+		if parts, found, perr := nx2flowCheckParts(ctx, client, target, source, stat.Size()); found {
+			if perr != nil {
+				if errors.Is(perr, ttx.ErrMismatch) {
+					web.sugarLogger.Warnf("Send to nx2-flow: %s on the card in parts: %v", file.Name, perr)
+					return &tasklog.Note{Text: NOTE_NX2FLOW_CHECK, Detail: file.Name}
+				}
+				return failed(perr)
+			}
+			web.sugarLogger.Infof("Send to nx2-flow: %s is on the card in %d parts", file.Name, parts)
+			size, hash, err = uint64(stat.Size()), sum, nil
+		}
+	}
 	if err != nil {
 		return failed(err)
 	}
@@ -743,4 +764,50 @@ func (web *Web) HandleNx2flow() {
 // check that they may download.
 func nx2flowAllowed(urlPath string) bool {
 	return urlPath == nx2flowSendPath || strings.HasPrefix(urlPath, nx2flowCancelPath)
+}
+
+// nx2flowCheckParts checks a file nx2-flow keeps in parts "<name>.001", "<name>.002"… beside
+// target: their sizes add up to the size of the file sent, and each one has the sum of its piece
+// of source. found tells whether parts are there at all; it gives how many.
+func nx2flowCheckParts(ctx context.Context, client *ttx.Client, target string, source *os.File, size int64) (parts int, found bool, err error) {
+	entries, err := client.List(ctx, path.Dir(target))
+	if err != nil {
+		return 0, false, err
+	}
+	sizes := map[string]uint64{}
+	for _, entry := range entries {
+		if !entry.Dir {
+			sizes[entry.Name] = entry.Size
+		}
+	}
+	base := path.Base(target)
+	var offset int64
+	for number := 1; ; number++ {
+		name := fmt.Sprintf("%s.%03d", base, number)
+		partSize, ok := sizes[name]
+		if !ok {
+			break
+		}
+		found = true
+		got, hash, err := client.Hash(ctx, path.Join(path.Dir(target), name))
+		if err != nil {
+			return number - 1, true, err
+		}
+		if got != partSize || offset+int64(got) > size {
+			return number - 1, true, fmt.Errorf("%w: %s is %d bytes", ttx.ErrMismatch, name, got)
+		}
+		local := crc32.NewIEEE()
+		if _, err := io.Copy(local, io.NewSectionReader(source, offset, int64(got))); err != nil {
+			return number - 1, true, err
+		}
+		if local.Sum32() != hash {
+			return number - 1, true, fmt.Errorf("%w: %s", ttx.ErrMismatch, name)
+		}
+		offset += int64(got)
+		parts = number
+	}
+	if found && offset != size {
+		return parts, true, fmt.Errorf("%w: the parts hold %d of %d bytes", ttx.ErrMismatch, offset, size)
+	}
+	return parts, found, nil
 }

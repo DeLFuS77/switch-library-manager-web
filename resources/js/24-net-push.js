@@ -542,6 +542,12 @@ function initNetSend() {
 			title.querySelector('.bi').className = 'bi ' + (chosen === 'nx2flow' ? 'bi-router' : 'bi-nintendo-switch') + ' me-2';
 		}
 	};
+	// an update or a DLC chosen on its own: nx2-flow only uses the ones inside the NUP of the game
+	const showLoose = () => {
+		const chosen = form.querySelector('[data-nx2flow-files] input:checked');
+		const file = chosen && nx2.files.find(each => each.id === chosen.value);
+		form.querySelector('[data-nx2flow-loose]').hidden = !(file && file.loose);
+	};
 	const fillNx2 = () => {
 		const choice = form.querySelector('[data-net-target-choice]');
 		choice.hidden = !(canNxdock && canNx2);
@@ -580,8 +586,10 @@ function initNetSend() {
 			size.textContent = formatSize(file.size);
 			label.append(name, size);
 			item.append(radio, label);
+			radio.onchange = showLoose;
 			return item;
 		}));
+		showLoose();
 		showTarget();
 	};
 
