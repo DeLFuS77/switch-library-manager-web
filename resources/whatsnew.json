@@ -1,4 +1,50 @@
 {
+  "2.0.31": {
+    "en": [
+      "Send to nx2-flow says that an update or a DLC in a NUP of its own is not used by nx2-flow, which only takes the ones inside the NUP of the game.",
+      "Send to nx2-flow checks a game the card keeps in parts (FAT32) part by part, instead of ending with an error."
+    ],
+    "es": [
+      "Enviar a nx2-flow avisa de que una actualización o un DLC en un NUP aparte no lo usa nx2-flow, que solo toma los que van dentro del NUP del juego.",
+      "Enviar a nx2-flow comprueba trozo a trozo un juego que la tarjeta guarda en trozos (FAT32), en vez de acabar con un error."
+    ],
+    "de": [
+      "An nx2-flow senden weist darauf hin, dass nx2-flow ein Update oder DLC in einem eigenen NUP nicht nutzt, sondern nur die im NUP des Spiels.",
+      "An nx2-flow senden prüft ein Spiel, das die Karte in Teilen speichert (FAT32), Teil für Teil, statt mit einem Fehler zu enden."
+    ],
+    "fr": [
+      "Envoyer à nx2-flow signale qu’une mise à jour ou un DLC dans son propre NUP n’est pas utilisé par nx2-flow, qui ne prend que ceux du NUP du jeu.",
+      "Envoyer à nx2-flow vérifie partie par partie un jeu que la carte garde en parties (FAT32), au lieu de finir par une erreur."
+    ],
+    "it": [
+      "Invia a nx2-flow avvisa che un aggiornamento o un DLC in un NUP a parte non viene usato da nx2-flow, che prende solo quelli dentro il NUP del gioco.",
+      "Invia a nx2-flow controlla parte per parte un gioco che la scheda tiene in parti (FAT32), invece di finire con un errore."
+    ],
+    "pt": [
+      "Enviar para o nx2-flow avisa que uma atualização ou um DLC num NUP à parte não é usado pelo nx2-flow, que só usa os que vão dentro do NUP do jogo.",
+      "Enviar para o nx2-flow verifica parte a parte um jogo que o cartão guarda em partes (FAT32), em vez de acabar com um erro."
+    ],
+    "nl": [
+      "Naar nx2-flow sturen meldt dat nx2-flow een update of DLC in een eigen NUP niet gebruikt, alleen die in de NUP van het spel.",
+      "Naar nx2-flow sturen controleert een spel dat de kaart in delen bewaart (FAT32) deel voor deel, in plaats van met een fout te eindigen."
+    ],
+    "ru": [
+      "Отправка в nx2-flow предупреждает, что обновление или DLC в отдельном NUP nx2-flow не использует: он берёт только те, что внутри NUP игры.",
+      "Отправка в nx2-flow проверяет игру, которую карта хранит частями (FAT32), часть за частью, а не завершается ошибкой."
+    ],
+    "ja": [
+      "nx2-flowへ送信で、別の NUP に入ったアップデートや DLC は nx2-flow が使わないことを知らせます（使うのはゲームの NUP 内のものだけです）。",
+      "nx2-flowへ送信で、カードが分割して保存するゲーム（FAT32）を分割ごとに確認し、エラーで終わらなくなりました。"
+    ],
+    "ko": [
+      "nx2-flow로 보내기가 별도 NUP에 든 업데이트나 DLC는 nx2-flow가 사용하지 않는다고 알려 줍니다. 게임 NUP 안에 있는 것만 사용합니다.",
+      "nx2-flow로 보내기가 카드에 분할 저장된 게임(FAT32)을 조각별로 확인하며, 더 이상 오류로 끝나지 않습니다."
+    ],
+    "zh": [
+      "发送到 nx2-flow 会提示：单独 NUP 中的更新或 DLC 不会被 nx2-flow 使用，它只使用游戏 NUP 中的。",
+      "发送到 nx2-flow 会逐段校验存储卡分段保存（FAT32）的游戏，而不再以错误结束。"
+    ]
+  },
   "2.0.30": {
     "en": [
       "Settings › Library can show the publisher written in the files of each game, the one of its region, instead of the one of the titles database."
