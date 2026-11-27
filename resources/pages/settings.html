@@ -98,6 +98,11 @@
 								<div class="form-text switch2-hint"><span class="bi bi-info-circle" aria-hidden="true"></span><span>{{if eq .Switch2Games 1}}{{t "There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing."}}{{else}}{{t "There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing." .Switch2Games}}{{end}}</span></div>
 								{{- end}}
 							</div>
+							<div class="form-check form-switch mt-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="nacp_publisher_first" name="nacp_publisher_first" value="true" aria-describedby="nacpPublisherFirstHelp"{{if .Settings.NacpPublisherFirst}} checked{{end}}>
+								<label class="form-check-label" for="nacp_publisher_first">{{t "Publisher from the game files first"}}</label>
+								<div class="form-text" id="nacpPublisherFirstHelp">{{t "With your keys, a game shows the publisher written in its own files, the one of its region, instead of the one of the titles database. The Publisher filter and the statistics follow it."}}</div>
+							</div>
 							<div class="covers-box mt-4">
 								<div class="flex-grow-1">
 									<div class="fw-semibold help-name"><span class="bi bi-images me-2" aria-hidden="true"></span>{{t "Covers"}}</div>
