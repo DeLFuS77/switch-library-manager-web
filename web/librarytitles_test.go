@@ -216,3 +216,45 @@ func TestTitleLanguageAskedDuringASyncIsAddedAfter(t *testing.T) {
 		t.Fatal("added once it ended")
 	}
 }
+
+// With "Publisher from the game files first" on, a game of the library shows the publisher its
+// own files give instead of the one of the database; a game whose files give none keeps the one
+// of the database; turned off, the one of the database comes back, also from titles made before
+// (#211). The database itself is left as it is.
+func TestNacpPublisherFirst(t *testing.T) {
+	web := newTestWeb(t)
+	card := &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000030000", Name: "Card Quest", Publisher: "Big Publisher"}}
+	plain := &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000040000", Name: "Plain Game", Publisher: "Plain Publisher"}}
+	switchDB := &db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{"0100000000030": card, "0100000000040": plain}}
+	game := func(id string, name string, publisher string) *db.SwitchGameFiles {
+		return &db.SwitchGameFiles{BaseExist: true, File: db.SwitchFileInfo{Metadata: &switchfs.ContentMetaAttributes{TitleId: id,
+			Ncap: &switchfs.Nacp{TitleName: map[string]switchfs.NacpTitle{"AmericanEnglish": {Title: name, Publisher: publisher}}}}}}
+	}
+	localDB := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0100000000030": game("0100000000030000", "Card Quest", "Nintendo"),
+		"0100000000040": game("0100000000040000", "Plain Game", ""),
+	}}
+
+	if off := web.withLibraryTitles(switchDB, localDB); off.TitlesMap["0100000000030"].Attributes.Publisher != "Big Publisher" {
+		t.Fatal("off: the publisher of the database")
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.NacpPublisherFirst = true })
+	on := web.withLibraryTitles(switchDB, localDB)
+	if got := on.TitlesMap["0100000000030"].Attributes.Publisher; got != "Nintendo" {
+		t.Fatalf("on: the publisher of the files, got %q", got)
+	}
+	if on.TitlesMap["0100000000040"] != plain {
+		t.Fatal("a game whose files give no publisher keeps its title")
+	}
+	if card.Attributes.Publisher != "Big Publisher" || switchDB.TitlesMap["0100000000030"] != card {
+		t.Fatal("the database is left as it is")
+	}
+	if again := web.withLibraryTitles(on, localDB); again.TitlesMap["0100000000030"].Attributes.Publisher != "Nintendo" {
+		t.Fatal("made again with it on")
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.NacpPublisherFirst = false })
+	back := web.withLibraryTitles(on, localDB)
+	if title := back.TitlesMap["0100000000030"]; title.Attributes.Publisher != "Big Publisher" || title.DatabasePublisher != nil {
+		t.Fatalf("turned off: the publisher of the database again, got %+v", title)
+	}
+}
