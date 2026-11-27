@@ -108,7 +108,9 @@ type nx2flowFile struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 	Size int64  `json:"size"`
-	path string
+	// an update or a DLC in a NUP of its own: nx2-flow only uses the ones inside the NUP of the game
+	Loose bool `json:"loose,omitempty"`
+	path  string
 	// the title ID the cover is named by, lower case
 	titleId string
 }
@@ -238,7 +240,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	if game.File.Metadata != nil && game.File.Metadata.TitleId != "" {
 		application = strings.ToLower(game.File.Metadata.TitleId)
 	}
-	add := func(info db.ExtendedFileInfo) {
+	add := func(info db.ExtendedFileInfo, loose bool) {
 		info = compressedSinceScan(info)
 		full := web.moves.resolve(filepath.Join(info.BaseFolder, info.FileName))
 		if !switchfs.IsNupFile(full) || seen[full] || web.linksIntoData(full) {
@@ -249,11 +251,11 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 			return
 		}
 		seen[full] = true
-		files = append(files, nx2flowFile{Id: netFileId(full), Name: filepath.Base(full), Size: stat.Size(), path: full, titleId: application})
+		files = append(files, nx2flowFile{Id: netFileId(full), Name: filepath.Base(full), Size: stat.Size(), Loose: loose, path: full, titleId: application})
 	}
 	kept := map[string]bool{}
 	if game.BaseExist {
-		add(game.File.ExtendedInfo)
+		add(game.File.ExtendedInfo, false)
 		kept[filepath.Join(game.File.ExtendedInfo.BaseFolder, game.File.ExtendedInfo.FileName)] = true
 	}
 	updates := make([]int, 0, len(game.Updates))
@@ -262,7 +264,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	}
 	sort.Sort(sort.Reverse(sort.IntSlice(updates)))
 	for _, version := range updates {
-		add(game.Updates[version].ExtendedInfo)
+		add(game.Updates[version].ExtendedInfo, true)
 	}
 	dlcs := make([]string, 0, len(game.Dlc))
 	for id := range game.Dlc {
@@ -270,7 +272,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	}
 	sort.Strings(dlcs)
 	for _, id := range dlcs {
-		add(game.Dlc[id].ExtendedInfo)
+		add(game.Dlc[id].ExtendedInfo, true)
 	}
 	// the NUP of a game the library keeps as an NSP or XCI
 	others := []db.ExtendedFileInfo{}
@@ -281,7 +283,7 @@ func (web *Web) nx2flowFiles(titleId string) []nx2flowFile {
 	}
 	sort.Slice(others, func(i, j int) bool { return others[i].FileName < others[j].FileName })
 	for _, file := range others {
-		add(file)
+		add(file, false)
 	}
 	return files
 }
