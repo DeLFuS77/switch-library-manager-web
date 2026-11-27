@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -231,7 +232,58 @@ func nacpPublisher(local *db.SwitchGameFiles) string {
 // the user changed of the games by hand, which wins over all of it (see withTitleOverrides); the
 // database itself is left as it is, as it is shared.
 func (web *Web) withLibraryTitles(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB) *db.SwitchTitlesDB {
-	return web.withTitleOverrides(web.addLibraryTitles(web.withSwitch2Details(switchDB), localDB))
+	return web.withTitleOverrides(web.withNacpPublishers(web.addLibraryTitles(web.withSwitch2Details(switchDB), localDB), localDB))
+}
+
+// withNacpPublishers is the titles database with the publisher each game of the library gives in
+// its own files, instead of the one of the database, when Settings asks for it: the publisher of
+// the region of the copy, as Nintendo for a game another company published in Japan (#211). A
+// game whose files give none keeps the one of the database. The database itself is left as it is.
+func (web *Web) withNacpPublishers(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB) *db.SwitchTitlesDB {
+	if switchDB == nil {
+		return nil
+	}
+	on := localDB != nil && settings.ReadSettings(web.dataFolder).NacpPublisherFirst
+	changes := map[string]*db.SwitchTitle{}
+	for prefix, title := range switchDB.TitlesMap {
+		if title == nil {
+			continue
+		}
+		// the titles are made again from the ones of before: first the publisher of the database
+		base := title
+		if title.DatabasePublisher != nil {
+			restored := *title
+			restored.Attributes.Publisher, restored.DatabasePublisher = *title.DatabasePublisher, nil
+			base = &restored
+		}
+		wanted := base
+		if on && !base.FromLibrary {
+			if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
+				if publisher := nacpPublisher(local); publisher != "" && publisher != strings.TrimSpace(base.Attributes.Publisher) {
+					changed := *base
+					original := base.Attributes.Publisher
+					changed.Attributes.Publisher, changed.DatabasePublisher = publisher, &original
+					wanted = &changed
+				}
+			}
+		}
+		if wanted != title {
+			changes[prefix] = wanted
+		}
+	}
+	if len(changes) == 0 {
+		return switchDB
+	}
+	titles := make(map[string]*db.SwitchTitle, len(switchDB.TitlesMap))
+	for prefix, title := range switchDB.TitlesMap {
+		titles[prefix] = title
+	}
+	for prefix, title := range changes {
+		titles[prefix] = title
+	}
+	result := *switchDB
+	result.TitlesMap = titles
+	return &result
 }
 
 // addLibraryTitles is the titles database with a title for each game of the library it does not

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.30
+
+### Improvements
+
+- Settings › Library › Publisher from the game files first: with keys, a game shows the publisher of its own files, the one of its region, and the Publisher filter and the statistics follow it. Thanks to @iManu900809 for the idea (#211)
+
 ## 2.0.29
 
 ### Improvements

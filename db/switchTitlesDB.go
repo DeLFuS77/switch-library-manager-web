@@ -51,6 +51,9 @@ type SwitchTitle struct {
 	// a game of the Switch 2 alone titles.json does not list, from the title list of switchbrew
 	// (titles.switch2.json): its name and regions, and what IGDB tells of it
 	FromSwitch2List bool `json:",omitempty"`
+	// the publisher of the database, when the one of the game's own files took its place (see
+	// withNacpPublishers in web): to give it back when Settings no longer asks for it
+	DatabasePublisher *string `json:"-"`
 }
 
 type SwitchTitlesDB struct {

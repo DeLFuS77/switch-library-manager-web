@@ -29,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "2.0.29"
+	SLM_WEB_VERSION        = "2.0.30"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
@@ -321,8 +321,11 @@ type AppSettings struct {
 	// Space page suggests to keep
 	CountRegionsOnce bool `json:"count_regions_once,omitempty"`
 	// the user has a Nintendo Switch 2: its own games are missing too, and counted with the others
-	HasSwitch2   bool `json:"has_switch2,omitempty"`
-	WatchFolders bool `json:"watch_folders"`
+	HasSwitch2 bool `json:"has_switch2,omitempty"`
+	// the publisher of a game comes from its own control data when it gives one, instead of the
+	// titles database (#211)
+	NacpPublisherFirst bool `json:"nacp_publisher_first,omitempty"`
+	WatchFolders       bool `json:"watch_folders"`
 	// the country whose copy is the main one of a game of several regions, unless one is chosen
 	// on the page of the game; empty for the copy suggested
 	PreferredRegion string `json:"preferred_region,omitempty"`
