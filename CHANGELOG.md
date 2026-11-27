@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Send to nx2-flow: a game nx2-flow keeps in parts on the card (FAT32, or a part size set in its settings) is checked part by part, instead of ending with an error
+
 ## 2.0.30
 
 ### Improvements

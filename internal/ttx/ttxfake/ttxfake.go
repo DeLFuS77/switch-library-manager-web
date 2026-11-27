@@ -8,6 +8,7 @@ package ttxfake
 import (
 	"bufio"
 	"encoding/binary"
+	"fmt"
 	"hash/crc32"
 	"io"
 	"net"
@@ -32,6 +33,9 @@ type Receiver struct {
 	OnData func(path string, written int64)
 	// a wrong sum in the reply of a PUT, for the tests of the check
 	WrongPutSum bool
+	// above 0, a file written bigger than it is kept in parts "<name>.001", "<name>.002"… of
+	// that size, the whole file not, as nx2-flow does on a card in FAT32 or with split= set
+	SplitAt int64
 
 	listener net.Listener
 	group    sync.WaitGroup
@@ -286,7 +290,7 @@ func (r *Receiver) put(s *session, path string, shown string) bool {
 	}
 	size := int64(binary.LittleEndian.Uint64(raw))
 	r.mutex.Lock()
-	onData, wrongSum := r.OnData, r.WrongPutSum
+	onData, wrongSum, splitAt := r.OnData, r.WrongPutSum, r.SplitAt
 	r.mutex.Unlock()
 	os.MkdirAll(filepath.Dir(path), 0755)
 	part := path + ttx.PartSuffix
@@ -343,6 +347,11 @@ func (r *Receiver) put(s *session, path string, shown string) bool {
 		os.Remove(part)
 		return s.refuse("rename: "+err.Error()) == nil
 	}
+	if splitAt > 0 && size > splitAt {
+		if err := splitFile(path, splitAt); err != nil {
+			return s.refuse("split: "+err.Error()) == nil
+		}
+	}
 	r.mutex.Lock()
 	r.puts = append(r.puts, shown)
 	r.mutex.Unlock()
@@ -398,4 +407,34 @@ func (r *Receiver) remove(s *session, path string, shown string) bool {
 		return false
 	}
 	return s.writer.Flush() == nil
+}
+
+// splitFile cuts a file into parts "<name>.001", "<name>.002"… of size bytes (the last one
+// smaller) and removes it.
+func splitFile(path string, size int64) error {
+	whole, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	for number := 1; ; number++ {
+		part, err := os.Create(fmt.Sprintf("%s.%03d", path, number))
+		if err != nil {
+			whole.Close()
+			return err
+		}
+		n, err := io.CopyN(part, whole, size)
+		part.Close()
+		if n == 0 {
+			os.Remove(part.Name())
+		}
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			whole.Close()
+			return err
+		}
+	}
+	whole.Close()
+	return os.Remove(path)
 }

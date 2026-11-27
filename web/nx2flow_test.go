@@ -399,3 +399,34 @@ func TestNx2flowTextsAreTranslated(t *testing.T) {
 		t.Error("the kind of the task has no name")
 	}
 }
+
+// A game nx2-flow keeps in parts on the card (FAT32, or split= in its menu.cfg) is checked part
+// by part, not taken for a failure because the whole file is not there.
+func TestNx2flowChecksTheParts(t *testing.T) {
+	web, bob, data, receiver := nx2flowWeb(t, 3<<20+17)
+	receiver.Set(func(r *ttxfake.Receiver) { r.SplitAt = 1 << 20 })
+	code, body, id := nx2flowSend(bob, receiver.Address())
+	if code != http.StatusAccepted || id == 0 {
+		t.Fatalf("send: %d %s", code, body)
+	}
+	task := nx2flowEnded(t, web, id)
+	if task.Status != tasklog.TASK_SUCCESS {
+		t.Fatalf("the task: %+v %+v", task, task.Error)
+	}
+	whole := filepath.Join(receiver.Root, "nx2-flow", "games", "Made Up Quest [0400000000010000][v0].nup")
+	var joined []byte
+	for number := 1; number <= 4; number++ {
+		part, err := os.ReadFile(fmt.Sprintf("%s.%03d", whole, number))
+		if err != nil {
+			t.Fatal(err)
+		}
+		joined = append(joined, part...)
+	}
+	if !bytes.Equal(joined, data) {
+		t.Fatal("the parts are not the game")
+	}
+	// the whole file, then each of the four parts
+	if receiver.Count("HASH") != 5 {
+		t.Fatalf("checked on the card: %d", receiver.Count("HASH"))
+	}
+}
