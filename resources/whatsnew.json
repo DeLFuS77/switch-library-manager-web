@@ -1,4 +1,39 @@
 {
+  "2.0.30": {
+    "en": [
+      "Settings › Library can show the publisher written in the files of each game, the one of its region, instead of the one of the titles database."
+    ],
+    "es": [
+      "Ajustes › Biblioteca puede mostrar la editora escrita en los archivos de cada juego, la de su región, en vez de la de la base de datos de títulos."
+    ],
+    "de": [
+      "Einstellungen › Bibliothek kann den Publisher aus den Dateien jedes Spiels zeigen, den seiner Region, statt den der Titeldatenbank."
+    ],
+    "fr": [
+      "Paramètres › Bibliothèque peut afficher l’éditeur écrit dans les fichiers de chaque jeu, celui de sa région, au lieu de celui de la base de titres."
+    ],
+    "it": [
+      "Impostazioni › Libreria può mostrare l’editore scritto nei file di ogni gioco, quello della sua regione, invece di quello del database dei titoli."
+    ],
+    "pt": [
+      "Definições › Biblioteca pode mostrar a editora escrita nos ficheiros de cada jogo, a da sua região, em vez da da base de dados de títulos."
+    ],
+    "nl": [
+      "Instellingen › Bibliotheek kan de uitgever uit de bestanden van elk spel tonen, die van zijn regio, in plaats van die uit de titeldatabase."
+    ],
+    "ru": [
+      "Настройки › Библиотека могут показывать издателя, записанного в файлах каждой игры (издателя её региона), а не из базы названий."
+    ],
+    "ja": [
+      "設定 › ライブラリーで、タイトルデータベースのものではなく、各ゲームのファイルに書かれたその地域のパブリッシャーを表示できます。"
+    ],
+    "ko": [
+      "설정 › 라이브러리에서 타이틀 데이터베이스 대신 각 게임 파일에 적힌 해당 지역의 퍼블리셔를 표시할 수 있습니다."
+    ],
+    "zh": [
+      "设置 › 资料库可以显示每个游戏文件中写的发行商（其地区的发行商），而不是标题数据库中的。"
+    ]
+  },
   "2.0.29": {
     "en": [
       "Send to nx2-flow: a NUP and its cover go to a Switch 2 running nx2-flow over the local network.",
