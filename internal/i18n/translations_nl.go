@@ -1478,6 +1478,8 @@ func init() {
 		"Publisher":                         "Uitgever",
 		"All publishers":                    "Alle uitgevers",
 		"Find a publisher":                  "Uitgever zoeken",
+		"Choose the %v shown":               "De %v getoonde kiezen",
+		"Choose one or more":                "Kies er een of meer",
 		"Games of %v":                       "Games van %v",
 		"Put them on the card":              "Zet ze op de kaart",
 		"Puzzle":                            "Puzzel",

@@ -665,18 +665,78 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 // maxPublisher is the longest publisher a filter takes.
 const maxPublisher = 200
 
-// cleanPublisher is a publisher as a filter takes it: on one line, without spaces around and
-// not too long.
+// maxPublishers is the most publishers a filter takes at once.
+const maxPublishers = 50
+
+// publisherSeparator joins the publishers chosen together in the filter (#214): a sign that the
+// names of the publishers do not have.
+const publisherSeparator = "|"
+
+// cleanPublisher is the publishers as a filter takes them: each one on one line, without spaces
+// around and not too long, without the same one twice (whatever the case of its letters), joined
+// by publisherSeparator.
 func cleanPublisher(publisher string) string {
-	publisher = strings.Join(strings.Fields(publisher), " ")
-	if runes := []rune(publisher); len(runes) > maxPublisher {
-		publisher = string(runes[:maxPublisher])
-	}
-	return publisher
+	return strings.Join(splitPublishers(publisher), publisherSeparator)
 }
 
-// publisherMatches tells whether a game of a publisher is taken by the publisher chosen ("" for
-// any), whatever the case of its letters.
+// splitPublishers is the publishers chosen in a filter, cleaned (see cleanPublisher).
+func splitPublishers(publisher string) []string {
+	var chosen []string
+	seen := map[string]bool{}
+	for _, name := range strings.Split(publisher, publisherSeparator) {
+		name = strings.Join(strings.Fields(name), " ")
+		if runes := []rune(name); len(runes) > maxPublisher {
+			name = string(runes[:maxPublisher])
+		}
+		key := strings.ToLower(name)
+		if name == "" || seen[key] || len(chosen) == maxPublishers {
+			continue
+		}
+		seen[key] = true
+		chosen = append(chosen, name)
+	}
+	return chosen
+}
+
+// publisherMatches tells whether a game of a publisher is taken by the publishers chosen ("" for
+// any): by one of them, whatever the case of its letters.
 func publisherMatches(publisher string, chosen string) bool {
-	return chosen == "" || strings.EqualFold(strings.Join(strings.Fields(publisher), " "), chosen)
+	if chosen == "" {
+		return true
+	}
+	publisher = strings.Join(strings.Fields(publisher), " ")
+	for _, name := range strings.Split(chosen, publisherSeparator) {
+		if strings.EqualFold(publisher, name) {
+			return true
+		}
+	}
+	return false
+}
+
+// Publishers is the publishers chosen in the filter, one by one.
+func (f *TitleItemFilter) Publishers() []string {
+	return splitPublishers(f.Publisher)
+}
+
+// PublisherChosen reports whether a publisher is one of the publishers chosen in the filter.
+func (f *TitleItemFilter) PublisherChosen(name string) bool {
+	return f.Publisher != "" && publisherMatches(name, f.Publisher)
+}
+
+// PublisherToggled is the publishers of the filter with a publisher added, or taken away when it
+// was chosen: what a click on that publisher leaves.
+func (f *TitleItemFilter) PublisherToggled(name string) string {
+	var chosen []string
+	found := false
+	for _, publisher := range f.Publishers() {
+		if publisherMatches(name, publisher) {
+			found = true
+			continue
+		}
+		chosen = append(chosen, publisher)
+	}
+	if !found {
+		chosen = append(chosen, name)
+	}
+	return cleanPublisher(strings.Join(chosen, publisherSeparator))
 }

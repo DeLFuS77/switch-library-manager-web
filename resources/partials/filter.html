@@ -282,27 +282,29 @@
 								</section>
 								{{- end}}
 								{{- if $publishers}}
-								{{- $open := false}}{{range $i, $p := $fc.Publishers}}{{if and (ge $i 8) (eq $f.Publisher $p.Name)}}{{$open = true}}{{end}}{{end}}
-								<section class="filter-group">
+								{{- $open := false}}{{range $i, $p := $fc.Publishers}}{{if and (ge $i 8) ($f.PublisherChosen $p.Name)}}{{$open = true}}{{end}}{{end}}
+								<section class="filter-group" data-publisher-group data-publisher-base="{{filterUrl $f "publisher" ""}}" data-publisher-chosen="{{$f.Publisher}}">
 									<h4 class="filter-group-title"><span class="bi bi-building" aria-hidden="true"></span>{{t "Publisher"}}</h4>
+									<p class="form-text mt-0 mb-1">{{t "Choose one or more"}}</p>
 									<div class="filter-choices">
 										<a class="filter-choice{{if not $f.Publisher}} active{{end}}" href="{{filterUrl $f "publisher" ""}}">{{t "All publishers"}}</a>
 										{{- range $i, $p := $fc.Publishers}}{{if lt $i 8}}
-										<a class="filter-choice{{if eq $f.Publisher $p.Name}} active{{end}}" href="{{filterUrl $f "publisher" $p.Name}}">{{$p.Name}} <span class="filter-count">{{num $p.Count}}</span></a>
+										<a class="filter-choice{{if $f.PublisherChosen $p.Name}} active{{end}}" href="{{filterUrl $f "publisher" ($f.PublisherToggled $p.Name)}}" data-publisher="{{$p.Name}}"{{if $f.PublisherChosen $p.Name}} aria-current="true"{{end}}>{{$p.Name}} <span class="filter-count">{{num $p.Count}}</span></a>
 										{{- end}}{{end}}
-										{{- if and $f.Publisher (not $fc.Publishers)}}
-										<a class="filter-choice active" href="{{filterUrl $f "publisher" $f.Publisher}}">{{$f.Publisher}}</a>
-										{{- end}}
+										{{- if not $fc.Publishers}}{{range $f.Publishers}}
+										<a class="filter-choice active" href="{{filterUrl $f "publisher" ($f.PublisherToggled .)}}" aria-current="true">{{.}}</a>
+										{{- end}}{{end}}
 									</div>
 									{{- if gt (len $fc.Publishers) 8}}
 									<details class="filter-more"{{if $open}} open{{end}}>
 										<summary>{{t "Show %v more" (sub (len $fc.Publishers) 8)}}<span class="bi bi-chevron-down" aria-hidden="true"></span></summary>
 										{{- if gt (len $fc.Publishers) 20}}
 										<input type="search" class="form-control form-control-sm filter-find" placeholder="{{t "Find a publisher"}}" aria-label="{{t "Find a publisher"}}" autocomplete="off" data-filter-find>
+										<button type="button" class="btn btn-sm btn-outline-primary filter-find-all" data-filter-find-all hidden></button>
 										{{- end}}
 										<div class="filter-choices">
 											{{- range $i, $p := $fc.Publishers}}{{if ge $i 8}}
-											<a class="filter-choice{{if eq $f.Publisher $p.Name}} active{{end}}" href="{{filterUrl $f "publisher" $p.Name}}">{{$p.Name}} <span class="filter-count">{{num $p.Count}}</span></a>
+											<a class="filter-choice{{if $f.PublisherChosen $p.Name}} active{{end}}" href="{{filterUrl $f "publisher" ($f.PublisherToggled $p.Name)}}" data-publisher="{{$p.Name}}"{{if $f.PublisherChosen $p.Name}} aria-current="true"{{end}}>{{$p.Name}} <span class="filter-count">{{num $p.Count}}</span></a>
 											{{- end}}{{end}}
 										</div>
 									</details>
@@ -377,7 +379,7 @@
 				{{- with $f.Format}}<a class="active-filter" href="{{filterUrl $f "format" ""}}"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Emulators}}<a class="active-filter" href="{{filterUrl $f "emulators" ""}}"><span class="bi bi-display" aria-hidden="true"></span>{{if eq . "as_is"}}{{t "Emulators: as it is"}}{{else}}{{t "Emulators: decompress it first"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Genre}}<a class="active-filter" href="{{filterUrl $f "genre" ""}}"><span class="bi bi-tags" aria-hidden="true"></span>{{t .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				{{- with $f.Publisher}}<a class="active-filter" href="{{filterUrl $f "publisher" ""}}"><span class="bi bi-building" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- range $f.Publishers}}<a class="active-filter" href="{{filterUrl $f "publisher" ($f.PublisherToggled .)}}"><span class="bi bi-building" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Players}}<a class="active-filter" href="{{filterUrl $f "players" ""}}"><span class="bi bi-people" aria-hidden="true"></span>{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.GameLanguage}}<a class="active-filter" href="{{filterUrl $f "languages" ""}}"><span class="bi bi-translate" aria-hidden="true"></span>{{t (gameLanguage .)}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Score}}<a class="active-filter" href="{{filterUrl $f "score" ""}}"><span class="bi bi-award" aria-hidden="true"></span>{{t "Score of %v or more" .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}

@@ -1478,6 +1478,8 @@ func init() {
 		"Publisher":                         "パブリッシャー",
 		"All publishers":                    "すべてのパブリッシャー",
 		"Find a publisher":                  "パブリッシャーを検索",
+		"Choose the %v shown":               "表示中の%v件を選択",
+		"Choose one or more":                "1つ以上選択できます",
 		"Games of %v":                       "%v のゲーム",
 		"Put them on the card":              "カードに入れる",
 		"Puzzle":                            "パズル",
