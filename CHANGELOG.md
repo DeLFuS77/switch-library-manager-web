@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.32
+
+### Improvements
+
+- Library filters: several publishers can be chosen at once, and the box to find a publisher chooses all the ones it finds at once. Thanks to @iManu900809 for the idea (#214)
+
 ## 2.0.31
 
 ### Improvements

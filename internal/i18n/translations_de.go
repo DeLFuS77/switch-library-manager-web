@@ -1559,6 +1559,8 @@ func init() {
 		"Publisher":                  "Publisher",
 		"All publishers":             "Alle Publisher",
 		"Find a publisher":           "Publisher suchen",
+		"Choose the %v shown":        "Die %v angezeigten wählen",
+		"Choose one or more":         "Einen oder mehrere wählen",
 		"Games of %v":                "Spiele von %v",
 		"Quick, saves a bit less":    "Schnell, spart etwas weniger",
 		"Read only":                  "Nur lesen",

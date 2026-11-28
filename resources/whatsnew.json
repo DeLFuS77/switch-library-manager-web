@@ -1,4 +1,39 @@
 {
+  "2.0.32": {
+    "en": [
+      "Several publishers can be chosen at once in the Publisher filter."
+    ],
+    "es": [
+      "En el filtro Editora se pueden elegir varias a la vez."
+    ],
+    "de": [
+      "Im Filter Publisher lassen sich mehrere auf einmal wählen."
+    ],
+    "fr": [
+      "Le filtre Éditeur permet de choisir plusieurs éditeurs à la fois."
+    ],
+    "it": [
+      "Nel filtro Publisher se ne possono scegliere diversi insieme."
+    ],
+    "pt": [
+      "No filtro Publicadora podem escolher-se várias de uma vez."
+    ],
+    "nl": [
+      "In het filter Uitgever kun je er meerdere tegelijk kiezen."
+    ],
+    "ru": [
+      "В фильтре «Издатель» можно выбрать сразу несколько издателей."
+    ],
+    "ja": [
+      "パブリッシャーのフィルターで複数を同時に選べるようになりました。"
+    ],
+    "ko": [
+      "배급사 필터에서 여러 배급사를 한 번에 선택할 수 있습니다."
+    ],
+    "zh": [
+      "发行商筛选可以一次选择多个发行商。"
+    ]
+  },
   "2.0.31": {
     "en": [
       "Send to nx2-flow says that an update or a DLC in a NUP of its own is not used by nx2-flow, which only takes the ones inside the NUP of the game.",
