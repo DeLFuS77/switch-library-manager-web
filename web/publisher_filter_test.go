@@ -67,8 +67,56 @@ func TestPublisherFilterOfTheMissingGamesAndItsPage(t *testing.T) {
 	page := httptest.NewRecorder()
 	web.router.ServeHTTP(page, httptest.NewRequest("GET", "/missing.html?publisher=Gridline", nil))
 	body := page.Body.String()
-	if page.Code != 200 || !strings.Contains(body, "bi-building") || !strings.Contains(body, `publisher=Hollow&#43;Oak&amp;`) ||
+	if page.Code != 200 || !strings.Contains(body, "bi-building") || !strings.Contains(body, `publisher=Gridline%7CHollow&#43;Oak&amp;`) ||
 		!strings.Contains(body, "active-filter") || strings.Contains(body, "Quiet Puzzle</") {
+		t.Fatalf("the page: %d", page.Code)
+	}
+}
+
+// Several publishers are chosen at once (#214): a game of any of them is kept, each choice adds
+// its publisher or takes it away, and each one has its own tag to take it away.
+func TestPublisherFilterTakesSeveral(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	title := func(id string, name string, publisher string) *db.SwitchTitle {
+		return &db.SwitchTitle{Attributes: db.TitleAttributes{Id: id, Name: name, Region: "US", Publisher: publisher}}
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{
+		"0100000000010": title("0100000000010000", "Racing Party", "Gridline"),
+		"0100000000020": title("0100000000020000", "Quiet Puzzle", "Hollow Oak"),
+		"0100000000030": title("0100000000030000", "Puzzle Duo", "Gridline of America"),
+	}}, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}, Skipped: map[db.ExtendedFileInfo]db.SkippedFile{}})
+
+	filter := defaultFilter()
+	filter.Publisher = " gridline | Gridline of  America|GRIDLINE||"
+	filter.Normalize()
+	if filter.Publisher != "gridline|Gridline of America" || len(filter.Publishers()) != 2 || filter.SecondaryCount() != 1 {
+		t.Fatalf("the publishers cleaned: %q", filter.Publisher)
+	}
+	items, _, facets := web.getMissingGamesWithFacets(filter, "en")
+	if len(items) != 2 || len(facets.Publishers) != 3 {
+		t.Fatalf("the games of two publishers: %+v %+v", items, facets.Publishers)
+	}
+	if !filter.PublisherChosen("Gridline") || filter.PublisherChosen("Hollow Oak") ||
+		filter.PublisherToggled("Hollow Oak") != "gridline|Gridline of America|Hollow Oak" || filter.PublisherToggled("GRIDLINE") != "Gridline of America" {
+		t.Fatalf("a choice adds or takes away its publisher: %q %q", filter.PublisherToggled("Hollow Oak"), filter.PublisherToggled("GRIDLINE"))
+	}
+	many := defaultFilter()
+	for i := 0; i < maxPublishers+10; i++ {
+		many.Publisher += strings.Repeat("a", i+1) + publisherSeparator
+	}
+	many.Normalize()
+	if len(many.Publishers()) != maxPublishers {
+		t.Fatalf("too many publishers: %d", len(many.Publishers()))
+	}
+
+	web.HandleMissing()
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest("GET", "/missing.html?publisher=Gridline%7CHollow+Oak", nil))
+	body := page.Body.String()
+	if page.Code != 200 || strings.Count(body, `class="active-filter"`) != 2 || !strings.Contains(body, `href="?per_page=24&amp;publisher=Hollow&#43;Oak&amp;`) ||
+		!strings.Contains(body, `publisher=Gridline%7CHollow&#43;Oak%7CGridline&#43;of&#43;America`) || !strings.Contains(body, "Quiet Puzzle") ||
+		strings.Contains(body, "Puzzle Duo</") || !strings.Contains(body, "data-publisher-group") {
 		t.Fatalf("the page: %d", page.Code)
 	}
 }

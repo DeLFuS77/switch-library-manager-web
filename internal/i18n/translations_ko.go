@@ -1478,6 +1478,8 @@ func init() {
 		"Publisher":                         "배급사",
 		"All publishers":                    "모든 배급사",
 		"Find a publisher":                  "배급사 찾기",
+		"Choose the %v shown":               "표시된 %v개 선택",
+		"Choose one or more":                "하나 이상 선택할 수 있습니다",
 		"Games of %v":                       "%v의 게임",
 		"Put them on the card":              "카드에 넣기",
 		"Puzzle":                            "퍼즐",

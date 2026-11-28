@@ -1478,6 +1478,8 @@ func init() {
 		"Publisher":                         "Издатель",
 		"All publishers":                    "Все издатели",
 		"Find a publisher":                  "Найти издателя",
+		"Choose the %v shown":               "Выбрать показанные (%v)",
+		"Choose one or more":                "Выберите одного или нескольких",
 		"Games of %v":                       "Игры %v",
 		"Put them on the card":              "Записать на карту",
 		"Puzzle":                            "Головоломка",

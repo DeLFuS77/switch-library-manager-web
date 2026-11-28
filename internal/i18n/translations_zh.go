@@ -1478,6 +1478,8 @@ func init() {
 		"Publisher":                         "发行商",
 		"All publishers":                    "所有发行商",
 		"Find a publisher":                  "查找发行商",
+		"Choose the %v shown":               "选择显示的 %v 个",
+		"Choose one or more":                "可选择一个或多个",
 		"Games of %v":                       "%v 的游戏",
 		"Put them on the card":              "放到存储卡上",
 		"Puzzle":                            "益智",
